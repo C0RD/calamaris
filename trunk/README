@@ -22,8 +22,6 @@ Where to get it?
 ----------------
 
 The Calamaris-Home-page is located at http://Calamaris.Cord.de/ 
-(If you use an old browser which does not send a 'Host:'-Header in its request
-you have to use http://Cord.de/homepages/cord/tools/squid/calamaris/)
 
 There is also an Announcement-Mailing-list. To subscribe send mail with
 'subscribe your@mail.adr.es' in the Mail-Body to
@@ -84,6 +82,11 @@ How to use it?
 Are there known bugs or other problems?
 ---------------------------------------
 
+* I added input-file guessing to Calamaris. This is probably buggy, so i 
+  didn't made it to the default behaviour, but i will do in one of the next 
+  releases. So please try guessing, and note me if something goes wrong. 
+  (Calamaris will tell you ;-)
+
 * CONNECT-requests weren't handled correctly? anybody send me some
   logfile-lines which were interpreted wrong?
 
@@ -121,14 +124,13 @@ Are there known bugs or other problems?
   (Javier.Puche@rediris.es) asked for this), but i don't think that i should
   put this into Calamaris...
 
-* Squid and NetCache also supports some kind of 'Common Logfileformat'.  I
-  don't think that i'll put support for that into Calamaris because that
-  Common Log is missing some very important data i.e. the requesttime and the
-  hierarchie-information.  If you're still stuck with that format, i recommend
-  the 'analog'-software by Steven Turner. Other way round:  change logging to
-  'native' and convert it to 'common'. There is software for that available,
-  i.e. my shrimp.pl. This also applies for the Common-style Logfiles which
-  NetCache produces.
+* Squid and NetCache also support some kind of 'Common Logfileformat'.  I 
+  won't support that, because Common Log is missing some very important data 
+  i.e. the requesttime and the hierarchie-information. If you're still stuck 
+  with that format, i recommend the 'analog'-software by Steven Turner. Other
+  way round:  change logging to 'native' and convert it to 'common'. There is 
+  software for that available, i.e. my shrimp.pl. This also applies for the 
+  Common-style Logfiles which NetCache produces.
 
 * It is written in Perl. Yea, Perl is a great language for something like this
   (also it is the only one I'm able to write something like this in ;-).
@@ -164,6 +166,22 @@ add it to the wish-list below :-)
 * try 'use integer'. This can result in a less memory-hungry, but faster
   version of Calamaris. (idea by Gerold Meerkoetter)
 
+* add a n-level requester report. (suggested by Jarkko Saloranta <jjs@kpo.fi>)
+
+* there are many requests to add something to Calamaris that tracks down who
+  is using the Cache to get what. I won't add something like that to
+  Calamaris, because it breaks the privacy of the users. I can give these
+  people a few hints:
+
+  - If you don't trust your employees than there is something more wrong than
+  the loss of productivity.
+
+  - Squid has some nice acl-mechanisms. If you think that your employees don't
+  use the net for your organisation, don't let them use it. (You can also open
+  the net at specific times or tp specific sites, if you want.)
+
+  - read the grep-manpage...
+
 * build graphics (hope i remember who suggested this first, the mail must be
   somewhere in my work-mailbox ;-) (This is a thing for Calamaris v3, if i
   ever going to write it. there are nice gd-libs in Perl ;-)
@@ -173,9 +191,6 @@ add it to the wish-list below :-)
   if you drop me a line about it, I'll mention it below. And please please
   please don't use the name 'Calamaris' for it without asking me!
   
-* add a n-level requester report. (suggested by Jarkko Saloranta <jjs@kpo.fi>)
-
-
 Is there anything else?
 -----------------------
 
@@ -213,4 +228,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.22 1999-09-25 09:47:17 cord Exp $
+$Id: README,v 2.23 2000-05-13 19:01:07 cord Exp $
