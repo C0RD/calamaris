@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 2.6 1998-10-12 18:41:17 cord Exp $
+# $Id: calamaris.pl,v 2.7 1998-10-12 19:26:46 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Log-files
 #
@@ -66,7 +66,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 2.6 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 2.7 $, Copyright (C) 1997, 1998 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -383,6 +383,21 @@ if ($opt_i) {
 	 $perf_hier_direct_size{$y}, $perf_hier_direct_time{$y},
 	 $perf_hier_sibling_size{$y}, $perf_hier_sibling_time{$y},
 	 $perf_hier_parent_size{$y}, $perf_hier_parent_time{$y}) = @cache;
+# This is for a stupid bug I brought in... it should save older Cache-Files,
+# and put them in so that we can work with them... I'll remove it in a
+# later release...
+      } elsif ($x eq U and $#cache == 12) {
+	$y = shift(@cache);
+	($perf_counter{$y}, $perf_size{$y}, $perf_time{$y},
+	 $perf_tcp_hit_size{$y}, $perf_tcp_miss_size{$y},
+	 $perf_tcp_miss_time{$y}, $perf_hier_direct_size{$y},
+	 $perf_hier_direct_time{$y}, $perf_hier_sibling_size{$y},
+	 $perf_hier_sibling_time{$y}, $perf_hier_parent_size{$y},
+	 $perf_hier_parent_time{$y}) = @cache;
+	# stupid, yes...
+	# change this if you like, i don't know what to set here.
+	$perf_tcp_hit_time{$y} = 99999; 
+# End of stupid bug-workaround
       } else {
 	warn("can't parse cache-line: \"$x @cache\"\n");
       }
@@ -1112,8 +1127,8 @@ if ($tcp_miss == 0) {
   outseperator();
   outline(DIRECT, $hier_direct, 100 * $hier_direct / $hier, $hier_direct_size
 	  / 1024, 100 * $hier_direct_size / $hier_size, $hier_direct_time /
-	  (1000 * $hier_direct), 1000 * $hier_direct_size / (1024 *
-	  $hier_direct_time)) unless $hier_direct == 0;
+	  (1000 * $hier_direct), 1000 * $hier_direct_size /
+	  (1024 * $hier_direct_time)) unless $hier_direct == 0;
   foreach $neighbor (sort {$hier_neighbor{$b} <=> $hier_neighbor{$a}}
 		     keys(%hier_neighbor)) {
     writecache(L, $neighbor, $hier_neighbor{$neighbor},
@@ -1430,23 +1445,25 @@ if ($opt_P) {
 	       $perf_hier_sibling_time{$perf_date},
 	       $perf_hier_parent_size{$perf_date},
 	       $perf_hier_parent_time{$perf_date});
+
     outline(substr(convertdate($perf_date),0,15), $perf_counter{$perf_date},
 	    $perf_size{$perf_date} / (1024 * 1024),
 	    removezerotimes($perf_size{$perf_date}, $perf_time{$perf_date}),
 	    removezerotimes($perf_tcp_hit_size{$perf_date},
-	    $perf_tcp_hit_time{$perf_date}),
+			    $perf_tcp_hit_time{$perf_date}),
 	    removezerotimes($perf_tcp_miss_size{$perf_date},
-	    $perf_tcp_miss_time{$perf_date}),
+			    $perf_tcp_miss_time{$perf_date}),
 	    removezerotimes($perf_hier_direct_size{$perf_date},
-	    $perf_hier_direct_time{$perf_date}),
+			    $perf_hier_direct_time{$perf_date}),
 	    removezerotimes($perf_hier_sibling_size{$perf_date},
-	    $perf_hier_sibling_time{$perf_date}),
+			    $perf_hier_sibling_time{$perf_date}),
 	    removezerotimes($perf_hier_parent_size{$perf_date},
-	    $perf_hier_parent_time{$perf_date}));
+			    $perf_hier_parent_time{$perf_date}));
   }
   outseperator();
-  outline('overall', $counter, $size / (1024 * 1024), removezerotimes($size,
-	  $time), removezerotimes($tcp_hit_size, $tcp_hit_time),
+  outline('overall', $counter, $size / (1024 * 1024),
+	  removezerotimes($size, $time),
+	  removezerotimes($tcp_hit_size, $tcp_hit_time),
 	  removezerotimes($tcp_miss_size, $tcp_miss_time),
 	  removezerotimes($hier_direct_size, $hier_direct_time),
 	  removezerotimes($hier_sibling_size, $hier_sibling_time),
