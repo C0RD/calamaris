@@ -1,4 +1,4 @@
-.TH CALAMARIS 1 "$Date: 2002-01-18 18:29:26 $" Handmade "Calamaris Manual"
+.TH CALAMARIS 1 "$Date: 2002-01-25 21:25:11 $" Handmade "Calamaris Manual"
 
 .SH NAME
 calamaris \- generate statistic out of log files from Proxy-Cache-Servers
@@ -116,13 +116,21 @@ expects native logfile with enabled derived from
 .B Squid V1.1.alpha1-V1.1.beta25
 with
 .I log_mime_hdrs
-enabled. (T
-his only enables parsing of these kind of logfile, the additional
+enabled. (This only enables parsing of these kind of logfile, the additional
 data will be ignored.)
 
 .B Warning:
 Logging of MIME-Headers breaks the privacy of your users! (see
 PRIVACY-Section below)
+
+.I 'squid-smartfilter'
+.B Calamaris
+expects logfile derived from 
+.B Squid
+with
+.B Smartfilter-Patch.
+(This only enables parsing of these kind of logfile, the additional
+data will be ignored.)
 
 .I 'squid-old'
 .B Calamaris
@@ -364,9 +372,9 @@ Cord Beermann.
 
 .SH VERSION
 
-Version of this manpage: $Id: calamaris.1,v 1.19 2002-01-18 18:29:26 cord Exp $
+Version of this manpage: $Id: calamaris.1,v 1.20 2002-01-25 21:25:11 cord Exp $
 
-It describes the usage of Calamaris V2.43 and later.
+It describes the usage of Calamaris V2.45 and later.
 
 Information about new releases, mailing lists, and other related issues
 can be found from the
