@@ -1,9 +1,17 @@
+NOTE: This file hasn't updated yet and reflects the (still working) Calamaris
+V2-Usage.
+
+New/Updated Examples welcome ;-)
+
+
 I want to give the 'audience' some examples for using Calamaris.
 
 So if you build some Scripts, crontabs or else around Calamaris, please
 mail and describe them to <Calamaris@Cord.de>.
 
 I'll probably add them to this file. Thank You.
+
+
 
 Philipp Frauenfelder <pfrauenf@debian.org> added this to run Calamaris
 automagically in Debian:
@@ -374,4 +382,4 @@ Everyone who really uses <Squidmaster@Cord.de> while testing has to send me a
 Version of the EXAMPLES
 -----------------------
 
-$Id: EXAMPLES,v 2.12 2004-03-02 20:17:24 cord Exp $
+$Id: EXAMPLES,v 2.13 2004-09-15 20:41:58 cord Exp $
