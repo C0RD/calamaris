@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.43 2002-01-17 20:55:42 cord Exp $
+# $Id: calamaris,v 2.44 2002-01-18 18:28:53 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
@@ -99,9 +99,9 @@ use vars qw($opt_a $opt_b $opt_c $opt_C $opt_d $opt_D $opt_f $opt_h $opt_H
 use Getopt::Std;
 use Sys::Hostname;
 
-getopts('ab:cCd:Df:hH:i:l:Lmno:Op:P:r:R:st:T:uU:vVwz');
+getopts('ab:cCd:D:f:hH:i:l:Lmno:Op:P:r:R:st:T:uU:vVwz');
 
-$VERSION='Calamaris $Revision: 2.43 $';
+$VERSION='Calamaris $Revision: 2.44 $';
 
 $COPYRIGHT='Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
@@ -1557,7 +1557,7 @@ if ($opt_w) {
 <html>
  <head>
   <title>${hostname}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.43 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.44 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
@@ -2537,7 +2537,7 @@ close(CACHE);
 if ($opt_w) {
   print('  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.43 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002
+   $Revision: 2.44 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
