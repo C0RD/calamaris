@@ -22,8 +22,9 @@ and Shortcomings' on this.)
 Where to get it?
 ----------------
 
-The Calamaris-Home-page is located at
-http://www.Cord.de/~cord/tools/squid/calamaris/
+The Calamaris-Home-page is located at http://Calamaris.Cord.de/ 
+(If you use an old browser which does not send a 'Host:'-Header in its request
+you have to use http://Cord.de/homepages/cord/tools/squid/calamaris/)
 
 There is also an Announcement-Mailing-list. To subscribe send mail with
 'subscribe' in the Mail-Body to Calamaris-announce-request@Cord.de.
@@ -276,4 +277,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.11 1998-11-17 22:51:17 cord Exp $
+$Id: README,v 2.12 1998-12-05 13:07:10 cord Exp $
