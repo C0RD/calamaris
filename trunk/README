@@ -30,6 +30,12 @@ There is also an Announcement-Mailing-list. To subscribe send mail with
 Subscribers will get a mail on every new release, including a list of the
 changes. --> Low-Traffic.
 
+Kevin Way (kevin@research-inc.com) has build rpms of Calamaris, which can be
+found at http://overtone.org/rpms/
+
+Philipp Frauenfelder (pfrauenf@debian.org) has started to build a Debian
+Package.
+
 
 How to use it?
 --------------
@@ -268,4 +274,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.6 1998-10-12 20:03:53 cord Exp $
+$Id: README,v 2.7 1998-10-14 20:56:36 cord Exp $
