@@ -1,0 +1,71 @@
+Calamaris
+Version 3
+
+How to use it?
+--------------
+
+* You'll need Perl Version 5 (see http://www.Perl.com/). Calamaris is reported
+  to work with Perl 5.001 (maybe you have to remove the '-w' from the first
+  line and comment out the 'use vars'-line), but it is highly recommended
+  (especially for security of your computer) that you use a recent version
+  (>=5.8.4) of it.
+
+* You'll also need one of the noted log-files:
+
+  + Squid V1.1.alpha1-V1.1.beta25 Native log-files
+  + Squid V1.1.beta26-V2.x Native log-files
+  + Squid V1.1.beta26-V2.x Native log-files with log_mime_hdrs enabled
+  + NetCache V??? Squid-style Log-files
+  + NetCache V5.x Default Log-file-Format (Extended Log-file-Format)
+  + Inktomi Traffic Server V??? Log-files
+  + OOPS V??? Native log-files
+  + Extended Log-file-Format
+  + NetApp Default Log-file-Format (some kind of Extended Log-file-Format)
+  + NetApps understanding of Squid Native log-files
+  + Squid with SmartFilter-Patch Log-files
+  + Cisco Content Engines
+
+  If Calamaris can't parse the input, check your log-file format.
+  + Squid-Log-files: http://www.squid-cache.org/Doc/FAQ/FAQ-6.html
+  + Extended Log-file-Format: http://www.w3.org/TR/WD-logfile
+
+* You'll need GD::Graph package to get graphical html output. For some
+  features you need also NetAddr::IP. Calamaris runs without both perl
+  packages, but most of the new V3.x features won't work without them.
+
+* Installation:
+
+  + get GD::Graph and NetAddr::IP from http://www.cpan.org and install them.
+    (if your system has packages for these available, you should use them.)
+  + cd /usr/local
+  + tar -xzvf /path/to/calamaris-3.0.xxx.tgz
+  + Note: calamaris looks in /usr/local/ for needed calamaris perl modules. If
+    you want to change this path, you have to change the 'use lib' directive
+    in the calamaris code and perl modules. (still looking for a nicier
+    solution for this, suggestions/patches welcome)
+  + Maybe (if your Perl isn't located at /usr/bin/perl) you'll have to change
+    the first line of Calamaris to point to your copy of Perl.
+  + There is also a man-page for Calamaris. You should copy it to an
+    appropriate place like /usr/local/man/man1, where your man(1) can find it.
+
+* Use it!
+
+  'cat access.log.1 access.log.0 | calamaris'
+
+  Calamaris by default generates by a brief ASCII report of incoming and
+  outgoing requests.
+
+  NOTE: If you pipe more than one log-file into Calamaris, make sure that they
+    are chronologically ordered (oldest file first), else some reports can
+    return wrong values.
+
+  You can alter Calamaris' behaviour with switches. Start Calamaris with '-h'
+  or check the man-page.
+
+  You should also take a look at the EXAMPLES-File, for
+  'Real-Life'-usage-examples of Calamaris.
+
+Version of the INSTALL
+---------------------
+
+$Id: INSTALL,v 3.0 2004-09-15 20:58:46 cord Exp $
