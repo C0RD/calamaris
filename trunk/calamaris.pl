@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.100 1998-01-11 21:25:48 cord Exp $
+# $Id: calamaris.pl,v 1.101 1998-01-15 22:34:47 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - get statistic out of the Squid Native Log.
 #
@@ -106,7 +106,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:f:hmno:prs:t:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.100 $, Copyright (C) 1997, 1998 Cord Beermann
+$COPYRIGHT='calamaris $Revision: 1.101 $, Copyright (C) 1997, 1998 Cord Beermann
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -272,16 +272,19 @@ while (<>) {
     ($l_d, $l_tm, $l_r, $l_st, $l_sz, $l_m, $l_u, $l_i, $l_h, $l_c, $foo) =
      split;
     if (not defined $foo or not defined $l_c or $foo ne '' or $l_c eq '' ) {
-	chomp; warn ('invalid line: "' . $_ . "\"\n"); $i++; next;
+	chomp;
+	warn ('invalid line: "' . $_ . "\"\n");
+	$i++;
+	next;
     }
     $l_tm = .1 if $l_tm == 0;
     $rhost = getfqdn($l_r);
-    $l_hf = (split(m#/#o,$l_st))[0];
+    ($l_hf, $l_cd) = split(m#/#o,$l_st);
     $l_sz = .0000000001 if $l_sz == 0;
     @u = split(m#[/\\]#o,$l_u);
     ($up, $uh, $ue) = (@u)[0,2,$#u];
     $ue = '.<none>' if $#u <= 2;
-    $ue = '.<dynamic>' if $ue =~ m#[\?\;\&\$\,\!\@\=\|]#o;
+    $ue = '.<dynamic>' if ($ue =~ m#[\?\;\&\$\,\!\@\=\|]#o or $l_m eq POST);
     unless (defined $uh) {
 	$uh = $up;
 	$up = '<none>';
@@ -320,6 +323,7 @@ while (<>) {
     ($l_h_m, $l_h_h) = (split(m#/#o, $l_h))[0,1];
     $l_c = '<unknown>' if $l_c eq '-';
     $l_c =~ tr/A-Z/a-z/;
+    $l_c = $uh = $ut = $ue = '<error>' if ($l_cd =~ m#[45]\d\d#o);
     print('#') if ($opt_b and ($c / $opt_b) eq int($c / $opt_b));
     $c++;
     $sz += $l_sz;
