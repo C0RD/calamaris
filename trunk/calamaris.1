@@ -1,9 +1,8 @@
-.TH CALAMARIS 1 "$Date: 1999-02-06 21:08:26 $" Handmade "Calamaris Manual"
+.TH CALAMARIS 1 "$Date: 1999-02-20 17:07:51 $" Handmade "Calamaris Manual"
 
 .SH NAME
 calamaris \- generate statistic out of log files from 
-.B Squid 
-,
+.BR Squid ,
 .B NetCache
 and relatives
 
@@ -15,13 +14,12 @@ cat log |
 .SH DESCRIPTION
 .B Calamaris
 is used to produce statistical output from
-.B Squid
-,
+.BR Squid ,
 .B NetCache
-or related Proxies log files.  The resulting output can be in
+or related Proxy log files.  The resulting output can be
 .I ascii
 or
-.I html .
+.IR html .
 It is possible to cache calculated data in a file to use them in later runs.
 
 This manual page describes the options of
@@ -33,19 +31,19 @@ and gives a few examples.
 .SS Reports
 
 .TP
-.I "-a"
+.I -a
 all: extracts all reports available,
-.I "-a"
+.I -a
 equals
-.I "-d 20 -P 60 -r -1 -s -t 20" .
+.IR "-d 20 -P 60 -r -1 -s -t 20" . 
 
 .TP
-.I "-d" n
+.I -d n
 domain report: switches the top level and the second level report on.  The
 data is derived from the URL.  The output is limited by n.  (-1 is unlimited)
 
 .TP
-.I "-p" type
+.I -p type
 peak report: Measures the peaks of the Proxy usage in requests per second, 
 per minute and per hour.  It reports peaks for TCP, UDP and ALL requests. If 
 set to
@@ -55,78 +53,84 @@ these values were calculated with the old slow method, if set to
 the new faster (but still slow) method is used. 
 
 .TP
-.I "-P" n
+.I -P n
 performance report: Shows the throughput of TCP requests for every n minutes.
 
 .TP
-.I "-r" n
+.I -r n
 requester report: Switches the UDP and TCP requester reports on.  The output
 is limited by n.  (-1 is unlimited)
 
 .TP
-.I "-s"
+.I -s
 status report: alters the default behaviour of
 .B Calamaris
 and makes the status reports more verbose.
 
 .TP
-.I "-t" n
+.I -t n
 type report: switches the content type and the file extension report on.  The
 output is limited by n.  (-1 is unlimited)
 
 .SS Input Format
 .TP
-.I "-f" type
+.I -f type
 format: sets the type of input logfiles. 
 .I 'squid'
-Native-Logfile derived from Squid V1.1.beta26-V2.x. This is the Default.
-If set to 
+means native logfile derived from Squid V1.1.beta26-V2.x. This is the Default.
+If set to
 .I 'squid-old' 
 .B Calamaris 
-expects Native-Logfile derived from Squid V1.1.alpha1-V1.1.beta25. 
+expects native logfile derived from Squid V1.1.alpha1-V1.1.beta25. 
 If set to 
 .I 'nc'
 it expects Logfiles from NetCache. (Please see the README on this.)
 
 .SS Output Format
-Standard output format is plain
-.I ascii
-with
-.I 80 chars
-width.
+Standard output format is plain ascii with 80 chars width.
 
 .TP
-.I "-m"
+.I -m
 mail: adds a subject header to the beginning of the report.
 
 .TP
-.I "-w"
-web: all output is given in
-.I html
-with tables and such.  Can be combined with
-.I "-m"
+.I -w
+web: all output is given in html with tables and such.  Can be combined with
+.I -m
 to send html mails.
+
+.TP
+.I -l string
+logo: add a custom string to a HTML-Report. It'll be added to a table on the
+top of the output.
+.I -l '<A HREF="http://cord.de/"><IMG BORDER=0 SRC="http://cord.de/Images/cord/cordlog2n.gif" ALT="Cord"></A>' 
+will add my logo with a link to the Report.
+
+.B Note:
+.I -l 
+works only in combination with
+.IR -w.
 
 .SS Caching
 
 .TP
-.I "-i" file
+.I -i file
 input file: You can reuse a cache file generated with
-.I "-o"
-to add old data to a new report.  Several files can be seperated with a :.
+.I -o file
+to add old data to a new report.  Several files can be seperated with a ':'.
 
 .B Note:
 if you use more than one cache file, make sure they are chronologicaly
 ordered (oldest first).
 
 .TP
-.I "-o" file
+.I -o file
 output file:
 .B Calamaris
 stores a summary of the computed information in
 .I file
 and you can reuse it at a later time with
-.I "-i" .
+.IR -i .
 
 .B Note:
 The output file can be the same as the input file: it is simply overwritten
@@ -137,28 +141,28 @@ measurements.
 .SS Misc
 
 .TP
-.I "-b n"
-benchmark: A switch for the impatient as it prints a # for every n parsed
+.I -b n
+benchmark: A switch for the impatient as it prints a '#' for every n parsed
 lines.
 
 .TP
-.I "-H name"
+.I -H name
 host name: The name for the title or subject of the output.  If set to
 .I 'lookup'
 .B Calamaris
 looks up the host name of the system its been run on.
 
 .TP
-.I "-n"
+.I -n
 no lookup: Switches the IP lookup for the requesters off.
 
 .TP
-.I "-O"
+.I -O
 order: Changes the sort order in the reports to request size, default is
 sorting by number of requests.
 
 .TP
-.I "-u"
+.I -u
 user: Switches the usage of eventually available ident information for
 requester reports on.
 
@@ -166,21 +170,21 @@ requester reports on.
 This breaks the privacy of your users!
 
 .TP
-.I "-z"
+.I -z
 zero: Switches reading from standard input off.  You can use this to merge
 many cache files to one (see
-.I "-i"
+.I -i
 and
-.IR "-o" )
+.IR -o )
 or to generate a report out of cache files.
 
 .TP
-.I "-c"
+.I -c
 copyright: Prints the copyright information of
-.B Calamaris .
+.BR Calamaris .
 
 .TP
-.I "-h"
+.I -h
 help: Prints a brief description of the command line options.
 .SH EXAMPLES
 
@@ -205,18 +209,16 @@ if [ $DAYOFWEEK = "0" ]; then
 fi
 
 .SH BUGS
-It's too slow.
+If you have a problem with
+.BR Calamaris ,
+please make sure that you use the recent version of 
+.B Calamaris 
+(see VERSION below). Also check that your proxy works correctly and doesn't produce
+invalid Logfiles. (see the README for this.)
 
-If you find a bug in 
-.B Calamaris
-, you should report it to Calamaris-bug@cord.de.  But first, you should make
-sure that it really is a bug, and that it appears in the latest version of
-.B Calamaris .
-
-Often there are broken logfiles the cause of problems. If
-.B Calamaris
-complains about it, it is probably ok. If it stops with an error, report it.
-Thanks.
+If you're sure that you've encountered a bug in Calamaris, please report it to
+Calamaris-bug@cord.de. This also applies if Calamaris itself says 'please
+report this'.
 
 .SH "SEE ALSO"
 .B squid(8)
@@ -227,12 +229,12 @@ contributed code, gave ideas or requested features. Look them up in the
 executable.
 
 This man page was written by Philipp Frauenfelder <pfrauenf@debian.org>,
-maintainer of the Debian package.  Maintainence is now taken over by
+maintainer of the Debian package.  Maintenance is now taken over by
 Cord Beermann.
 
 .SH VERSION
 
-Version of this manpage: $Id: calamaris.1,v 1.8 1999-02-06 21:08:26 cord Exp $
+Version of this manpage: $Id: calamaris.1,v 1.9 1999-02-20 17:07:51 cord Exp $
 
 It describes the usage of Calamaris V2.19 and later.
 
@@ -254,10 +256,10 @@ Foundation; either version 2 of the License, or (at your option) any later
 version.
 
 (If you modify and want to publish it under the name
-.B Calamaris
-, please ask me.  I don't want to confuse the 'audience' with many different
-versions of the same name and/or Version number.  (This part is not part of
-the license, it is only a favour i asked of you.))
+.BR Calamaris , 
+please ask me.  I don't want to confuse the 'audience' with many different
+versions of the same name and/or Version number.  (This is not part of the
+license, it is only a favour i asked of you.))
 
 This program is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
