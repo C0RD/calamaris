@@ -173,6 +173,8 @@ add it to the wish-list below :-)
   if you drop me a line about it, I'll mention it below. And please please
   please don't use the name 'Calamaris' for it without asking me!
   
+* add a n-level requester report. (suggested by Jarkko Saloranta <jjs@kpo.fi>)
+
 
 Is there anything else?
 -----------------------
@@ -211,4 +213,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.21 1999-05-01 18:55:46 cord Exp $
+$Id: README,v 2.22 1999-09-25 09:47:17 cord Exp $
