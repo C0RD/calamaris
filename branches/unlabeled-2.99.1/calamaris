@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.99 2004-09-15 21:51:10 cord Exp $
+# $Id: calamaris,v 2.99.1.1 2004-09-17 21:02:30 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
@@ -261,7 +261,7 @@ and known bugs) then report it with the following line to
 # IP Filter
   my %filter_ip;
   if ($opt_ipfilter_exclude or $opt_ipfilter_include) {
-    die( "\nCouldn't load package NetAddr::IP,
+    die( "$0: Couldn't load package NetAddr::IP,
   maybe it is not installed: $!\n" ) unless (eval "require NetAddr::IP");
     my $to_split = ($opt_ipfilter_exclude) ?
       $opt_ipfilter_exclude : $opt_ipfilter_include;
@@ -1332,7 +1332,7 @@ if ( $outtype_html or $outtype_htmlembed ) {
 	\"http://www.w3.org/TR/REC-html40/loose.dtd\">
 <html>\n <head>
   <title>${host_name}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.99 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.99.1.1 $' . "\">
 " . ( $opt_M ? '  ' . $opt_M . "\n" : '' ) . " </head>
  <body bgcolor=\"#FFFFFF\">" if ($outtype_html);
   $out_head .= "\n  <table border=\"0\">"
@@ -1613,8 +1613,7 @@ if ( $counter == 0 ) {
 	  kilomegagigatera( $size, $format[4] ),
 	  100, $size / ( 1.024 * $time ) );
   outgraph($report_index, \@graph_legend, $x_scale, \@xaxis, \@yaxis1,
-	   \@yaxis2)
-    if ($outtype_graph);
+	   \@yaxis2) if ($outtype_graph and $xaxis[0]);
   $max_value[$report_index] = "most requested method</td>\n    <td>"
     . htmlescape($xaxis[0]) . "</td>\n    <td>";
   $max_value[$report_index] .= ($opt_O)
@@ -1693,7 +1692,7 @@ if ( $udp == 0 ) {
 	  kilomegagigatera( $udp_size, $format[4] ),
 	  100, $udp_size / ( 1.024 * $udp_time ) );
   outgraph( $report_index, \@graph_legend, $x_scale, \@xaxis, \@yaxis1,
-	   \@yaxis2) if ($outtype_graph);
+	   \@yaxis2) if ($outtype_graph and $xaxis[0]);
   $max_value[$report_index] = "Hits</td>\n    <td>"
     . sprintf("%.2f", 100 * $udp_hit / $udp) . "%</td>\n    <td>";
   $max_value[$report_index] .= ($opt_O)
@@ -1804,7 +1803,7 @@ if ( $tcp_hit + $tcp_miss + $tcp_miss_none == 0 ) {
 	  kilomegagigatera( $tcp_size, $format[4] ),
 	  100, $tcp_size / ( 1.024 * $tcp_time ) );
   outgraph( $report_index, \@graph_legend, $x_scale, \@xaxis, \@yaxis1,
-	   \@yaxis2) if ($outtype_graph);
+	   \@yaxis2) if ($outtype_graph and $xaxis[0]);
   $max_value[$report_index] = "Hits</td>\n    <td>"
     . sprintf("%.2f", 100 * $tcp_hit / $tcp) . "%</td>\n    <td>";
   $max_value[$report_index] .= ($opt_O)
@@ -1918,7 +1917,7 @@ if ( $hier == 0 ) {
 	  kilomegagigatera( $hier_size, $format[4] ),
 	  100, $hier_size / ( 1.024 * $hier_time ) );
   outgraph($report_index, \@graph_legend, $x_scale, \@xaxis, \@yaxis1,
-	   \@yaxis2) if ($outtype_graph);
+	   \@yaxis2) if ($outtype_graph and $xaxis[0]);
   $max_value[$report_index] = "most outgoing request to</td>\n    <td>"
     . htmlescape($xaxis[0]) . "</td>\n    <td>";
   $max_value[$report_index] .= ($opt_O)
@@ -1992,7 +1991,7 @@ if ( $hier == 0 ) {
 	  kilomegagigatera( $hier_size, $format[4] ),
 	  100, $hier_size / ( 1.024 * $hier_time ) );
   outgraph( $report_index, \@graph_legend, $x_scale, \@xaxis, \@yaxis1,
-	   \@yaxis2) if ($outtype_graph);
+	   \@yaxis2) if ($outtype_graph and $xaxis[0]);
   $max_value[$report_index] = "most requested destination</td>\n    <td>"
     . htmlescape($xaxis[0]) . "</td>\n    <td>";
   $max_value[$report_index] .= ($opt_O)
@@ -2092,7 +2091,7 @@ if ($opt_d) {
 	    $tcp_size ? 100 * $tcp_hit_size / $tcp_size : 0,
 	    $tcp_time ? $tcp_size / ( 1.024 * $tcp_time ) : 0 );
     outgraph($report_index, \@graph_legend, $max_x_data, \@xaxis, \@yaxis1,
-	     \@yaxis2, \@yaxis3, \@yaxis4) if ($outtype_graph);
+	     \@yaxis2, \@yaxis3, \@yaxis4) if ($outtype_graph and $xaxis[0]);
     $max_value[$report_index] = "most requested $N-level-domain</td>
     <td>" . htmlescape($xaxis[0]) . "</td>\n    <td>";
     $max_value[$report_index] .= ($opt_O)
@@ -2185,11 +2184,10 @@ if ($opt_d) {
 	    $tcp_size ? 100 * $tcp_hit_size / $tcp_size : 0,
 	    $tcp_time ? $tcp_size / ( 1.024 * $tcp_time ) : 0 );
     outgraph($report_index, \@graph_legend, $max_x_data, \@xaxis, \@yaxis1,
-	     \@yaxis2, \@yaxis3, \@yaxis4) if ($outtype_graph);
+	     \@yaxis2, \@yaxis3, \@yaxis4) if ($outtype_graph and $xaxis[0]);
     outstop($report_index);
     test( $report_index, \%tcp_urltld, \%tcp_urltld_size, \%tcp_urltld_time,
 	 'tcp') if $test;
-
     $max_value[$report_index] = "most requested toplevel-domain</td>
     <td>" . htmlescape($xaxis[0]) . "</td>\n    <td>";
     $max_value[$report_index] .= ($opt_O)
@@ -2247,11 +2245,9 @@ if ($opt_t) {
 	    kilomegagigatera( $tcp_size, $format[5] ), 100,
 	    100 * $tcp_hit_size / $tcp_size, $tcp_size / $tcp_time );
     outgraph($report_index, \@graph_legend, $max_x_data, \@xaxis, \@yaxis1,
-	     \@yaxis2, \@yaxis3, \@yaxis4) if ($outtype_graph);
-
+	     \@yaxis2, \@yaxis3, \@yaxis4) if ($outtype_graph and $xaxis[0]);
     test( $report_index, \%tcp_urlprot, \%tcp_urlprot_size, \%tcp_urlprot_time,
 	 'tcp') if $test;
-
     $max_value[$report_index] = "most requested protocol</td>\n    <td>"
       . htmlescape($xaxis[0]) . "</td>\n    <td>";
     $max_value[$report_index] .= ($opt_O)
@@ -2348,7 +2344,7 @@ if ($opt_t) {
 	      $tcp_size ? 100 * $tcp_hit_size / $tcp_size : 0,
 	      $tcp_time ? $tcp_size / ( 1.024 * $tcp_time ) : 0 );
       outgraph($report_index, \@graph_legend, $max_x_data, \@xaxis, \@yaxis1,
-	       \@yaxis2, \@yaxis3, \@yaxis4) if ($outtype_graph);
+	       \@yaxis2, \@yaxis3, \@yaxis4) if ($outtype_graph and $xaxis[0]);
       test( $report_index, \%tcp_content, \%tcp_content_size,
 	   \%tcp_content_time, 'tcp') if $test;
       $max_value[$report_index] = "most requested content-type</td>
@@ -2490,11 +2486,9 @@ if ($opt_t) {
 	    join ('/', gcd($sum_tcp_urlext_fresh, $sum_tcp_urlext_stale)),
 	    join ('/', gcd($sum_tcp_urlext_mod, $sum_tcp_urlext_unmod)) );
     outgraph($report_index, \@graph_legend, $max_x_data, \@xaxis, \@yaxis1,
-	     \@yaxis2, \@yaxis3, \@yaxis4) if ($outtype_graph);
-
+	     \@yaxis2, \@yaxis3, \@yaxis4) if ($outtype_graph and $xaxis[0]);
     test( $report_index, \%tcp_urlext, \%tcp_urlext_size, \%tcp_urlext_time,
 	 'tcp') if $test;
-
     $max_value[$report_index] = "most requested extension</td>\n    <td>"
       . htmlescape($xaxis[0]) . "</td>\n    <td>";
     $max_value[$report_index] .= ($opt_O)
@@ -2660,7 +2654,7 @@ if ($opt_r) {
 	    $udp_size ? 100 * $udp_hit_size / $udp_size : 0,
 	    $udp_time ? $udp_size / ( 1.024 * $udp_time ) : 0 );
     outgraph( $report_index, \@graph_legend, $max_x_data, \@xaxis, \@yaxis1,
-	     \@yaxis2, \@yaxis3, \@yaxis4 ) if ($outtype_graph);
+	     \@yaxis2, \@yaxis3, \@yaxis4 ) if ($outtype_graph and $xaxis[0]);
     test( $report_index, \%udp_requester, \%udp_requester_size,
 	 \%udp_requester_time, 'udp') if $test;
     $max_value[$report_index] = "most active host</td>\n    <td>"
@@ -2825,7 +2819,7 @@ if ($opt_r) {
 	    $tcp_size ? 100 * $tcp_hit_size / $tcp_size : 0,
 	    $tcp_time ? $tcp_size / ( 1.024 * $tcp_time ) : 0 );
     outgraph( $report_index, \@graph_legend, $max_x_data, \@xaxis, \@yaxis1,
-	     \@yaxis2, \@yaxis3, \@yaxis4 ) if ($outtype_graph);
+	     \@yaxis2, \@yaxis3, \@yaxis4 ) if ($outtype_graph and $xaxis[0]);
     test( $report_index, \%tcp_requester, \%tcp_requester_size,
 	 \%tcp_requester_time, 'tcp') if $test;
     $max_value[$report_index] = "most active host</td>\n    <td>"
@@ -2852,7 +2846,6 @@ if ($opt_D) {
 	      'hit-%', 'auto' );
     outseperator($report_index);
     foreach $distribution ( sort { $a <=> $b } keys(%tcp_distribution) ) {
-
       push @xaxis, int( $opt_D**$distribution ) . '-'
 	. int( $opt_D**( $distribution + 1 ) - 1 );
       push @yaxis1, $tcp_distribution{$distribution};
@@ -2894,12 +2887,14 @@ if ($opt_D) {
 	    $tcp_size ? 100 * $tcp_hit_size / $tcp_size : 0,
 	    $tcp_time ? $tcp_size / ( 1.024 * $tcp_time ) : 0 );
     outgraph( $report_index, \@graph_legend, $x_scale, \@xaxis, \@yaxis1,
-	     \@yaxis2, \@yaxis3, \@yaxis4 ) if ($outtype_graph);
+	     \@yaxis2, \@yaxis3, \@yaxis4 ) if ($outtype_graph and $xaxis[0]);
     my ($max, $maxi) = ($opt_O) ? maxi(@yaxis2) : maxi(@yaxis1);
-    $max_value[$report_index] = "most requested object_size</td>\n    <td>"
-      . htmlescape($xaxis[$maxi]) . "</td>\n    <td>";
-    $max_value[$report_index] .= ($opt_O)
-      ? kilomegagigatera($max, 6) . " Byte" : $max. " Requests";
+    if ($maxi and $xaxis[$maxi]) {
+      $max_value[$report_index] = "most requested object_size</td>\n    <td>"
+        . htmlescape($xaxis[$maxi]) . "</td>\n    <td>";
+      $max_value[$report_index] .= ($opt_O)
+        ? kilomegagigatera($max, 6) . " Byte" : $max. " Requests";
+    }
     test( $report_index, \%tcp_distribution, \%tcp_distribution_size,
 	 \%tcp_distribution_time, 'tcp') if $test;
   }
@@ -2981,16 +2976,16 @@ if ($opt_P) {
 	    removezerotimes( $hier_sibling_size, $hier_sibling_time ),
 	    removezerotimes( $hier_parent_size, $hier_parent_time ) );
     outgraph( $report_index, \@graph_legend, 31, \@xaxis, \@yaxis1, \@yaxis2,
-	     \@yaxis3, \@yaxis4 ) if ($outtype_graph);
-
+	     \@yaxis3, \@yaxis4 ) if ($outtype_graph and $xaxis[0]);
     test( $report_index, \%perf_counter, \%perf_size, \%perf_time, 'tcp')
       if $test;
-
     my ($max, $maxi) = ($opt_O) ? maxi(@yaxis2) : maxi(@yaxis1);
-    $max_value[$report_index] = "most active day</td>\n    <td>"
-      . htmlescape($xaxis[$maxi]) . "</td>\n    <td>";
-    $max_value[$report_index] .= ($opt_O)
-      ? kilomegagigatera($max, 6) . " Byte" : $max. " Requests";
+    if ($maxi and $xaxis[$maxi]) {
+      $max_value[$report_index] = "most active day</td>\n    <td>"
+        . htmlescape($xaxis[$maxi]) . "</td>\n    <td>";
+      $max_value[$report_index] .= ($opt_O)
+        ? kilomegagigatera($max, 6) . " Byte" : $max. " Requests";
+    }
   }
   outstop($report_index);
 }
@@ -3095,9 +3090,9 @@ if ($opt_response_time) {
 	    kilomegagigatera( $udp_size, $format[5] ), 100,
 	    $udp_size ? 100 * $udp_hit_size / $udp_size : 0,
 	    $udp_time ? $udp_size / ( 1.024 * $udp_time ) : 0);
-    outgraph( $report_index, \@graph_legend, scalar(@response_time_report_interval),
-	     \@xaxis, \@yaxis1, \@yaxis2, \@yaxis3, \@yaxis4 )
-      if ($outtype_graph);
+    outgraph( $report_index, \@graph_legend,
+	     scalar(@response_time_report_interval), \@xaxis, \@yaxis1,
+	     \@yaxis2, \@yaxis3, \@yaxis4 ) if ($outtype_graph and $xaxis[0]);
     test( $report_index, \%udp_reqtime, \%udp_reqtime_size, 0, 'udp') if $test;
     $max_value[$report_index] = "most frequent response time</td>\n    <td>"
       . htmlescape($max_interval) . "</td>\n    <td>";
@@ -3202,7 +3197,7 @@ if ($opt_response_time) {
 	    $tcp_time ? $tcp_size / ( 1.024 * $tcp_time ) : 0);
     outgraph( $report_index, \@graph_legend,
 	     scalar(@response_time_report_interval), \@xaxis, \@yaxis1,
-	     \@yaxis2, \@yaxis3, \@yaxis4 ) if ($outtype_graph);
+	     \@yaxis2, \@yaxis3, \@yaxis4 ) if ($outtype_graph and $xaxis[0]);
     test( $report_index, \%tcp_reqtime, \%tcp_reqtime_size, 0, 'tcp') if $test;
     $max_value[$report_index] = "most frequent response time</td>
     <td>" . htmlescape($ordered_tcp_req_time_max_interval) . "</td>\n    <td>";
@@ -3265,16 +3260,16 @@ if ($opt_errorcode_distribution) {
 	    $udp_size ? 100 * $udp_hit_size / $udp_size : 0,
 	    $udp_time ? $udp_size / ( 1.024 * $udp_time ) : 0);
     outgraph( $report_index, \@graph_legend, $x_scale, \@xaxis, \@yaxis1,
-	     \@yaxis2, \@yaxis3, \@yaxis4 ) if ($outtype_graph);
-
+	     \@yaxis2, \@yaxis3, \@yaxis4 ) if ($outtype_graph and $xaxis[0]);
     test( $report_index, \%udp_code, \%udp_code_size, \%udp_code_time, 'udp')
       if $test;
-
     my ($max, $maxi) = ($opt_O) ? maxi(@yaxis2) : maxi(@yaxis1);
-    $max_value[$report_index] = "most frequent reponse code</td>\n    <td>"
-      . htmlescape($xaxis[$maxi]) . "</td>\n    <td>";
-    $max_value[$report_index] .= ($opt_O)
-      ? kilomegagigatera($max, 6) . " Byte" : $max. " Requests";
+    if ($maxi and $xaxis[$maxi]) {
+      $max_value[$report_index] = "most frequent response code</td>\n    <td>"
+        . htmlescape($xaxis[$maxi]) . "</td>\n    <td>";
+      $max_value[$report_index] .= ($opt_O)
+        ? kilomegagigatera($max, 6) . " Byte" : $max. " Requests";
+    }
   }
   outstop($report_index);
 
@@ -3326,16 +3321,16 @@ if ($opt_errorcode_distribution) {
 	    $tcp_size ? 100 * $tcp_hit_size / $tcp_size : 0,
 	    $tcp_time ? $tcp_size / ( 1.024 * $tcp_time ) : 0);
     outgraph( $report_index, \@graph_legend, $x_scale, \@xaxis, \@yaxis1,
-	     \@yaxis2, \@yaxis3, \@yaxis4) if ($outtype_graph);
-
+	     \@yaxis2, \@yaxis3, \@yaxis4) if ($outtype_graph and $xaxis[0]);
     test( $report_index, \%tcp_code, \%tcp_code_size, \%tcp_code_time, 'tcp')
       if $test;
-
     my ($max, $maxi) = ($opt_O) ? maxi(@yaxis2) : maxi(@yaxis1);
-    $max_value[$report_index] = "most frequent reponse code</td>\n    <td>"
-      . htmlescape($xaxis[$maxi]) . "</td>\n    <td>";
-    $max_value[$report_index] .= ($opt_O)
-      ? kilomegagigatera($max, 6) . " Byte" : $max. " Requests";
+    if ($maxi and $xaxis[$maxi]) {
+      $max_value[$report_index] = "most frequent response code</td>\n    <td>"
+        . htmlescape($xaxis[$maxi]) . "</td>\n    <td>";
+      $max_value[$report_index] .= ($opt_O)
+        ? kilomegagigatera($max, 6) . " Byte" : $max. " Requests";
+    }
   }
   outstop($report_index);
 }
@@ -3394,7 +3389,7 @@ if ( $outtype_html or $outtype_htmlembed ) {
   print $fh '
   <hr>
   <address>
-   <a href="http://Calamaris.Cord.de/">Calamaris</a> $Revision: 2.99 $,
+   <a href="http://Calamaris.Cord.de/">Calamaris</a> $Revision: 2.99.1.1 $,
    Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
@@ -3434,7 +3429,7 @@ sub kilomegagigatera {
 sub removezerotimes {
   my ($size) = shift (@_);
   my ($time) = shift (@_);
-  if ( $size == 0 ) {
+  if ( $size == 0 or $time == 0 ) {
     return '-';
   } else {
     return $size / ( 1.024 * $time );
@@ -3571,7 +3566,7 @@ sub outgraph {
   my $yaxis3_ref = shift;
   my $yaxis4_ref = shift;
   my ($factor0, $factor1, $unit0, $unit1, $min_x, $max_x);
-  die( "\nCouldn't load package calamaris::calBars3d,
+  die( "$0: Couldn't load package calamaris::calBars3d,
   maybe it is not installed: $!\n" )
     unless (eval "require calamaris::calBars3d");
 
@@ -3621,10 +3616,9 @@ sub outgraph {
   if (scalar(@$legend_ref) > 1) {
     ($factor1, $unit1) = getfactor(max(@$yaxis2_ref[$min_x..$max_x]),5);
     $yaxis2_ref = reformatarray($factor1, $yaxis2_ref) if ($factor1 > 1);
-
     push @data, [@$yaxis2_ref[$min_x..$max_x]];
-    if (ref($yaxis3_ref)) { push @data, [@$yaxis3_ref[$min_x..$max_x]]}
-    if (ref($yaxis4_ref)) { push @data, [@$yaxis4_ref[$min_x..$max_x]]}
+    push @data, [@$yaxis3_ref[$min_x..$max_x]] if ref($yaxis3_ref);
+    push @data, [@$yaxis4_ref[$min_x..$max_x]] if ref($yaxis4_ref);
     %graph_label = ( y1_label		=> "$unit0 ${@$legend_ref}[0]",
 		    y2_label		=> "$unit1 ${@$legend_ref}[1]",
 		    two_axes		=> '1',
@@ -4021,7 +4015,8 @@ sub readconfig {
 
   # -M: if it's a file, read it and store it in $opt_M
   if ( defined($opt_M) and $opt_M !~ /\n/ and -e $opt_M ) {
-    open(IN, "<$opt_M") or die "Couldn't open file $opt_M for reading\n";
+    open(IN, "<$opt_M") or
+      die "$0: Couldn't open file $opt_M for reading: $!\n";
     $opt_M = '';
     while (<IN>) {
       $opt_M .= $_
@@ -4029,7 +4024,8 @@ sub readconfig {
   }
   # -l: if it's a file, read it and store it in $opt_l
   if ( defined($opt_l) and $opt_l !~ /\n/ and -e $opt_l ) {
-    open(IN, "<$opt_l") or die "Couldn't open file $opt_l for reading\n";
+    open(IN, "<$opt_l") or
+      die "$0: Couldn't open file $opt_l for reading: $!\n";
     $opt_l = '';
     while (<IN>) {
       $opt_l .= $_
@@ -4073,11 +4069,6 @@ sub readconfig {
   if ($opt_I) {
     use Time::Local;
     ( $interval_begin, $interval_end ) = split ( '-', $opt_I );
-    if ($interval_begin > $interval_end) {
-      print STDERR "$0: wrong value at -I -option: \"$opt_I\".
- Interval begin newer than interval end!\n\n";
-      $usage_err = 1;
-    }
     if ( $interval_begin =~ m#^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$# ) {
       $interval_begin = timegm( $6, $5, $4, $3, $2 - 1, $1 - 1900 );
     } elsif ( $interval_begin eq '' ) {
@@ -4092,6 +4083,11 @@ sub readconfig {
       $interval_end = 9999999999;
     } else {
       print STDERR "$0: wrong value at -I -option: \"$opt_I\"\n\n";
+      $usage_err = 1;
+    }
+    if ($interval_begin > $interval_end) {
+      print STDERR "$0: wrong value at -I -option: \"$opt_I\".
+ Interval begin newer than interval end!\n\n";
       $usage_err = 1;
     }
   }
@@ -4136,6 +4132,7 @@ sub readconfig {
     $opt_t = 20 unless $opt_t;
   }
 
+  $opt_domain_report_limit = 0 unless $opt_domain_report_limit;
   $opt_N = 2 unless $opt_N;
   $opt_T = 0 unless $opt_T;
   $opt_r = $opt_R unless $opt_r;
@@ -4175,7 +4172,7 @@ sub readconfig {
 	      'UDP Response code distribution',
 	      'TCP Response code distribution' );
 
-  $VERSION='Calamaris $Revision: 2.99 $';
+  $VERSION='Calamaris $Revision: 2.99.1.1 $';
 
   $COPYRIGHT =
 'Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004 Cord Beermann,
