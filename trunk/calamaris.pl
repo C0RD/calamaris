@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 2.8 1998-10-12 20:03:54 cord Exp $
+# $Id: calamaris.pl,v 2.9 1998-10-18 21:37:17 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Log-files
 #
@@ -66,7 +66,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 2.8 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 2.9 $, Copyright (C) 1997, 1998 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -154,6 +154,7 @@ $counter = $hier = $hier_direct = $hier_direct_size = $hier_direct_time =
   $udp_time = 0;
 $time_begin = 9999999999;
 
+### Read Cache. 
 if ($opt_i) {
   foreach $file (split /:/o, $opt_i) {
     open(CACHE, "$file") or die("$0: can't open $file for reading: $!\n");
@@ -409,421 +410,459 @@ if ($opt_i) {
 
 unless ($opt_z) {
   print("print a hash for each $opt_b lines:\n") if ($opt_b);
-  $time_run = time - $time_run;
-  while (<>) {
-    ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
-     $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) =
-      split;
-    if (not defined $foo or not defined $log_content or
-	($foo ne '' and $foo ne '-') or $log_content eq '') {
-      chomp;
-      warn ('invalid line: "' . $_ . "\"\n");
-      $invalid++;
-      next;
-    }
-    $log_reqtime = .1 if $log_reqtime == 0;
-    ($log_hitfail, $log_code) = split(m#/#o,$log_status);
-    $log_size = .0000000001 if $log_size == 0;
-    @url = split(m#[/\\]#o,$log_url);
-    ($urlprot, $urlhost, $urlext) = (@url)[0,2,$#url];
-    $urlext = '.<none>' if $#url <= 2;
-    if ($#url <= -1) {
-      $urlext = '.<error>';
-      $urlprot = $urlhost = '<error>';
-    }
-    $urlext = '.<dynamic>' if ($urlext =~ m#[\?\;\&\$\,\!\@\=\|]#o or
+  $loop = '
+while (<>) {
+  ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
+   $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) = split;
+  if (not defined $foo or not defined $log_content or
+      ($foo ne \'\' and $foo ne \'-\') or $log_content eq \'\') {
+    chomp;
+    warn (\'invalid line: "\' . $_ . "\"\n");
+    $invalid++;
+    next;
+  }
+  $log_reqtime = .1 if $log_reqtime == 0;
+  ($log_hitfail, $log_code) = split(m#/#o,$log_status);
+  $log_size = .0000000001 if $log_size == 0;
+  @url = split(m#[/\\\]#o,$log_url);
+  ($urlprot, $urlhost, $urlext) = (@url)[0,2,$#url];
+  $urlext = \'.<none>\' if $#url <= 2;
+  if ($#url <= -1) {
+    $urlext = \'.<error>\';
+    $urlprot = $urlhost = \'<error>\';
+  }
+  $urlext = \'.<dynamic>\' if ($urlext =~ m#[\?\;\&\$\,\!\@\=\|]#o or
 			       $log_method eq POST);
-    unless (defined $urlhost) {
-      $urlhost = $urlprot;
-      $urlprot = '<none>';
-    }
-    $urlhost =~ s#^.*@##o;
-    $urlhost =~ s#[:\?].*$##o;
-    @urlext = split(m#\.#o,$urlext);
-    $urlext = (@urlext)[$#urlext];
-    $urlext = '<none>' if $#urlext <= 0;
-    if ($urlhost =~ /^(([0-9][0-9]{0,2}\.){3})[0-9][0-9]{0,2}$/o) {
-      $urlhost = $1 . '*';
-      $urltld = '<unresolved>';
-    } elsif ($urlhost =~ /^(.*\.([^\.]+\.)?)?([^\.]+\.([^\.]+))\.?$/o) {
-      @list = split(/\./o, $urlhost);
-      $urltld = $urlhost = '.' . pop @list;
-      $urlhost = '.' . pop(@list) . $urlhost;
-      if ($urltld =~
-	  /\.(a[rtu]|br|c[no]|hk|i[dlm]|jp|kr|l[by]|m[oxy]|nz|p[elnry]|ru|sg|t[hrw]|u[aks]|ve|yu|za)$/o
+  unless (defined $urlhost) {
+    $urlhost = $urlprot;
+    $urlprot = \'<none>\';
+  }
+  $urlhost =~ s#^.*@##o;
+  $urlhost =~ s#[:\?].*$##o;
+  @urlext = split(m#\.#o,$urlext);
+  $urlext = (@urlext)[$#urlext];
+  $urlext = \'<none>\' if $#urlext <= 0;
+  if ($urlhost =~ /^(([0-9][0-9]{0,2}\.){3})[0-9][0-9]{0,2}$/o) {
+    $urlhost = $1 . \'*\';
+    $urltld = \'<unresolved>\';
+  } elsif ($urlhost =~ /^(.*\.([^\.]+\.)?)?([^\.]+\.([^\.]+))\.?$/o) {
+    @list = split(/\./o, $urlhost);
+    $urltld = $urlhost = \'.\' . pop @list;
+    $urlhost = \'.\' . pop(@list) . $urlhost;
+    if ($urltld =~
+	/\.(a[rtu]|br|c[no]|hk|i[dlm]|jp|kr|l[by]|m[oxy]|nz|p[elnry]|ru|sg|t[hrw]|u[aks]|ve|yu|za)$/o
 	  and $#list >= 0) {
-	$urlhost = '*.' . pop(@list) . $urlhost;
-      } else {
-	$urlhost = '*' . $urlhost;
-      }
-      $urltld = '*' . $urltld;
-    } elsif ($urlhost =~ /([!a-z0-9\.\-]|\.\.)/o) {
-      $urlhost = $urltld = $urlext = '<error>';
+      $urlhost = \'*.\' . pop(@list) . $urlhost;
     } else {
-      $urltld = $urlhost;
+      $urlhost = \'*\' . $urlhost;
     }
-    if ($opt_u) {
-      $requester = $log_ident . '@' . $log_requester;
+    $urltld = \'*\' . $urltld;
+  } elsif ($urlhost =~ /([!a-z0-9\.\-]|\.\.)/o) {
+    $urlhost = $urltld = $urlext = \'<error>\';
+  } else {
+    $urltld = $urlhost;
+  }';
+  if ($opt_u) {
+    $loop .= '
+  $requester = $log_ident . \'@\' . $log_requester;';
+  } else {
+    $loop .= '
+  $requester = $log_requester;';
+  }
+  $loop .= '
+  ($log_hier_method, $log_hier_host) = (split(m#/#o, $log_hier))[0,1];
+  $log_content = \'<unknown>\' if $log_content eq \'-\';
+  $log_content =~ tr/A-Z/a-z/;
+  $log_content = $urlhost = $urltld = $urlext = \'<error>\' if
+	       ($log_code =~ m#[45]\d\d#o);';
+  $loop .= "
+  print('#') if (\$counter / $opt_b) eq int(\$counter / $opt_b);" if $opt_b;
+  $loop .= '
+  $counter++;';
+  if ($opt_P) {
+    $loop .= '
+  $perf_date = int($log_date / (60 * ' . "$opt_P)) * 60 * $opt_P;" . ' unless
+    (defined $perf_counter{$perf_date}) {
+    $perf_counter{$perf_date} = $perf_size{$perf_date} =
+      $perf_tcp_hit_size{$perf_date} = $perf_tcp_miss_size{$perf_date} =
+      $perf_hier_direct_size{$perf_date} = $perf_hier_sibling_size{$perf_date}
+      = $perf_hier_parent_size{$perf_date} = 0;
+    $perf_time{$perf_date} = $perf_tcp_hit_time{$perf_date} =
+      $perf_tcp_miss_time{$perf_date} = $perf_hier_direct_time{$perf_date} =
+      $perf_hier_sibling_time{$perf_date} = $perf_hier_parent_time{$perf_date}
+      = .0000000001;
+  }
+  $perf_counter{$perf_date}++;
+  $perf_size{$perf_date} += $log_size;
+  $perf_time{$perf_date} += $log_reqtime;';
+  }
+  $loop .= '
+  $size += $log_size;
+  $time += $log_reqtime;
+  $method{$log_method} = $method_size{$log_method} = $method_time{$log_method}
+    = 0 unless defined $method{$log_method};
+  $method{$log_method}++;
+  $method_size{$log_method} += $log_size;
+  $method_time{$log_method} += $log_reqtime;
+  $time_begin = $log_date if $log_date < $time_begin;
+  $time_end = $log_date if $log_date > $time_end;';
+  if ($opt_p) {
+    $loop .= '
+  $peak_all_sec_pointer++;
+  $peak_all_min_pointer++;
+  unshift(@peak_all,$log_date);
+  $peak_all_sec_pointer-- while $peak_all[$peak_all_sec_pointer - 1] <
+    ($log_date - 1);
+  $peak_all_min_pointer-- while $peak_all[$peak_all_min_pointer - 1] <
+    ($log_date - 60);
+  pop(@peak_all) while $peak_all[$#peak_all] < ($log_date - 3600);
+  if ($peak_all_hour < @peak_all) {
+    $peak_all_hour = @peak_all;
+    $peak_all_hour_time = $log_date - 3600;
+  }
+  if ($peak_all_min < $peak_all_min_pointer) {
+    $peak_all_min = $peak_all_min_pointer;
+    $peak_all_min_time = $log_date - 60;
+  }
+  if ($peak_all_sec < $peak_all_sec_pointer) {
+    $peak_all_sec = $peak_all_sec_pointer;
+    $peak_all_sec_time = $log_date - 1;
+  }';
+  }
+  $loop .= '
+  if (($log_method eq \'ICP_QUERY\') or ($log_status =~ /^([ICP].+)/)) {
+    $udp++;
+    $udp_size += $log_size;
+    $udp_time += $log_reqtime;';
+  if ($opt_r) {
+    $loop .= '
+    $udp_requester{$requester} = $udp_requester_size{$requester} =
+      $udp_requester_time{$requester} = $udp_hit_requester{$requester} =
+      $udp_hit_requester_size{$requester} = 0 unless defined
+      $udp_requester{$requester};
+    $udp_requester{$requester}++;
+    $udp_requester_size{$requester} += $log_size;
+    $udp_requester_time{$requester} += $log_reqtime;';
+  }
+  if ($opt_p) {
+    $loop .= '
+    $peak_udp_sec_pointer++;
+    $peak_udp_min_pointer++;
+    unshift(@peak_udp,$log_date);
+    $peak_udp_sec_pointer-- while $peak_udp[$peak_udp_sec_pointer - 1] <
+      ($log_date - 1);
+    $peak_udp_min_pointer-- while $peak_udp[$peak_udp_min_pointer - 1] <
+      ($log_date - 60);
+    pop @peak_udp while $peak_udp[$#peak_udp] < ($log_date - 3600);
+    if ($peak_udp_hour < @peak_udp) {
+      $peak_udp_hour = @peak_udp;
+      $peak_udp_hour_time = $log_date - 3600;
+    }
+    if ($peak_udp_min < $peak_udp_min_pointer) {
+      $peak_udp_min = $peak_udp_min_pointer;
+      $peak_udp_min_time = $log_date - 60;
+    }
+    if ($peak_udp_sec < $peak_udp_sec_pointer) {
+      $peak_udp_sec = $peak_udp_sec_pointer;
+      $peak_udp_sec_time = $log_date - 1;
+    }';
+  }
+  $loop .= '
+    if ($log_hitfail =~ /^(UDP|ICP)_HIT/o) {
+      $udp_hit++;
+      $udp_hit_size += $log_size;
+      $udp_hit_time += $log_reqtime;';
+  if ($opt_r) {
+    $loop .= '
+      $udp_hit_requester{$requester}++;
+      $udp_hit_requester_size{$requester} += $log_size;';
+  }
+  if ($opt_s) {
+    $loop .= '
+      $udp_hit{$log_hitfail} = $udp_hit_size{$log_hitfail} =
+	$udp_hit_time{$log_hitfail} = 0 unless defined $udp_hit{$log_hitfail};
+      $udp_hit{$log_hitfail}++;
+      $udp_hit_size{$log_hitfail} += $log_size;
+      $udp_hit_time{$log_hitfail} += $log_reqtime;';
+  }
+  $loop .= '
     } else {
-      $requester = $log_requester;
+      $udp_miss++;
+      $udp_miss_size += $log_size;
+      $udp_miss_time += $log_reqtime;';
+  if ($opt_s) {
+    $loop .= '
+      $udp_miss{$log_hitfail} = $udp_miss_size{$log_hitfail} =
+      $udp_miss_time{$log_hitfail} = 0 unless defined $udp_miss{$log_hitfail};
+      $udp_miss{$log_hitfail}++;
+      $udp_miss_size{$log_hitfail} += $log_size;
+      $udp_miss_time{$log_hitfail} += $log_reqtime;';
+  }
+    $loop .= '
     }
-    ($log_hier_method, $log_hier_host) = (split(m#/#o, $log_hier))[0,1];
-    $log_content = '<unknown>' if $log_content eq '-';
-    $log_content =~ tr/A-Z/a-z/;
-    $log_content = $urlhost = $urltld = $urlext = '<error>' if ($log_code =~
-								m#[45]\d\d#o);
-    print('#') if ($opt_b and ($counter / $opt_b) eq int($counter / $opt_b));
-    $counter++;
-    if ($opt_P) {
-      $perf_date = int($log_date / (60 * $opt_P)) * 60 * $opt_P;
-      unless (defined $perf_counter{$perf_date}) {
-	$perf_counter{$perf_date} = $perf_size{$perf_date} =
-	  $perf_tcp_hit_size{$perf_date} = $perf_tcp_miss_size{$perf_date} =
-	  $perf_hier_direct_size{$perf_date} =
-	  $perf_hier_sibling_size{$perf_date} =
-	  $perf_hier_parent_size{$perf_date} = 0;
-	$perf_time{$perf_date} = $perf_tcp_hit_time{$perf_date} =
-	  $perf_tcp_miss_time{$perf_date} = $perf_hier_direct_time{$perf_date}
-	  = $perf_hier_sibling_time{$perf_date} =
-	  $perf_hier_parent_time{$perf_date} = .0000000001;
-      }
-      $perf_counter{$perf_date}++;
-      $perf_size{$perf_date} += $log_size;
-      $perf_time{$perf_date} += $log_reqtime;
+  } else {
+    $tcp++;
+    $tcp_size += $log_size;
+    $tcp_time += $log_reqtime;';
+  if ($opt_r) {
+    $loop .= '
+    $tcp_requester{$requester} = $tcp_requester_size{$requester} =
+      $tcp_requester_time{$requester} = $tcp_hit_requester{$requester} =
+      $tcp_hit_requester_size{$requester} = 0 unless defined
+      $tcp_requester{$requester};
+    $tcp_requester{$requester}++;
+    $tcp_requester_size{$requester} += $log_size;
+    $tcp_requester_time{$requester} += $log_reqtime;';
+  }
+  if ($opt_d) {
+    $loop .= '
+    $tcp_urlhost{$urlhost} = $tcp_urlhost_size{$urlhost} =
+      $tcp_hit_urlhost{$urlhost} = 0 unless defined $tcp_urlhost{$urlhost};
+    $tcp_urlhost{$urlhost}++;
+    $tcp_urlhost_size{$urlhost} += $log_size;
+    $tcp_urltld{$urltld} = $tcp_urltld_size{$urltld} =
+      $tcp_hit_urltld{$urltld} = 0 unless defined $tcp_urltld{$urltld};
+    $tcp_urltld{$urltld}++;
+    $tcp_urltld_size{$urltld} += $log_size;';
+  }
+  if ($opt_t) {
+    $loop .= '
+    $tcp_urlprot{$urlprot} = $tcp_urlprot_size{$urlprot} =
+      $tcp_hit_urlprot{$urlprot} = 0 unless defined $tcp_urlprot{$urlprot};
+    $tcp_urlprot{$urlprot}++;
+    $tcp_urlprot_size{$urlprot} += $log_size;';
+  }
+  if ($opt_p) {
+    $loop .= '
+    $peak_tcp_sec_pointer++;
+    $peak_tcp_min_pointer++;
+    unshift(@peak_tcp, $log_date);
+    $peak_tcp_sec_pointer-- while $peak_tcp[$peak_tcp_sec_pointer - 1] <
+      ($log_date - 1);
+    $peak_tcp_min_pointer-- while $peak_tcp[$peak_tcp_min_pointer - 1] <
+      ($log_date - 60);
+    pop(@peak_tcp) while $peak_tcp[$#peak_tcp] < ($log_date - 3600);
+    if ($peak_tcp_hour < @peak_tcp) {
+      $peak_tcp_hour = @peak_tcp;
+      $peak_tcp_hour_time = $log_date - 3600;
     }
-    $size += $log_size;
-    $time += $log_reqtime;
-    $method{$log_method} = $method_size{$log_method} =
-      $method_time{$log_method} = 0 unless defined $method{$log_method};
-    $method{$log_method}++;
-    $method_size{$log_method} += $log_size;
-    $method_time{$log_method} += $log_reqtime;
-    $time_begin = $log_date if $log_date < $time_begin;
-    $time_end = $log_date if $log_date > $time_end;
-    if ($opt_p) {
-      $peak_all_sec_pointer++;
-      $peak_all_min_pointer++;
-      unshift(@peak_all,$log_date);
-      $peak_all_sec_pointer-- while $peak_all[$peak_all_sec_pointer - 1] <
-	($log_date - 1);
-      $peak_all_min_pointer-- while $peak_all[$peak_all_min_pointer - 1] <
-	($log_date - 60);
-      pop(@peak_all) while $peak_all[$#peak_all] < ($log_date - 3600);
-      if ($peak_all_hour < @peak_all) {
-	$peak_all_hour = @peak_all;
-	$peak_all_hour_time = $log_date - 3600;
-      }
-      if ($peak_all_min < $peak_all_min_pointer) {
-	$peak_all_min = $peak_all_min_pointer;
-	$peak_all_min_time = $log_date - 60;
-      }
-      if ($peak_all_sec < $peak_all_sec_pointer) {
-	$peak_all_sec = $peak_all_sec_pointer;
-	$peak_all_sec_time = $log_date - 1;
-      }
+    if ($peak_tcp_min < $peak_tcp_min_pointer) {
+      $peak_tcp_min = $peak_tcp_min_pointer;
+      $peak_tcp_min_time = $log_date - 60;
     }
-    if (($log_method eq 'ICP_QUERY') or ($log_status =~ /^([ICP].+)/)) {
-      $udp++;
-      $udp_size += $log_size;
-      $udp_time += $log_reqtime;
-      if ($opt_r) {
-	$udp_requester{$requester} = $udp_requester_size{$requester} =
-	  $udp_requester_time{$requester} = $udp_hit_requester{$requester} =
-	  $udp_hit_requester_size{$requester} = 0 unless defined
-	  $udp_requester{$requester};
-	$udp_requester{$requester}++;
-	$udp_requester_size{$requester} += $log_size;
-	$udp_requester_time{$requester} += $log_reqtime;
-      }
-      if ($opt_p) {
-	$peak_udp_sec_pointer++;
-	$peak_udp_min_pointer++;
-	unshift(@peak_udp,$log_date);
-	$peak_udp_sec_pointer-- while $peak_udp[$peak_udp_sec_pointer - 1] <
-	  ($log_date - 1);
-	$peak_udp_min_pointer-- while $peak_udp[$peak_udp_min_pointer - 1] <
-	  ($log_date - 60);
-	pop @peak_udp while $peak_udp[$#peak_udp] < ($log_date - 3600);
-	if ($peak_udp_hour < @peak_udp) {
-	  $peak_udp_hour = @peak_udp;
-	  $peak_udp_hour_time = $log_date - 3600;
-	}
-	if ($peak_udp_min < $peak_udp_min_pointer) {
-	  $peak_udp_min = $peak_udp_min_pointer;
-	  $peak_udp_min_time = $log_date - 60;
-	}
-	if ($peak_udp_sec < $peak_udp_sec_pointer) {
-	  $peak_udp_sec = $peak_udp_sec_pointer;
-	  $peak_udp_sec_time = $log_date - 1;
-	}
-      }
-      if ($log_hitfail =~ /^(UDP|ICP)_HIT/o) {
-	$udp_hit++;
-	$udp_hit_size += $log_size;
-	$udp_hit_time += $log_reqtime;
-	if ($opt_r) {
-	  $udp_hit_requester{$requester}++;
-	  $udp_hit_requester_size{$requester} += $log_size;
-	}
-	if ($opt_s) {
-	  $udp_hit{$log_hitfail} = $udp_hit_size{$log_hitfail} =
-	    $udp_hit_time{$log_hitfail} = 0 unless defined
-	    $udp_hit{$log_hitfail};
-	  $udp_hit{$log_hitfail}++;
-	  $udp_hit_size{$log_hitfail} += $log_size;
-	  $udp_hit_time{$log_hitfail} += $log_reqtime;
-	}
-      } else {
-	$udp_miss++;
-	$udp_miss_size += $log_size;
-	$udp_miss_time += $log_reqtime;
-	if ($opt_s) {
-	  $udp_miss{$log_hitfail} = $udp_miss_size{$log_hitfail} =
-	    $udp_miss_time{$log_hitfail} = 0 unless defined
-	    $udp_miss{$log_hitfail};
-	  $udp_miss{$log_hitfail}++;
-	  $udp_miss_size{$log_hitfail} += $log_size;
-	  $udp_miss_time{$log_hitfail} += $log_reqtime;
-	}
-      }
+    if ($peak_tcp_sec < $peak_tcp_sec_pointer) {
+      $peak_tcp_sec = $peak_tcp_sec_pointer;
+      $peak_tcp_sec_time = $log_date - 1;
+    }';
+  }
+  if ($opt_t) {
+    $loop .= '
+    $tcp_content{$log_content} = $tcp_content_size{$log_content} =
+      $tcp_hit_content{$log_content} = 0 unless defined
+      $tcp_content{$log_content};
+    $tcp_content{$log_content}++;
+    $tcp_content_size{$log_content} += $log_size;
+    $tcp_urlext{$urlext} = $tcp_urlext_size{$urlext} =
+      $tcp_hit_urlext{$urlext} = 0 unless defined $tcp_urlext{$urlext};
+    $tcp_urlext{$urlext}++;
+    $tcp_urlext_size{$urlext} += $log_size;';
+  }
+  $loop .= '
+    if ($log_hitfail =~ /^TCP\w+HIT/o) {
+      $tcp_hit++;
+      $tcp_hit_size += $log_size;
+      $tcp_hit_time += $log_reqtime;';
+  if ($opt_P) {
+    $loop .= '
+      $perf_tcp_hit_size{$perf_date} += $log_size;
+      $perf_tcp_hit_time{$perf_date} += $log_reqtime;';
+  }
+  if ($opt_s) {
+    $loop .= '
+      $tcp_hit{$log_hitfail} = $tcp_hit_size{$log_hitfail} =
+	$tcp_hit_time{$log_hitfail} = 0 unless defined $tcp_hit{$log_hitfail};
+      $tcp_hit{$log_hitfail}++;
+      $tcp_hit_size{$log_hitfail} += $log_size;
+      $tcp_hit_time{$log_hitfail} += $log_reqtime;';
+  }
+  if ($opt_r) {
+    $loop .= '
+      $tcp_hit_requester{$requester}++;
+      $tcp_hit_requester_size{$requester} += $log_size;';
+  }
+  if ($opt_d) {
+    $loop .= '
+      $tcp_hit_urlhost{$urlhost}++;
+      $tcp_hit_urltld{$urltld}++;';
+  }
+  if ($opt_t) {
+    $loop .= '
+      $tcp_hit_content{$log_content}++;
+      $tcp_hit_urlext{$urlext}++;
+      $tcp_hit_urlprot{$urlprot}++;';
+  }
+  $loop .= '
+    } elsif (($log_hier_method eq \'NONE\') or ($log_hitfail =~ /^ERR_/o)) {
+      $tcp_miss_none++;
+      $tcp_miss_none_size += $log_size;
+      $tcp_miss_none_time += $log_reqtime;';
+  if ($opt_s) {
+    $loop .= '
+      $tcp_miss_none{$log_hitfail} = $tcp_miss_none_size{$log_hitfail} =
+	$tcp_miss_none_time{$log_hitfail} = 0 unless defined
+	$tcp_miss_none{$log_hitfail};
+      $tcp_miss_none{$log_hitfail}++;
+      $tcp_miss_none_size{$log_hitfail} += $log_size;
+      $tcp_miss_none_time{$log_hitfail} += $log_reqtime;';
+  }
+  $loop .= '
     } else {
-      $tcp++;
-      $tcp_size += $log_size;
-      $tcp_time += $log_reqtime;
-      if ($opt_r) {
-	$tcp_requester{$requester} = $tcp_requester_size{$requester} =
-	  $tcp_requester_time{$requester} = $tcp_hit_requester{$requester} =
-	  $tcp_hit_requester_size{$requester} = 0 unless defined
-	  $tcp_requester{$requester};
-	$tcp_requester{$requester}++;
-	$tcp_requester_size{$requester} += $log_size;
-	$tcp_requester_time{$requester} += $log_reqtime;
-      }
-      if ($opt_d) {
-	$tcp_urlhost{$urlhost} = $tcp_urlhost_size{$urlhost} =
-	  $tcp_hit_urlhost{$urlhost} = 0 unless defined
-	  $tcp_urlhost{$urlhost};
-	$tcp_urlhost{$urlhost}++;
-	$tcp_urlhost_size{$urlhost} += $log_size;
-	$tcp_urltld{$urltld} = $tcp_urltld_size{$urltld} =
-	  $tcp_hit_urltld{$urltld} = 0 unless defined $tcp_urltld{$urltld};
-	$tcp_urltld{$urltld}++;
-	$tcp_urltld_size{$urltld} += $log_size;
-      }
-      if ($opt_t) {
-	$tcp_urlprot{$urlprot} = $tcp_urlprot_size{$urlprot} =
-	  $tcp_hit_urlprot{$urlprot} = 0 unless defined
-	  $tcp_urlprot{$urlprot};
-	$tcp_urlprot{$urlprot}++;
-	$tcp_urlprot_size{$urlprot} += $log_size;
-      }
-      if ($opt_p) {
-	$peak_tcp_sec_pointer++;
-	$peak_tcp_min_pointer++;
-	unshift(@peak_tcp, $log_date);
-	$peak_tcp_sec_pointer-- while $peak_tcp[$peak_tcp_sec_pointer - 1] <
-	  ($log_date - 1);
-	$peak_tcp_min_pointer-- while $peak_tcp[$peak_tcp_min_pointer - 1] <
-	  ($log_date - 60);
-	pop(@peak_tcp) while $peak_tcp[$#peak_tcp] < ($log_date - 3600);
-	if ($peak_tcp_hour < @peak_tcp) {
-	  $peak_tcp_hour = @peak_tcp;
-	  $peak_tcp_hour_time = $log_date - 3600;
-	}
-	if ($peak_tcp_min < $peak_tcp_min_pointer) {
-	  $peak_tcp_min = $peak_tcp_min_pointer;
-	  $peak_tcp_min_time = $log_date - 60;
-	}
-	if ($peak_tcp_sec < $peak_tcp_sec_pointer) {
-	  $peak_tcp_sec = $peak_tcp_sec_pointer;
-	  $peak_tcp_sec_time = $log_date - 1;
-	}
-      }
-      if ($opt_t) {
-	$tcp_content{$log_content} = $tcp_content_size{$log_content} =
-	  $tcp_hit_content{$log_content} = 0 unless defined
-	  $tcp_content{$log_content};
-	$tcp_content{$log_content}++;
-	$tcp_content_size{$log_content} += $log_size;
-	$tcp_urlext{$urlext} = $tcp_urlext_size{$urlext} =
-	  $tcp_hit_urlext{$urlext} = 0 unless defined $tcp_urlext{$urlext};
-	$tcp_urlext{$urlext}++;
-	$tcp_urlext_size{$urlext} += $log_size;
-      }
-      if ($log_hitfail =~ /^TCP\w+HIT/o) {
-	$tcp_hit++;
-	$tcp_hit_size += $log_size;
-	$tcp_hit_time += $log_reqtime;
-	if ($opt_P) {
-	  $perf_tcp_hit_size{$perf_date} += $log_size;
-	  $perf_tcp_hit_time{$perf_date} += $log_reqtime;
-	}
-	if ($opt_s) {
-	  $tcp_hit{$log_hitfail} = $tcp_hit_size{$log_hitfail} =
-	    $tcp_hit_time{$log_hitfail} = 0 unless defined
-	    $tcp_hit{$log_hitfail};
-	  $tcp_hit{$log_hitfail}++;
-	  $tcp_hit_size{$log_hitfail} += $log_size;
-	  $tcp_hit_time{$log_hitfail} += $log_reqtime;
-	}
-	if ($opt_r) {
-	  $tcp_hit_requester{$requester}++;
-	  $tcp_hit_requester_size{$requester} += $log_size;
-	}
-	if ($opt_d) {
-	  $tcp_hit_urlhost{$urlhost}++;
-	  $tcp_hit_urltld{$urltld}++;
-	}
-	if ($opt_t) {
-	  $tcp_hit_content{$log_content}++;
-	  $tcp_hit_urlext{$urlext}++;
-	  $tcp_hit_urlprot{$urlprot}++;
-	}
-      } elsif (($log_hier_method eq 'NONE') or ($log_hitfail =~ /^ERR_/o)) {
-	$tcp_miss_none++;
-	$tcp_miss_none_size += $log_size;
-	$tcp_miss_none_time += $log_reqtime;
-	if ($opt_s) {
-	  $tcp_miss_none{$log_hitfail} = $tcp_miss_none_size{$log_hitfail} =
-	    $tcp_miss_none_time{$log_hitfail} = 0 unless defined
-	    $tcp_miss_none{$log_hitfail};
-	  $tcp_miss_none{$log_hitfail}++;
-	  $tcp_miss_none_size{$log_hitfail} += $log_size;
-	  $tcp_miss_none_time{$log_hitfail} += $log_reqtime;
-	}
+      $tcp_miss++;
+      $tcp_miss_size += $log_size;
+      $tcp_miss_time += $log_reqtime;';
+  if ($opt_P) {
+    $loop .= '
+      $perf_tcp_miss_size{$perf_date} += $log_size;
+      $perf_tcp_miss_time{$perf_date} += $log_reqtime;';
+  }
+  if ($opt_s) {
+    $loop .= '
+      $tcp_miss{$log_hitfail} = $tcp_miss_size{$log_hitfail} =
+	$tcp_miss_time{$log_hitfail} = 0 unless defined
+	$tcp_miss{$log_hitfail};
+      $tcp_miss{$log_hitfail}++;
+      $tcp_miss_size{$log_hitfail} += $log_size;
+      $tcp_miss_time{$log_hitfail} += $log_reqtime;';
+  }
+  if ($opt_r) {
+    $loop .= '
+      $tcp_miss_requester{$requester} = $tcp_miss_requester_size{$requester} =
+	0 unless defined $tcp_miss_requester{$requester};
+      $tcp_miss_requester{$requester}++;
+      $tcp_miss_requester_size{$requester} += $log_size;';
+  }
+  $loop .= '
+    }
+    if ($log_hier_method ne \'NONE\') {
+      $hier++;
+      $hier_size += $log_size;
+      $hier_time += $log_reqtime;
+      if ($log_hier_method =~ /(DIRECT|SOURCE_FASTEST)/o) {
+	$hier_direct++;
+	$hier_direct_size += $log_size;
+	$hier_direct_time += $log_reqtime;';
+  if ($opt_P) {
+    $loop .= '
+	$perf_hier_direct_size{$perf_date} += $log_size;
+	$perf_hier_direct_time{$perf_date} += $log_reqtime;';
+  }
+  if ($opt_s) {
+    $loop .= '
+	$hier_direct{$log_hier_method} = $hier_direct_size{$log_hier_method} =
+	  $hier_direct_time{$log_hier_method} = 0 unless defined
+	  $hier_direct{$log_hier_method};
+	$hier_direct{$log_hier_method}++;
+	$hier_direct_size{$log_hier_method} += $log_size;
+	$hier_direct_time{$log_hier_method} += $log_reqtime;';
+  }
+  $loop .= '
+      } elsif ($log_hier_method =~
+	       /(CACHE_DIGEST|PARENT|SIBLING|NEIGHBOR)\w+HIT/o) {
+	$hier_sibling++;
+	$hier_sibling_size += $log_size;
+	$hier_sibling_time += $log_reqtime;';
+  if ($opt_P) {
+    $loop .= '
+	$perf_hier_sibling_size{$perf_date} += $log_size;
+	$perf_hier_sibling_time{$perf_date} += $log_reqtime;';
+  }
+  if ($opt_s) {
+    $loop .= '
+	$hier_sibling{$log_hier_method} = $hier_sibling_size{$log_hier_method}
+	  = $hier_sibling_time{$log_hier_method} = 0 unless defined
+	  $hier_sibling{$log_hier_method};
+	$hier_sibling{$log_hier_method}++;
+	$hier_sibling_size{$log_hier_method} += $log_size;
+	$hier_sibling_time{$log_hier_method} += $log_reqtime;';
+  }
+  $loop .= '
+	$hier_neighbor{$log_hier_host} = $hier_neighbor_size{$log_hier_host} =
+	  $hier_neighbor_time{$log_hier_host} = 0 unless defined
+	  $hier_neighbor{$log_hier_host};
+	$hier_neighbor{$log_hier_host}++;
+	$hier_neighbor_size{$log_hier_host} += $log_size;
+	$hier_neighbor_time{$log_hier_host} += $log_reqtime;';
+  if ($opt_s) {
+    $loop .= '
+	$hier_neighbor_status{$log_hier_host}{$log_hier_method} =
+	  $hier_neighbor_status_size{$log_hier_host}{$log_hier_method} =
+	  $hier_neighbor_status_time{$log_hier_host}{$log_hier_method} = 0
+	  unless defined
+	  $hier_neighbor_status{$log_hier_host}{$log_hier_method};
+	$hier_neighbor_status{$log_hier_host}{$log_hier_method}++;
+	$hier_neighbor_status_size{$log_hier_host}{$log_hier_method} +=
+	  $log_size;
+	$hier_neighbor_status_time{$log_hier_host}{$log_hier_method} +=
+	  $log_reqtime;';
+  }
+  $loop .= '
+      } elsif ($log_hier_method =~
+	       /(CARP|PARENT_MISS|(CLOSEST|DEFAULT|FIRST_UP|SINGLE|PASSTHROUGH|ROUNDROBIN)_PARENT)/o) {
+	$hier_parent++;
+	$hier_parent_size += $log_size;
+	$hier_parent_time += $log_reqtime;';
+  if ($opt_P) {
+    $loop .= '
+	$perf_hier_parent_size{$perf_date} += $log_size;
+	$perf_hier_parent_time{$perf_date} += $log_reqtime;';
+  }
+  if ($opt_s) {
+    $loop .= '
+	$hier_parent{$log_hier_method} = $hier_parent_size{$log_hier_method} =
+	  $hier_parent_time{$log_hier_method} = 0 unless defined
+	  $hier_parent{$log_hier_method};
+	$hier_parent{$log_hier_method}++;
+	$hier_parent_size{$log_hier_method} += $log_size;
+	$hier_parent_time{$log_hier_method} += $log_reqtime;';
+  }
+  $loop .= '
+	$hier_neighbor{$log_hier_host} = $hier_neighbor_size{$log_hier_host} =
+	  $hier_neighbor_time{$log_hier_host} = 0 unless defined
+	  $hier_neighbor{$log_hier_host};
+	$hier_neighbor{$log_hier_host}++;
+	$hier_neighbor_size{$log_hier_host} += $log_size;
+	$hier_neighbor_time{$log_hier_host} += $log_reqtime;';
+  if ($opt_s) {
+    $loop .= '
+	$hier_neighbor_status{$log_hier_host}{$log_hier_method} =
+	  $hier_neighbor_status_size{$log_hier_host}{$log_hier_method} =
+	  $hier_neighbor_status_time{$log_hier_host}{$log_hier_method} = 0
+	  unless defined
+	  $hier_neighbor_status{$log_hier_host}{$log_hier_method};
+	$hier_neighbor_status{$log_hier_host}{$log_hier_method}++;
+	$hier_neighbor_status_size{$log_hier_host}{$log_hier_method} +=
+	  $log_size;
+	$hier_neighbor_status_time{$log_hier_host}{$log_hier_method} +=
+	  $log_reqtime;';
+  }
+  $loop .= '
       } else {
-	$tcp_miss++;
-	$tcp_miss_size += $log_size;
-	$tcp_miss_time += $log_reqtime;
-	if ($opt_P) {
-	  $perf_tcp_miss_size{$perf_date} += $log_size;
-	  $perf_tcp_miss_time{$perf_date} += $log_reqtime;
-	}
-	if ($opt_s) {
-	  $tcp_miss{$log_hitfail} = $tcp_miss_size{$log_hitfail} =
-	    $tcp_miss_time{$log_hitfail} = 0 unless defined
-	    $tcp_miss{$log_hitfail};
-	  $tcp_miss{$log_hitfail}++;
-	  $tcp_miss_size{$log_hitfail} += $log_size;
-	  $tcp_miss_time{$log_hitfail} += $log_reqtime;
-	}
-	if ($opt_r) {
-	  $tcp_miss_requester{$requester} =
-	    $tcp_miss_requester_size{$requester} = 0 unless defined
-	    $tcp_miss_requester{$requester};
-	  $tcp_miss_requester{$requester}++;
-	  $tcp_miss_requester_size{$requester} += $log_size;
-	}
-      }
-      if ($log_hier_method ne 'NONE') {
-	$hier++;
-	$hier_size += $log_size;
-	$hier_time += $log_reqtime;
-	if ($log_hier_method =~ /(DIRECT|SOURCE_FASTEST)/o) {
-	  $hier_direct++;
-	  $hier_direct_size += $log_size;
-	  $hier_direct_time += $log_reqtime;
-	  if ($opt_P) {
-	    $perf_hier_direct_size{$perf_date} += $log_size;
-	    $perf_hier_direct_time{$perf_date} += $log_reqtime;
-	  }
-	  if ($opt_s) {
-	    $hier_direct{$log_hier_method} =
-	      $hier_direct_size{$log_hier_method} =
-	      $hier_direct_time{$log_hier_method} = 0 unless defined
-	      $hier_direct{$log_hier_method};
-	    $hier_direct{$log_hier_method}++;
-	    $hier_direct_size{$log_hier_method} += $log_size;
-	    $hier_direct_time{$log_hier_method} += $log_reqtime;
-	  }
-	} elsif ($log_hier_method =~
-		 /(CACHE_DIGEST|PARENT|SIBLING|NEIGHBOR)\w+HIT/o) {
-	  $hier_sibling++;
-	  $hier_sibling_size += $log_size;
-	  $hier_sibling_time += $log_reqtime;
-	  if ($opt_P) {
-	    $perf_hier_sibling_size{$perf_date} += $log_size;
-	    $perf_hier_sibling_time{$perf_date} += $log_reqtime;
-	  }
-	  if ($opt_s) {
-	    $hier_sibling{$log_hier_method} =
-	      $hier_sibling_size{$log_hier_method} =
-	      $hier_sibling_time{$log_hier_method} = 0 unless defined
-	      $hier_sibling{$log_hier_method};
-	    $hier_sibling{$log_hier_method}++;
-	    $hier_sibling_size{$log_hier_method} += $log_size;
-	    $hier_sibling_time{$log_hier_method} += $log_reqtime;
-	  }
-	  $hier_neighbor{$log_hier_host} =
-	    $hier_neighbor_size{$log_hier_host} =
-	    $hier_neighbor_time{$log_hier_host} = 0 unless defined
-	    $hier_neighbor{$log_hier_host};
-	  $hier_neighbor{$log_hier_host}++;
-	  $hier_neighbor_size{$log_hier_host} += $log_size;
-	  $hier_neighbor_time{$log_hier_host} += $log_reqtime;
-	  if ($opt_s) {
-	    $hier_neighbor_status{$log_hier_host}{$log_hier_method} =
-	      $hier_neighbor_status_size{$log_hier_host}{$log_hier_method} =
-	      $hier_neighbor_status_time{$log_hier_host}{$log_hier_method} = 0
-	      unless defined
-	      $hier_neighbor_status{$log_hier_host}{$log_hier_method};
-	    $hier_neighbor_status{$log_hier_host}{$log_hier_method}++;
-	    $hier_neighbor_status_size{$log_hier_host}{$log_hier_method} +=
-	      $log_size;
-	    $hier_neighbor_status_time{$log_hier_host}{$log_hier_method} +=
-	      $log_reqtime;
-	  }
-	} elsif ($log_hier_method =~
-		 /(CARP|PARENT_MISS|(CLOSEST|DEFAULT|FIRST_UP|SINGLE|PASSTHROUGH|ROUNDROBIN)_PARENT)/o) {
-	  $hier_parent++;
-	  $hier_parent_size += $log_size;
-	  $hier_parent_time += $log_reqtime;
-	  if ($opt_P) {
-	    $perf_hier_parent_size{$perf_date} += $log_size;
-	    $perf_hier_parent_time{$perf_date} += $log_reqtime;
-	  }
-	  if ($opt_s) {
-	    $hier_parent{$log_hier_method} =
-	      $hier_parent_size{$log_hier_method} =
-	      $hier_parent_time{$log_hier_method} = 0 unless defined
-	      $hier_parent{$log_hier_method};
-	    $hier_parent{$log_hier_method}++;
-	    $hier_parent_size{$log_hier_method} += $log_size;
-	    $hier_parent_time{$log_hier_method} += $log_reqtime;
-	  }
-	  $hier_neighbor{$log_hier_host} =
-	    $hier_neighbor_size{$log_hier_host} =
-	    $hier_neighbor_time{$log_hier_host} = 0 unless defined
-	    $hier_neighbor{$log_hier_host};
-	  $hier_neighbor{$log_hier_host}++;
-	  $hier_neighbor_size{$log_hier_host} += $log_size;
-	  $hier_neighbor_time{$log_hier_host} += $log_reqtime;
-	  if ($opt_s) {
-	    $hier_neighbor_status{$log_hier_host}{$log_hier_method} =
-	      $hier_neighbor_status_size{$log_hier_host}{$log_hier_method} =
-	      $hier_neighbor_status_time{$log_hier_host}{$log_hier_method} = 0
-	      unless defined
-	      $hier_neighbor_status{$log_hier_host}{$log_hier_method};
-	    $hier_neighbor_status{$log_hier_host}{$log_hier_method}++;
-	    $hier_neighbor_status_size{$log_hier_host}{$log_hier_method} +=
-	      $log_size;
-	    $hier_neighbor_status_time{$log_hier_host}{$log_hier_method} +=
-	      $log_reqtime;
-	  }
-	} else {
-	  warn("unknown log_hier_method: \"$log_hier_method\"
-	    Please report this to Calamaris-bug\@Cord.de\n");
-	}
+	warn("unknown log_hier_method: \"$log_hier_method\"
+	      Please report this to Calamaris-bug\@Cord.de\n");
       }
     }
   }
+}'; 
+  $time_run = time - $time_run;
+  eval $loop;
+  die $@ if $@;
   $time_run = time - $time_run;
 }
 
 ### Yea! File read. Now for something completely different ;-)
 
 if ($counter == 0) {
-  print("no requests found\n");
+  print("\nno requests found\n");
   exit(0);
 }
 open(CACHE, ">$opt_o") or die("$0: can't open $opt_i for writing: $!\n")
@@ -872,7 +911,7 @@ if ($opt_w) {
   outref("Performance in $opt_P minute steps", 15) if ($opt_P);
   print("</ul><hr>\n");
 } else {
-  printf("%sProxy-Report (%s - %s)\n", $hostname, $date_start, $date_stop);
+  printf("\n%sProxy-Report (%s - %s)\n", $hostname, $date_start, $date_stop);
 }
 
 @format=(19,8);
