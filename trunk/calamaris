@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.21 1999-02-20 17:45:13 cord Exp $
+# $Id: calamaris,v 2.22 1999-02-20 19:33:48 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic for Squid and NetCache Native Log-files
 #
@@ -70,7 +70,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:f:hH:i:l:mno:Op:P:r:st:uwz');
 
-$COPYRIGHT='Calamaris $Revision: 2.21 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
+$COPYRIGHT='Calamaris $Revision: 2.22 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
 welcome to redistribute it under certain conditions.  See source for details.
 Calamaris-Homepage: http://Calamaris.Cord.de/';
@@ -162,13 +162,15 @@ $counter = $hier = $hier_direct = $hier_direct_size = $hier_direct_time =
   $hier_parent = $hier_parent_size = $hier_parent_time = $hier_sibling =
   $hier_sibling_size = $hier_sibling_time = $hier_size = $hier_time = $invalid
   = $peak_all_min = $peak_all_min_time = $peak_all_sec = $peak_all_sec_time =
-  $peak_tcp_min = $peak_tcp_min_time = $peak_tcp_sec = $peak_tcp_sec_time =
+  $peak_all_hour = $peak_all_hour_time = $peak_tcp_min = $peak_tcp_min_time =
+  $peak_tcp_sec = $peak_tcp_sec_time = $peak_tcp_hour = $peak_tcp_hour_time =
   $peak_udp_min = $peak_udp_min_time = $peak_udp_sec = $peak_udp_sec_time =
-  $size = $tcp = $tcp_hit = $tcp_hit_size = $tcp_hit_time = $tcp_miss =
-  $tcp_miss_none = $tcp_miss_none_size = $tcp_miss_none_time = $tcp_miss_size
-  = $tcp_miss_time = $tcp_size = $tcp_time = $time = $time_end = $time_run =
-  $udp = $udp_hit = $udp_hit_size = $udp_hit_time = $udp_miss = $udp_miss_size
-  = $udp_miss_time = $udp_size = $udp_time = 0;
+  $peak_udp_hour = $peak_udp_hour_time = $size = $tcp = $tcp_hit =
+  $tcp_hit_size = $tcp_hit_time = $tcp_miss = $tcp_miss_none =
+  $tcp_miss_none_size = $tcp_miss_none_time = $tcp_miss_size = $tcp_miss_time
+  = $tcp_size = $tcp_time = $time = $time_end = $time_run = $udp = $udp_hit =
+  $udp_hit_size = $udp_hit_time = $udp_miss = $udp_miss_size = $udp_miss_time
+  = $udp_size = $udp_time = 0;
 $time_begin = 9999999999;
 @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
 
@@ -996,7 +998,7 @@ if ($opt_w) {
   print("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"
 \"http://www.w3.org/TR/REC-html40/loose.dtd\">
 <html><head><title>${hostname}Proxy Report ($date_start - $date_stop)</title>
-<META NAME=\"GENERATOR\" CONTENT=\"Calamaris/" . '$Revision: 2.21 $' . "\"></head>
+<META NAME=\"GENERATOR\" CONTENT=\"Calamaris/" . '$Revision: 2.22 $' . "\"></head>
 <body bgcolor=\"#FFFFFF\">
 <table border=\"0\">
 <tr>");
@@ -1045,6 +1047,7 @@ outstop();
 
 if (not defined $opt_p) {
 } elsif ($opt_p eq 'old') {
+  @format=(3,4,18,5,18,7,18);
   writecache(B, $peak_udp_sec, $peak_udp_sec_time, $peak_udp_min,
            $peak_udp_min_time, $peak_udp_hour, $peak_udp_hour_time,
            $peak_tcp_sec, $peak_tcp_sec_time, $peak_tcp_min,
@@ -1163,6 +1166,7 @@ if ($counter == 0) {
 if ($udp == 0) {
   outtitle('Incoming UDP-requests by status: none', 4);
 } else {
+  @format=(33,8,'%',9,'%',4,'kbs');
   outtitle('Incoming UDP-requests by status', 4);
   outstart();
   outheader('status',' request','% ','  kByte','% ','msec',' kB/sec');
@@ -1210,6 +1214,7 @@ if ($udp == 0) {
 if ($tcp == 0) {
   outtitle('Incoming TCP-requests by status: none', 5);
 } else {
+  @format=(33,8,'%',9,'%',4,'kbs');
   outtitle('Incoming TCP-requests by status', 5);
   outstart();
   outheader('status',' request','% ','  kByte','% ',' sec',' kB/sec');
@@ -1277,6 +1282,7 @@ if ($tcp == 0) {
 if ($hier == 0) {
   outtitle('Outgoing requests by status: none', 6);
 } else {
+  @format=(33,8,'%',9,'%',4,'kbs');
   outtitle('Outgoing requests by status', 6);
   outstart();
   outheader('status',' request','% ','  kByte','% ',' sec',' kB/sec');
@@ -1351,6 +1357,7 @@ if ($hier == 0) {
 if ($tcp_miss == 0) {
   outtitle('Outgoing requests by destination: none', 7);
 } else {
+  @format=(33,8,'%',9,'%',4,'kbs');
   outtitle('Outgoing requests by destination', 7);
   outstart();
   outheader('neighbor type',' request','% ',' kByte','% ',' sec', ' kB/sec');
@@ -1715,7 +1722,7 @@ close(CACHE);
 
 if ($opt_w) {
   print("<hr><address><A HREF=\"http://Calamaris.Cord.de/\">Calamaris</A> " .
-    '$Revision: 2.21 $' . ", Copyright &copy; 1997, 1998, 1999 <A
+    '$Revision: 2.22 $' . ", Copyright &copy; 1997, 1998, 1999 <A
     HREF=\"http://Cord.de/\">Cord Beermann</A>.<br>Calamaris comes with
     ABSOLUTELY NO WARRANTY. It is free software, and you are welcome to
     redistribute it under certain conditions.  See source for
