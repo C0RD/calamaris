@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.28 1999-09-25 12:33:34 cord Exp $
+# $Id: calamaris,v 2.29 1999-12-16 22:56:45 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic for Squid and NetCache Native Log-files
 #
@@ -81,7 +81,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:f:hH:i:l:mno:Op:P:r:st:uwz');
 
-$COPYRIGHT='Calamaris $Revision: 2.28 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
+$COPYRIGHT='Calamaris $Revision: 2.29 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
 welcome to redistribute it under certain conditions.  See source for details.
 Calamaris-Homepage: http://Calamaris.Cord.de/';
@@ -510,7 +510,6 @@ if (not defined $opt_f or $opt_f eq 'squid') {
   unless (not defined $foo or not defined $log_hier or $foo ne \'\' or
       	  $log_hier eq \'\' or $log_reqtime lt 0 or 
 	  $log_date !~ m#^\d+\.\d{3}$#) {';
-  } else {';
 } elsif ($opt_f eq 'nc') {
   $loop .= '
   s#\; c#\;_c#og; # Hack to handle buggy logfiles of NetCache V3.2.x
@@ -1037,7 +1036,7 @@ if ($opt_w) {
 <html>
  <head>
   <title>${hostname}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.28 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.29 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
@@ -1770,7 +1769,7 @@ close(CACHE);
 if ($opt_w) {
   print('  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.28 $, Copyright &copy; 1997, 1998, 1999
+   $Revision: 2.29 $, Copyright &copy; 1997, 1998, 1999
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
