@@ -1,180 +1,245 @@
-.TH CALAMARIS 1 "16 November 1998"
-..
-.de Sp
-.if t .sp .5v
-.if n .sp
-..
-.de Vb
-.ft CW
-.nf
-.ne \\$1
-..
-.de Ve
-.ft R
-..
+.TH CALAMARIS 1 "$Date: 1998-12-09 22:21:14 $" Handmade "Calamaris Manual"
+
 .SH NAME
-calamaris \- produce statistics out of squid log files
+calamaris \- generate statistic out of log files from Squid or relatives
+
 .SH SYNOPSIS
-cat log | 
-.B calamaris 
+cat log |
+.B calamaris
 [ calamaris_options ]
+
 .SH DESCRIPTION
 .B Calamaris
-is used to produce nice statistical output from
-.B Squid's
-log files. The resulting output can be in in
+is used to produce statistical output from
+.B Squid
+or related Proxies log files.  The resulting output can be in
 .I ascii
 or
-.IR html .
-It is possible to cache calculated numbers in a file in order to use
-them in later statistics.
+.I html .
+It is possible to cache calculated data in a file to use them in later runs.
 
-This manual page essentialy describes the options of
+This manual page describes the options of
 .B Calamaris
 and gives a few examples.
+
 .SH OPTIONS
+
 .SS Reports
+
 .TP
 .I "-a"
-all: extracts all reports available, 
-.I "-a" 
-equals 
-.IR "-d 20 -p -P 60 -r -1 -s -t 20" .
+all: extracts all reports available,
+.I "-a"
+equals
+.I "-d 20 -p -P 60 -r -1 -s -t 20" .
+
 .TP
 .I "-d" n
-domain report: switches the top level and the second level report
-on. The data is derived from the URL. The output is limited by n. (-1
-is unlimited).
+domain report: switches the top level and the second level report on.  The
+data is derived from the URL.  The output is limited by n.  (-1 is unlimited)
+
 .TP
 .I "-p"
-peak report: Measures the peaks of the Squid usage in requests per
-second, per minute and per hour. It reports peaks for TCP, UDP and ALL
-requests.
+peak report: Measures the peaks of the 
+.B Squid
+usage in requests per second, per minute and per hour.  It reports peaks for
+TCP, UDP and ALL requests.
+
 .TP
 .I "-P" n
-performance report: Shows the throughput of TCP requests for every n
-minutes.
+performance report: Shows the throughput of TCP requests for every n minutes.
+
 .TP
 .I "-r" n
-requester report: Switches the UDP and TCP requester reports on. The
-output is limited by n. (-1 is unlimited)
+requester report: Switches the UDP and TCP requester reports on.  The output
+is limited by n.  (-1 is unlimited)
+
 .TP
 .I "-s"
-status report: alters the default behaviour of 
-.B Calamaris 
+status report: alters the default behaviour of
+.B Calamaris
 and makes the status reports more verbose.
+
 .TP
 .I "-t" n
-type report: switches the content type and the file extension report
-on. the output is limited by n. (-1 is unlimited)
+type report: switches the content type and the file extension report on.  The
+output is limited by n.  (-1 is unlimited)
+
 .SS Output Format
 Standard output format is plain
 .I ascii
 with
 .I 80 chars
 width.
+
 .TP
 .I "-m"
 mail: adds a subject header to the beginning of the report.
+
 .TP
 .I "-w"
 web: all output is given in
 .I html
-with tables and such. Can be combined with 
+with tables and such.  Can be combined with
 .I "-m"
-in order to send html mails.
+to send html mails.
+
 .SS Caching
+
 .TP
 .I "-i" file
 input file: You can reuse a cache file generated with
 .I "-o"
-to add old data to a new report. Several files can be seperated with a
-\`:\'.
-.B Note: 
+to add old data to a new report.  Several files can be seperated with a :.
+
+.B Note:
 if you use more than one cache file, make sure they are chronologicaly
 ordered (oldest first).
+
 .TP
 .I "-o" file
-output file: 
-.B Calamaris 
+output file:
+.B Calamaris
 stores a summary of the computed information in
 .I file
 and you can reuse it at a later time with
-.IR "-i" .
+.I "-i" .
 .PP
-The output file can be the same as the input file: it is simply
-overwritten after reading the data. It is not recommended to change
-the options between different runs if you include older data as this
-can result in strange measurements.
+The output file can be the same as the input file: it is simply overwritten
+after reading the data.  It is not recommended to change the options between
+different runs if you include older data as this can result in strange
+measurements.
+
 .SS Misc
+
 .TP
 .I "-b n"
-benchmark: A switch for the impatient as it prints a \`#\' for every n
-parsed lines.
+benchmark: A switch for the impatient as it prints a # for every n parsed
+lines.
+
 .TP
 .I "-H name"
-host name: The name for the title or subject of the output. If set to
-.I lookup
-.B Calamaris 
-looks up the host name of the system its being run on.
+host name: The name for the title or subject of the output.  If set to
+.I 'lookup'
+.B Calamaris
+looks up the host name of the system its been run on.
+
 .TP
 .I "-n"
 no lookup: Switches the IP lookup for the requesters off.
+
+.TP
+.I "-O"
+order: Changes the sort order in the reports to request size, default is
+sorting by number of requests.
+
 .TP
 .I "-u"
 user: Switches the usage of eventually available ident information for
 requester reports on.
+
 .B Warning:
 This breaks the privacy of your users!
+
 .TP
 .I "-z"
-zero: Switches reading from standard input off. You can use this to
-merge many cache files to one (see
+zero: Switches reading from standard input off.  You can use this to merge
+many cache files to one (see
 .I "-i"
 and
 .IR "-o" )
 or to generate a report out of cache files.
+
 .TP
 .I "-c"
-copyright: Prints the copyright information of 
-.BR Calamaris .
+copyright: Prints the copyright information of
+.B Calamaris .
+
 .TP
 .I "-h"
 help: Prints a brief description of the command line options.
 .SH EXAMPLES
+
 .TP
 This example mails the daily statistics to root:
-.Sp
-.Vb 2
-cat /var/log/squid/access.log | \\
-nice -39 calamaris -amH 'daily worf' | mail root
-.Ve
+cat /var/log/squid/access.log | nice -39 
+.B calamaris
+-amH 'daily worf' | mail root
+
 .TP
 This one only caches a summary for later use:
-.Sp
-.Vb 3
-DAYOFWEEK=`date +"%w"` 
-cat /var/log/squid/access.log | \\
-calamaris -a -o daily.$DAYOFWEEK > /dev/null
-.Ve
+cat /var/log/squid/access.log |
+.B calamaris
+-a -o daily.`date +"%w"` > /dev/null
+
 .TP
 You can then use the caches to have weekly statistics:
-.Sp
-.Vb 5
+
 if [ $DAYOFWEEK = "0" ]; then
-    calamaris -a -i \\
-        daily.1:daily.2:daily.3:daily.4:daily.5:daily.6:daily.0 \\
-    -zmH "weekly worf" | mail root
+.B calamaris 
+-a -i daily.1:daily.2:daily.3:daily.4:daily.5:daily.6:daily.0 -zmH "weekly worf" | mail root
 fi
-.Ve
-.SH WARRANTY
-.B Calamaris 
-comes with 
-.IR "absolutely no warranty". 
-It is free software, and you are welcome to redistribute it under
-certain conditions.  See source for details.
-.SH AUTHOR
-Cord Beermann <Cord@Wunder-Nett.org>, man page by Philipp
-Frauenfelder <pfrauenf@debian.org>, maintainer of the Debian package.
+
+.SH BUGS
+It's too slow.
+
+If you find a bug in 
+.B Calamaris
+, you should report it to Calamaris-bug@cord.de.  But first, you should make
+sure that it really is a bug, and that it appears in the latest version of
+.B Calamaris .
+
+Often there are broken logfiles the cause of problems. If
+.B Calamaris
+complains about it, it is probably ok. If it stops with an error, report it.
+Thanks.
+
 .SH "SEE ALSO"
 .B squid(8)
+
+.SH AUTHOR
+Cord Beermann <Cord@Wunder-Nett.org>. There are also a lot of people who
+contributed code, gave ideas or requested features. Look them up in the
+executable.
+
+This man page was written by Philipp Frauenfelder <pfrauenf@debian.org>,
+maintainer of the Debian package.  Maintainence of it is now taken over by
+Cord Beermann.
+
+.SH VERSION
+
+Version of this manpage: $Id: calamaris.1,v 1.5 1998-12-09 22:21:14 cord Exp $
+
+It describes the usage of Calamaris V2.16 and later.
+
+Information about new releases, mailing lists, and other related issues
+can be found from the 
+.B Calamaris
+home page at http://Calamaris.Cord.de/
+
+.SH WARRANTY
+.B Calamaris
+comes with "absolutely no warranty".
+
+.SH COPYRIGHT
+Copyright (C) 1997, 1998 Cord Beermann
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+(If you modify and want to publish it under the name
+.B Calamaris
+, please ask me.  I don't want to confuse the 'audience' with many different
+versions of the same name and/or Version number.  (This part is not part of
+the license, it is only a favour i asked of you.))
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+Place - Suite 330, Boston, MA 02111-1307, USA.
