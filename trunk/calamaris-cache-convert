@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris-cache-convert,v 0.1 2004-09-15 20:59:39 cord Exp $
+# $Id: calamaris-cache-convert,v 0.2 2004-09-17 21:03:50 cord Exp $
 #
 # DESCRIPTION: calamaris-cache-convert - 
 #  convert old Calamaris-Caches to new ones.
@@ -103,6 +103,9 @@ while (<OLD>) {
     case 'X' { $cache[0] = 15; }
     case 'U' {
       $cache[0] = 16;
+      @cache = ($cache[0], $cache[1], $cache[2], $cache[3], 0, 0, $cache[5],
+		$cache[6], $cache[7], $cache[8], $cache[9], $cache[10],
+		$cache[11], $cache[12], $cache[13]) if $#cache == 13;;
       push(@cache, 0, 0);
       $error{16} = 'Missing data in Performance in n minute steps - empty data inserted';
     }
