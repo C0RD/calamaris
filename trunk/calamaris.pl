@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 2.10 1998-10-20 09:37:57 cord Exp $
+# $Id: calamaris.pl,v 2.11 1998-10-22 19:36:52 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Log-files
 #
@@ -57,7 +57,6 @@
 #   -- 'Programming Perl Second Edition'
 #	by Larry Wall, Tom Christiansen & Randal L. Schwartz
 
-
 require 5;
 
 use vars qw($opt_a $opt_b $opt_c $opt_d $opt_h $opt_H $opt_i $opt_m $opt_n
@@ -68,7 +67,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:OpP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 2.10 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 2.11 $, Copyright (C) 1997, 1998 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -158,16 +157,16 @@ $counter = $hier = $hier_direct = $hier_direct_size = $hier_direct_time =
   $tcp_miss_none_time = $tcp_miss_size = $tcp_miss_time = $tcp_size =
   $tcp_time = $time = $time_end = $time_run = $udp = $udp_hit = $udp_hit_size
   = $udp_hit_time = $udp_miss = $udp_miss_size = $udp_miss_time = $udp_size =
-  $udp_time = 0;
+$udp_time = 0;
 $time_begin = 9999999999;
 
 ### Read Cache. 
 if ($opt_i) {
-  foreach $file (split /:/o, $opt_i) {
+  foreach $file (split ':', $opt_i) {
     open(CACHE, "$file") or die("$0: can't open $file for reading: $!\n");
     while (<CACHE>) {
       chomp;
-      @cache = split('µ');
+      @cache = split 'µ';
       $x = shift(@cache);
       unless ($x) {
 	next;
@@ -392,7 +391,7 @@ if ($opt_i) {
 	 $perf_hier_sibling_size{$y}, $perf_hier_sibling_time{$y},
 	 $perf_hier_parent_size{$y}, $perf_hier_parent_time{$y}) = @cache;
 # This is for a stupid bug I brought in... it should save older Cache-Files,
-# and put them in so that we can work with them... I'll remove it in a
+# and put them in so that we can work with them.. I'll remove it in a
 # later release...
       } elsif ($x eq U and $#cache == 12) {
 	$y = shift(@cache);
@@ -403,7 +402,7 @@ if ($opt_i) {
 	 $perf_hier_sibling_time{$y}, $perf_hier_parent_size{$y},
 	 $perf_hier_parent_time{$y}) = @cache;
 	# stupid, yes...
-	# I set this to 0/.1 so removezerotime prints a - in the report.
+	# I set this to 0/.000001 so removezerotime prints a - in the report.
 	$perf_tcp_hit_size{$y} = 0;
 	$perf_tcp_hit_time{$y} = .000001;
 # End of stupid bug-workaround
@@ -421,24 +420,24 @@ unless ($opt_z) {
 while (<>) {
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
    $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) = split;
-  if (not defined $foo or not defined $log_content or
-      ($foo ne \'\' and $foo ne \'-\') or $log_content eq \'\') {
+  if (not defined $foo or not defined $log_content or $foo ne m#^-?$#o or
+      $log_content eq \'\') {
     chomp;
     warn (\'invalid line: "\' . $_ . "\"\n");
     $invalid++;
     next;
   }
   $log_reqtime = .1 if $log_reqtime == 0;
-  ($log_hitfail, $log_code) = split(m#/#o,$log_status);
+  ($log_hitfail, $log_code) = split \'/\', $log_status;
   $log_size = .0000000001 if $log_size == 0;
-  @url = split(m#[/\\\]#o,$log_url);
+  @url = split m#[/\\\]#o, $log_url;
   ($urlprot, $urlhost, $urlext) = (@url)[0,2,$#url];
   $urlext = \'.<none>\' if $#url <= 2;
   if ($#url <= -1) {
     $urlext = \'.<error>\';
     $urlprot = $urlhost = \'<error>\';
   }
-  $urlext = \'.<dynamic>\' if ($urlext =~ m#[\?\;\&\$\,\!\@\=\|]#o or
+  $urlext = \'.<dynamic>\' if ($urlext =~ m#[\?;&\$,!@=|]#o or
 			       $log_method eq POST);
   unless (defined $urlhost) {
     $urlhost = $urlprot;
@@ -446,25 +445,22 @@ while (<>) {
   }
   $urlhost =~ s#^.*@##o;
   $urlhost =~ s#[:\?].*$##o;
-  @urlext = split(m#\.#o,$urlext);
+  @urlext = split \'\.\', $urlext;
   $urlext = (@urlext)[$#urlext];
   $urlext = \'<none>\' if $#urlext <= 0;
   if ($urlhost =~ /^(([0-9][0-9]{0,2}\.){3})[0-9][0-9]{0,2}$/o) {
     $urlhost = $1 . \'*\';
     $urltld = \'<unresolved>\';
   } elsif ($urlhost =~ /^(.*\.([^\.]+\.)?)?([^\.]+\.([^\.]+))\.?$/o) {
-    @list = split(/\./o, $urlhost);
+    @list = split \'\.\', $urlhost;
     $urltld = $urlhost = \'.\' . pop @list;
     $urlhost = \'.\' . pop(@list) . $urlhost;
-    if ($urltld =~
-	/\.(a[rtu]|br|c[no]|hk|i[dlm]|jp|kr|l[by]|m[oxy]|nz|p[elnry]|ru|sg|t[hrw]|u[aks]|ve|yu|za)$/o
-	  and $#list >= 0) {
-      $urlhost = \'*.\' . pop(@list) . $urlhost;
-    } else {
-      $urlhost = \'*\' . $urlhost;
-    }
+    $urlhost = \'.\' . pop(@list) . $urlhost if ($urltld =~
+						 /\.(a[rtu]|br|c[no]|hk|i[dlm]|jp|kr|l[by]|m[oxy]|nz|p[elnry]|ru|sg|t[hrw]|u[aks]|ve|yu|za)$/o
+						 and $#list >= 0);
+    $urlhost = \'*\' . $urlhost;
     $urltld = \'*\' . $urltld;
-  } elsif ($urlhost =~ /([!a-z0-9\.\-]|\.\.)/o) {
+  } elsif ($urlhost =~ m#([!a-z0-9\.\-]|\.\.)#o) {
     $urlhost = $urltld = $urlext = \'<error>\';
   } else {
     $urltld = $urlhost;
@@ -477,32 +473,15 @@ while (<>) {
   $requester = $log_requester;';
   }
   $loop .= '
-  ($log_hier_method, $log_hier_host) = (split(m#/#o, $log_hier))[0,1];
+  ($log_hier_method, $log_hier_host) = (split \'/\', $log_hier)[0,1];
   $log_content = \'<unknown>\' if $log_content eq \'-\';
   $log_content =~ tr/A-Z/a-z/;
   $log_content = $urlhost = $urltld = $urlext = \'<error>\' if
-	       ($log_code =~ m#[45]\d\d#o);';
+    ($log_code =~ m#^[45]#o);';
   $loop .= "
   print('#') if (\$counter / $opt_b) eq int(\$counter / $opt_b);" if $opt_b;
   $loop .= '
   $counter++;';
-  if ($opt_P) {
-    $loop .= '
-  $perf_date = int($log_date / (60 * ' . "$opt_P)) * 60 * $opt_P;" . ' unless
-    (defined $perf_counter{$perf_date}) {
-    $perf_counter{$perf_date} = $perf_size{$perf_date} =
-      $perf_tcp_hit_size{$perf_date} = $perf_tcp_miss_size{$perf_date} =
-      $perf_hier_direct_size{$perf_date} = $perf_hier_sibling_size{$perf_date}
-      = $perf_hier_parent_size{$perf_date} = 0;
-    $perf_time{$perf_date} = $perf_tcp_hit_time{$perf_date} =
-      $perf_tcp_miss_time{$perf_date} = $perf_hier_direct_time{$perf_date} =
-      $perf_hier_sibling_time{$perf_date} = $perf_hier_parent_time{$perf_date}
-      = .0000000001;
-  }
-  $perf_counter{$perf_date}++;
-  $perf_size{$perf_date} += $log_size;
-  $perf_time{$perf_date} += $log_reqtime;';
-  }
   $loop .= '
   $size += $log_size;
   $time += $log_reqtime;
@@ -537,7 +516,7 @@ while (<>) {
   }';
   }
   $loop .= '
-  if (($log_method eq \'ICP_QUERY\') or ($log_status =~ /^([ICP].+)/)) {
+  if (($log_method eq \'ICP_QUERY\') or ($log_status =~ m#^ICP#o)) {
     $udp++;
     $udp_size += $log_size;
     $udp_time += $log_reqtime;';
@@ -575,7 +554,7 @@ while (<>) {
     }';
   }
   $loop .= '
-    if ($log_hitfail =~ /^(UDP|ICP)_HIT/o) {
+    if ($log_hitfail =~ m#^UDP_HIT#o or $log_hitfail =~ m#^ICP_HIT#o) {
       $udp_hit++;
       $udp_hit_size += $log_size;
       $udp_hit_time += $log_reqtime;';
@@ -611,6 +590,24 @@ while (<>) {
     $tcp++;
     $tcp_size += $log_size;
     $tcp_time += $log_reqtime;';
+  if ($opt_P) {
+    $loop .= '
+    $perf_date = int($log_date / (60 * ' . "$opt_P)) * 60 * $opt_P;" . '
+    unless (defined $perf_counter{$perf_date}) {
+      $perf_counter{$perf_date} = $perf_size{$perf_date} =
+	$perf_tcp_hit_size{$perf_date} = $perf_tcp_miss_size{$perf_date} =
+	$perf_hier_direct_size{$perf_date} =
+	$perf_hier_sibling_size{$perf_date} =
+	$perf_hier_parent_size{$perf_date} = 0;
+      $perf_time{$perf_date} = $perf_tcp_hit_time{$perf_date} =
+	$perf_tcp_miss_time{$perf_date} = $perf_hier_direct_time{$perf_date} =
+	$perf_hier_sibling_time{$perf_date} =
+	$perf_hier_parent_time{$perf_date} = .0000000001;
+      }
+    $perf_counter{$perf_date}++;
+    $perf_size{$perf_date} += $log_size;
+    $perf_time{$perf_date} += $log_reqtime;';
+  }
   if ($opt_r) {
     $loop .= '
     $tcp_requester{$requester} = $tcp_requester_size{$requester} =
@@ -709,7 +706,7 @@ while (<>) {
       $tcp_hit_urlprot{$urlprot}++;';
   }
   $loop .= '
-    } elsif (($log_hier_method eq \'NONE\') or ($log_hitfail =~ /^ERR_/o)) {
+    } elsif ($log_hier_method eq \'NONE\' or $log_hitfail =~ m#^ERR_#o) {
       $tcp_miss_none++;
       $tcp_miss_none_size += $log_size;
       $tcp_miss_none_time += $log_reqtime;';
@@ -754,7 +751,7 @@ while (<>) {
       $hier++;
       $hier_size += $log_size;
       $hier_time += $log_reqtime;
-      if ($log_hier_method =~ /(DIRECT|SOURCE_FASTEST)/o) {
+      if ($log_hier_method =~ m#DIRECT#o or $log_hier_method =~ m#SOURCE_FASTEST#o) {
 	$hier_direct++;
 	$hier_direct_size += $log_size;
 	$hier_direct_time += $log_reqtime;';
@@ -773,8 +770,9 @@ while (<>) {
 	$hier_direct_time{$log_hier_method} += $log_reqtime;';
   }
   $loop .= '
-      } elsif ($log_hier_method =~
-	       /(CACHE_DIGEST|PARENT|SIBLING|NEIGHBOR)\w+HIT/o) {
+      } elsif ($log_hier_method =~ m#CACHE_DIGEST_\w*HIT#o or $log_hier_method
+	       =~ m#NEIGHBOR_\w*HIT#o or $log_hier_method =~ m#PARENT_\w*HIT#o
+	       or $log_hier_method =~ m#SIBLING_\w*HIT#o) {
 	$hier_sibling++;
 	$hier_sibling_size += $log_size;
 	$hier_sibling_time += $log_reqtime;';
@@ -813,8 +811,12 @@ while (<>) {
 	  $log_reqtime;';
   }
   $loop .= '
-      } elsif ($log_hier_method =~
-	       /(CARP|PARENT_MISS|(CLOSEST|DEFAULT|FIRST_UP|SINGLE|PASSTHROUGH|ROUNDROBIN)_PARENT)/o) {
+      } elsif ($log_hier_method =~ m#CARP#o or $log_hier_method =~
+	       m#CLOSEST_PARENT#o or $log_hier_method =~ m#DEFAULT_PARENT#o or
+	       $log_hier_method =~ m#FIRST_UP_PARENT#o or $log_hier_method =~
+	       m#PARENT_MISS#o or $log_hier_method =~ m#PASSTHROUGH_PARENT#o
+	       or $log_hier_method =~ m#ROUNDROBIN_PARENT#o or
+	       $log_hier_method =~ m#SINGLE_PARENT#o) {
 	$hier_parent++;
 	$hier_parent_size += $log_size;
 	$hier_parent_time += $log_reqtime;';
@@ -1569,7 +1571,7 @@ sub addtonam {
   my (@octets);
   my ($hostname, $aliases, $type, $len, $addr);
   my ($ip_number);
-  @octets = split ('\.', $address) ;
+  @octets = split '\.', $address;
   if ($#octets != 3) {
     undef;
   }
@@ -1627,9 +1629,9 @@ sub outheader {
       $p =~ s/ +/ /go;
       $p =~ s/(^ | $)//go;
       print("<th>$p");
-    } elsif ($format[$no] =~ m#\%#o) {
+    } elsif ($format[$no] eq '%') {
       print(' ' x (6 - length($p)), substr($p,0,6), ' ');
-    } elsif ($format[$no] =~ m#kbs#o) {
+    } elsif ($format[$no] eq 'kbs') {
       print(substr($p,0,7) . ' ' x (7 - length($p)), ' ');
     } else {
       print(substr($p,0,$format[$no]) . ' ' x ($format[$no] - length($p)),
@@ -1676,7 +1678,7 @@ sub outline {
 	} else {
 	  print($print .  ' ' x ($format[$no] - length($print)), ' ');
 	}
-      } elsif ($format[$no] =~ m#%#o) {
+      } elsif ($format[$no] eq '%') {
 	if ($print eq ' ') {
 	  printf(' ' x 7);
 	} else {
