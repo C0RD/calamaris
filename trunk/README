@@ -1,70 +1,248 @@
-$Id: README,v 1.1 1998-09-23 21:03:19 cord Exp $
+Calamaris
+Version 2
 
-Instructions:
+What is it?
+-----------
 
-* Switch 'emulate_httpd_log' off
+Calamaris is a perl script, which was first intended as demo for a statistical
+software for Squid.  I released it (Version 1) to the public in *when?* (had
+to check the Squid-users-Mailinglist) 97. Since then it is used by people all
+around the world, and i decided to build a new improved verion of it.
+Calamaris V2 is a nearly complete rewrite, with changed and more reports.
 
-* Pipe your Logfile in calamaris
+There is also the possibility to parse Logfiles from NetCache. (but see 'Bugs
+and Shortcomings' on this.)
 
 
-Example:
+Where to get it?
+----------------
 
-cat access.log.1 access.log.0 |calamaris.pl
+The Calamaris-Homepage is located at http://www.cord.de/~cord/tools/squid/
+
+There is also an Announcement-Mailinglist. To subscribe send mail to
+calamaris-request@cord.de. Subscribers will get a mail on every new release,
+including the changes. --> Low-Traffic.
 
 
+How to use it?
+--------------
 
-Bugs and shortcomings
+* You'll need perl Version 5 (see http://www.perl.com/) Calamaris is reported
+  to work with perl 5.001, but it is highly recommended (especially for
+  security of your computer) that you use a current version of it.
 
-* If you parse NetCache Logfiles with calamaris, it seems that you can run
-into trouble. I've looked for information on the Logfile-format from the
-vendor, but it seems that they don't give any info to people who don't want to
-tell them their Name and Adress. So, if someone can provide me with that info,
-i'll try to put it into calamaris, if not... (i've seen that NetCache produces
-broken Logfiles with different counts of fields, is that a buggy version?)
+* You'll also need Squid (see http://squid.nlanr.net) Version 1.1.x or later
+  (or Logfiles derived from that), and it has to produce the 'Native
+  Logfileformat' (which is the default since Version 1.1.x). If Calamaris
+  can't parse the access.log, check your logfile-format.  It is explained in
+  the Squid FAQ which can be reached via the Address above.
+
+* Put Calamaris itself into a warm, dry place on your computer (i.e. into the
+  Squid-bin-directory, or /usr/local/bin/). Maybe (if your perl isn't located
+  at /usr/bin/perl) you'll have to change the first line of Calamaris to point
+  to your copy of perl.
+
+* Use it! 
+
+  'cat access.log.1 access.log.0 | calamaris.pl' 
+
+  Calamaris generates by default a brief ascii report of incoming and outgoing
+  requests. 
+
+  NOTE: If you pipe many logfiles into Calamaris, make sure that they are
+    chronological ordered (oldest file first), else some reports can return
+    wrong values.
+
+  You can alter Calamaris' behaviour with switches.  There are four groups of
+  switches:
+
+  Reports-switches:
+
+    without these switches you get a brief report of incoming and outgoing
+    requests.
+
+    -a	    all. switch all available reports on. It equals 
+	    -d 20 -p -P 60 -r 50 -s -t 20
+
+    -d n    domain-report. It switches the Top-level- and the
+	    second-level-report on. The Data is derived from the URL. The
+	    output is limited by the number n. (0 is unlimited)
+
+    -p	    peak-report.  Measure the peaks of the Squid usage in requests per
+	    second, minute and hour. It reports peaks for TCP, UDP and ALL
+	    requests.
+
+    -P n    performance-report.  It shows the throughput of TCP-Requests for
+	    every n minutes.
+
+    -r n    requester-report. It switches the UDP- and TCP-Requester-Reports
+	    on. The output is limited by the number n. (0 is unlimited)
+
+    -s	    status-report. This switch alters the default behaviour of
+	    Calamaris and makes the status-reports more verbose.
+
+    -t n    type-report. It switches the content-type- and the
+	    file-extension-report on. he output is limited by the number n. (0
+	    is unlimited)
+
+  Output-switches:
+
+    without these switches you'll get a plain ascii output with 80 chars
+    width.
+
+    -m	    mail-output. It adds a Subject-Header to the beginning of the
+	    report, so you can pipe the output into a simple mail-program.
+
+    -w	    web-report. All output is given in HTML-Format with Tables.
+	    Combined with the -m-option you can also send HTML-Mails *urgs*
+
+  Caching-switches:
+
+    -i file input-file. You can reuse cache-file generated with the -o-option,
+	    to add old data to a new report. You can also add many cache-files
+	    by seperating them with a ':'.
+
+	    NOTE: If you use many cachefiles, make sure that they are
+	      chronological ordered (oldest file first), else some reports can
+	      return wrong values.
+
+    -o file output-file. The file defined contains the processed data. You can
+	    reuse this file in a later run with the -i-option. The output-file
+	    can be the same as a input-file. It will be overwritten with the
+	    new data. The Cachefile-data is altered by the report-switches
+	    above. 
+
+	    NOTE: It is not recommended to change the switches between runs,
+	      if you use cachefiles, else you can get some strange
+	      measurements.
+
+  Misc-switches:
+
+    -b n    benchmark. a switch for the impatient. ;-) It prints a # for 
+	    every n parsed lines.
+
+    -H name Hostname. This names the output on the Title/Subject of the
+	    output. If set to 'lookup' Calamaris looks up the hostname of the
+	    current machine and puts that name in.
+
+    -n	    no lookup. Switch the IP-number-lookup for the requesters off. 
+
+    -u	    user. Switches the usage of eventually available ident-information
+	    for requester-reports on. WARNING: This breaks the privacy of your
+	    users!
+
+    -z	    zero. Switch reading of the Standard-Input off. You can use this
+	    to merge many cache-files to one (see -i and -o) or to generate a
+	    report out of a cache-file.
+
+    -c	    copyright. Prints out the copyright of Calamaris.
+
+    -h	    help. Prints a brief description of command-line-options.
+
+
+  You should also take a look at the EXAMPLES-File, for 'Real-Life'-Usage
+  of Calamaris.
+
+
+Is it perfect? No!
+------------------
+
+* If you parse NetCache Logfiles with Calamaris, it seems that you can run
+  into trouble. I've looked for information on the Logfile-format from the
+  vendor, but it seems that they don't give info to people who don't want to
+  tell them their Name and Adress.  So, if someone can provide me with that
+  info, i'll try to put it into Calamaris, if not... (i've seen that NetCache
+  produces broken Logfiles with different counts of fields, is that a buggy
+  version?)
 
 * I've seen problems with vars.pm which seems to get in the perl-distribution
-later... if someone point me out which version it was, i'm going to change the
-'require 5' for that.
+  later... if someone point me out which version it was, i'm going to change
+  the 'require 5' for that.
 
 * if you want to parse more than one Logfile (i.e. from the logfilerotate) you
-have to put them in chronological sorted order (oldest first) into calamaris,
-else you get wrong peak values. (Is this something that i should fix? Don't
-think so...)
+  have to put them in chronological sorted order (oldest first) into
+  Calamaris, else you get wrong peak values. (Is this something that i should
+  fix? Don't think so...)
 
-* If you use the caching function the peak-values can be wrong if the peak is
-around the time the log-files were rotated.
+* If you use the caching function the peak-values can be wrong.
 
 * Squid doesn't log outgoing UDP-Requests, so i can't put them into the
-statistics without parsing squid.conf. (Javier Puche (Javier.Puche@rediris.es)
-asked for this), but i don't think that i should put this into calamaris...
-(Check last point of 'Bugs and shortcomings'.)
+  statistics without parsing squid.conf and the cache.log-file. (Javier Puche
+  (Javier.Puche@rediris.es) asked for this), but i don't think that i should
+  put this into Calamaris...  (Check last point of 'Bugs and shortcomings'.)
 
 * It is written in perl. Yea, perl is a great language for something like this
-(also it is the only one i'm able to write something like this in).  Calamaris
-was first intended as demo for what i wanted from a statistical software. (OK,
-it is fun to write it, and it is even more fun to recognize that many people
-use the script). For my Caches with about 150MB-Logfile per week it is OK, but
-for those people on a heavy loaded Parentcache it is simply to slow. So if
-someone wants to rewrite calamaris in a faster language: Feel Free! (But
-respect the GNU-License) (and it would be nice if you drop me a line about it)
-# There is now a C++-port of an early modified calamaris available which is
-(according to the author Jens-S. Voeckler (voeckler@rvs.uni-hannover.de)) much
-faster (but it is based on a spin-off of calamaris v1.x).
+  (also it is the only one i'm able to write something like this in).
+  Calamaris was first intended as demo for what i wanted from a statistical
+  software. (OK, it is fun to write it, and it is even more fun to recognize
+  that many people use the script). For my Caches with about 150MB-Logfile per
+  week it is OK, but for those people on a heavy loaded Parentcache it is
+  simply to slow. 
 
 * Hmmm, while looking through those many different reports i generate, i think
-that i generate more than anybody ever wants to now about squid :-) So i added
-switches, so everybody can switch on or off the reports wanted. But this is
-also a speed disadvantage because of the many checks if set or not...
+  that i generate more than anybody ever wants to now about squid :-) So i
+  added switches, so everybody can switch on or off the reports wanted. But
+  this is also a speed disadvantage because of the many checks if set or
+  not...
 
 
-todos
+What will happen next?
+----------------------
+
+I think that Calamaris v2 is now finished. (except for bugs, that maybe were
+not found yet.)
+
+But if you have an idea what is still missing in a software for parsing
+Proxy-Logfiles, let me know. --> calamaris@cord.de. I'll will build it in, or
+add it to the wishlist :-)
 
 * add report for byte-peak (inspirated by Andreas Strotmann
-<A.Strotmann@Uni-Koeln.DE>) (Don't think that i put this in calamaris v2)
+  <A.Strotmann@Uni-Koeln.DE>) (Don't think that i put this in Calamaris v2)
 
 * build graphics (hope i remember who suggested this first, the mail must be
-somewhere in my work-mailbox ;-) (This is a thing for calamaris v3, if i ever
-going to write it. there are nice gd-libs in perl ;-)
+  somewhere in my work-mailbox ;-) (This is a thing for Calamaris v3, if i
+  ever going to write it. there are nice gd-libs in perl ;-)
 
 * add real NetCache-Support. The NetCache-Support is rudimentary working, but
-is only in some kind of alpha-state. see 'Bugs and Shortcomings' above.
+  is only in some kind of alpha-state. see 'Bugs and Shortcomings' above.
+
+* make calamaris faster. see 'Bugs and Shortcomings' above. If someone wants
+  to rewrite Calamaris in a faster language: Feel Free! (But respect the
+  GNU-License) It would be nice if you drop me a line about it, and please
+  please please don't use the name 'Calamaris' for it without asking me!
+  
+
+Is there anything else?
+-----------------------
+
+Ernst Heiri builds a spin-off of my calamaris V1, which can be found at
+*where?*
+
+There is also now a C++-port of Ernst Heiri's Calamaris available which is
+(according to the author Jens-S. Voeckler (voeckler@rvs.uni-hannover.de)) much
+faster than the perl-variant. *where?*
+
+more Squid-Logfile-Analysers can be found via the Squid-Homeapge at
+http://squid.nlanr.net/
+
+
+Thank You!
+----------
+
+* The developers and contributors of Squid.
+* The contributors, feature requesters and bug-reporters of Calamaris.
+* The developers and contributors of Perl.
+* Gerold 'Nimm perl' Meerkoetter.
+
+
+Not happy yet?
+--------------
+
+Drop me a line to calamaris@cord.de and tell me what is missing or wrong or
+not clear or whatever. You are welcome :-)
+
+
+Version of the README
+---------------------
+
+$Id: README,v 1.2 1998-09-24 21:39:30 cord Exp $
