@@ -20,12 +20,13 @@ Which software can produce Calamaris-parseable Logfiles?
 * Squid V1.1.alpha1-V2.x (http://www.squid-cache.org/)
 * NetCache V??? (http://www.netapp.com/products/netcache/)
 * Inktomi Traffic Server V???
-  (http://www.inktomi.com/products/network/traffic/)
+  (http://www.inktomi.com/products/network/products/)
 * Oops! proxy server V??? (http://zipper.paco.net/~igor/oops.eng/)
 * Compaq Tasksmart (http://www.compaq.com/tasksmart/)
 * Novell Internet Caching System (http://www.novell.com/products/ics/)
 * Netscape/iplanet Web Proxy Server
   (http://www.iplanet.com/downloads/download/detail_14_13.html)
+* NetApp NetCache V
 
 Where to get Calamaris?
 -----------------------
@@ -37,14 +38,22 @@ There is also an Announcement-Mailing-list. To subscribe send mail with
 Calamaris-announce-request@Cord.de.  Subscribers will get a mail on every new
 release, including a list of the changes. --> low traffic.
 
-Kevin Way (kevin@research-inc.com) has build rpms of Calamaris, which can be
-found at http://overtone.org/rpms/
-
 Philipp Frauenfelder (pfrauenf@debian.org) has build a Debian Package, which
-can be found in the slink (Debian 2.1) tree.
+can be found via http://packages.debian.org/calamaris .
 
-Dima Sivachenko (demon@gpad.ac.ru) made a port for FreeBSD, which can be found
-at http://www.freebsd.org/ports/www.html
+There is a port for FreeBSD, which can be found at
+http://www.freebsd.org/ports/www.html
+
+A port for NetBSD is here:
+ftp://ftp.netbsd.org/pub/NetBSD/NetBSD-current/pkgsrc/www/calamaris/
+
+Henri Gomez build Red-Hat rpm's which can be obtained from
+ftp://ftp.falsehope.com/home/gomez/calamaris/
+
+rpm's are also available from various people. You can search for them
+via http://rpmfind.net/linux/rpm2html/search.php?query=calamaris, for
+SuSE-Linux search for 'calamari'. (Yes, without the tailing 's', they use for
+some reason a 8.3-scheme for their packages.)
 
 
 How to use it?
@@ -65,6 +74,8 @@ How to use it?
   + Inktomi Traffic Server V??? Logfiles
   + OOPS V??? Native logfiles
   + Extended Logfile-Format
+  + NetApp Default Logfile-Format (some kind of Extended Logfile-Format)
+  + NetApps understanding of Squid Native logfiles
 
   If Calamaris can't parse the input, check your logfile format.
   + Squid-Logfiles: http://www.squid-cache.org/Doc/FAQ/FAQ-6.html
@@ -242,4 +253,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.29 2000-10-27 13:48:37 cord Exp $
+$Id: README,v 2.30 2001-03-24 21:27:48 cord Exp $
