@@ -5,6 +5,176 @@ mail and describe them to Calamaris@Cord.de.
 
 I'll probably add them to this file. Thank You.
 
+Philipp Frauenfelder (pfrauenf@debian.org) added this to run Calamaris
+automagically in Debian:
+-----------------------------------------------------------------------
+/etc/cron.daily/calamaris
+=========================
+#! /bin/sh
+
+set -e
+
+# calamaris: daily cron script.
+# This script should be run before the one for squid. According to the
+# man page of run-parts this is okay: squid comes after calamaris in the
+# alphabet.
+
+# Date: 1998-10-07
+
+CONFFILE=/etc/calamaris.conf
+CALAMARIS=/usr/bin/calamaris
+
+if [ ! -x /usr/bin/calamaris ]; then
+    exit 0
+fi
+
+CALAMARISOPTIONS=-a
+ME=/etc/cron.daily/calamaris
+WEEKFILES=daily.1:daily.2:daily.3:daily.4:daily.5:daily.6:daily.0
+
+SQUIDLOGDIR=/var/log/squid
+cd $SQUIDLOGDIR || exit 1
+if [ ! -r access.log ]; then
+    exit 0
+fi
+
+LOGDIR=/var/log/calamaris
+cd $LOGDIR || exit 1
+
+# today
+DAYOFWEEK=`date +"%w"`
+
+# read configuration file: /etc/calamaris.conf
+# is there a more elegant way to do this?
+DAYMAIL=`awk -F: '(!/¨#/) && ($1 == "daily") { print $2; }' $CONFFILE`
+DAYWEB=`awk -F: '(!/¨#/) && ($1 == "daily") { print $3; }' $CONFFILE`
+DAYDO=`awk -F: '(!/¨#/) && ($1 == "daily") { print $4; }' $CONFFILE`
+DAYTITLE=`awk -F: '(!/¨#/) && ($1 == "daily") { print $5; }' $CONFFILE`
+
+WEEKMAIL=`awk -F: '(!/¨#/) && ($1 == "weekly") { print $2; }' $CONFFILE`
+WEEKWEB=`awk -F: '(!/¨#/) && ($1 == "weekly") { print $3; }' $CONFFILE`
+WEEKDO=`awk -F: '(!/¨#/) && ($1 == "weekly") { print $4; }' $CONFFILE`
+WEEKTITLE=`awk -F: '(!/¨#/) && ($1 == "weekly") { print $5; }' $CONFFILE`
+
+# perhaps sometimes I will do this, 
+# but as weekends and ends of months don't meet always...
+
+# MONTHMAIL=`awk -F: '(!/¨#/) && ($1 == "monthly") { print $2; }' $CONFFILE`
+# MONTHWEB=`awk -F: '(!/¨#/) && ($1 == "monthly") { print $3; }' $CONFFILE`
+# MONTHDO=`awk -F: '(!/¨#/) && ($1 == "monthly") { print $4; }' $CONFFILE`
+# MONTHTITLE=`awk -F: '(!/¨#/) && ($1 == "monthly") { print $5; }' $CONFFILE`
+
+# if we need monthly or weekly reports save a summary
+if [ $WEEKDO != "nothing" ]; then
+    CALAMARISOPTIONSOLD="$CALAMARISOPTIONS"
+    CALAMARISOPTIONS="$CALAMARISOPTIONS -o daily.$DAYOFWEEK"
+fi
+
+# do the daily report
+case $DAYDO in
+    nothing) if [ $WEEKDO != "nothing" ]; then
+	cat $SQUIDLOGDIR/access.log | \
+	    nice -39 $CALAMARIS $CALAMARISOPTIONS > /dev/null
+	fi
+    ;;
+    mail) (
+	    echo "To: $DAYMAIL"
+	    cat $SQUIDLOGDIR/access.log | \
+		nice -39 $CALAMARIS $CALAMARISOPTIONS -mH "$DAYTITLE"
+	) | /usr/lib/sendmail -t
+    ;;
+    web) cat $SQUIDLOGDIR/access.log | \
+	    nice -39 $CALAMARIS $CALAMARISOPTIONS -wH "$DAYTITLE" > $DAYWEB
+    ;;
+    both) cat $SQUIDLOGDIR/access.log | \
+	    nice -39 $CALAMARIS $CALAMARISOPTIONS -wH "$DAYTITLE" > $DAYWEB
+	(
+	    echo "To: $DAYMAIL"
+	    cat $SQUIDLOGDIR/access.log | \
+		nice -39 $CALAMARIS $CALAMARISOPTIONS -mH "$DAYTITLE"
+	) | /usr/lib/sendmail -t
+    ;;
+    *) echo "the 'todo' for the daily Squid report in $CONFFILE"
+	echo -n "is '$DAYDO' instead of one out of "
+	echo "(nothing, mail, web, both)." >&2
+	exit 1
+    ;;
+esac
+
+# do the weekly report on Sunday <=> $DAYOFWEEK==0
+if [ -n "$CALAMARISOPTIONSOLD" ]; then
+    CALAMARISOPTIONS="$CALAMARISOPTIONSOLD"
+fi
+
+
+if [ $DAYOFWEEK = "0" ]; then
+    case $WEEKDO in
+	nothing) 
+	;;
+	mail) (
+		echo "To: $WEEKMAIL"
+		nice -39 $CALAMARIS $CALAMARISOPTIONS -i $WEEKFILES \
+		    -zmH "$WEEKTITLE"
+	    ) | /usr/lib/sendmail -t
+	;;
+	web) nice -39 $CALAMARIS $CALAMARISOPTIONS -i $WEEKFILES \
+		-zwH "$WEEKTITLE" > $WEEKWEB
+	;;
+	both) nice -39 $CALAMARIS $CALAMARISOPTIONS -i $WEEKFILES \
+		-zwH "$WEEKTITLE" > $WEEKWEB
+	    (
+		echo "To: $WEEKMAIL"
+		nice -39 $CALAMARIS $CALAMARISOPTIONS -i $WEEKFILES \
+		    -zmH "$WEEKTITLE"
+	    ) | /usr/lib/sendmail -t
+	;;
+	*) echo "the 'todo' for the weekly Squid report in $CONFFILE"
+	    echo -n "is '$WEEKDO' instead of one out of "
+	    echo "(nothing, mail, web, both)." >&2
+	    exit 1
+	;;
+    esac
+#    if [ $MONTHDP != "nothing" ]; then
+#	nice -39 $CALAMARIS $CALAMARISOPTIONS -i $WEEKFILES -z -o weekly.$WEEKWHAT > /dev/null
+#    fi
+fi
+
+# do the monthly report and rotate the monthly logs: nothing to do :-)
+
+exit 0
+
+
+
+/etc/calamaris.conf
+===================
+# configuration file for calamaris
+# by Philipp Frauenfelder <pfrauenf@debian.org>
+# 1998-10-09
+
+# there are three categories: daily, weekly and monthly. For each of these
+# one line is responsible. There must be a line for each category but only 
+# one.
+
+# cat: [daily|weekly|monthly]
+# mailto: mailaddress, eg. root
+# webto: path incl. file name, eg. /var/www/daily.html. The script does
+#                       currently not check wether the directory exists and
+#                       fail with a rather ugly error.
+# todo: [nothing|mail|web|both]
+# title: try it :-)
+
+# cat:mailto:webto:todo:title
+daily:root:/var/www/calamaris/daily.html:both:'Squid daily'
+weekly:root:/var/www/calamaris/weekly.html:both:'Squid weekly'
+
+# monthly does not work right now.
+#monthly:root:/var/www/monthly.html:both:'Squid monthly'
+
+# how many months of calamaris logs should be kept: integer
+#monthstokeep 2
+-----------------------------------------------------------------------
+
+
 Matthew King (nerd@zip.com.au) squidreport.cron:
 -----------------------------------------------------------------------
 #!/bin/sh
@@ -174,7 +344,7 @@ logfile_rotate 7
 crontab:
 -----------------------------------------------------
 0 0 * * *	/usr/local/squid/bin/squid -k rotate
-30 0 * * *	cat /var/log/squid/access.log.0 | \ 
+30 0 * * *	cat /var/log/squid/access.log.0 | \
 		nice -39 /usr/local/squid/bin/calamaris -amH 'daily worf' | \
 		mail Squidmaster@Cord.de
 0 3 * * 7	(cd /var/log/squid/; cat access.log.6 access.log.5 \
@@ -184,7 +354,7 @@ crontab:
 		mail Squidmaster@Cord.de
 -----------------------------------------------------
 
-Everyone who really uses Squidmaster@Cord.de while testing has to send me a 
+Everyone who really uses Squidmaster@Cord.de while testing has to send me a
 	postcard!
 -----------------------------------------------------------------------
 
@@ -193,4 +363,4 @@ Everyone who really uses Squidmaster@Cord.de while testing has to send me a
 Version of the EXAMPLES
 -----------------------
 
-$Id: EXAMPLES,v 2.7 2000-05-25 17:44:09 cord Exp $
+$Id: EXAMPLES,v 2.8 2000-10-27 13:42:57 cord Exp $
