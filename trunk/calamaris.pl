@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.108 1998-04-15 21:24:08 cord Exp $
+# $Id: calamaris.pl,v 1.109 1998-05-09 15:36:53 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - get statistic out of the Squid Native Log.
 #
@@ -98,14 +98,14 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pr:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.108 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.109 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
 
 ';
 
-$USAGE='Usage: cat log | ' . $0 . ' [-achmnpsuwz] [-bdrt[n]] [-H [name]] [-io file]
+$USAGE='Usage: cat log | ' . $0 . ' [-achmnpsuwz] [-bdrt [n]] [-H [name]] [-io file]
 
 Reports:
 -a	    all  (extracts all reports available)
@@ -146,16 +146,14 @@ if ($opt_b and $opt_b < 1) {
   $|=1;
 }
 
-#print "#$opt_H#\n";
-
 if ($opt_H) {
   if ($opt_H eq '1' or $opt_H eq 'lookup') {
-    $hostname = hostname() . ' ';
+    $hostname = ' ' . hostname() . ' ';
   } else {
-    $hostname = $opt_H . ' ';
+    $hostname = ' ' . $opt_H . ' ';
   }
 } else {
-  $hostname = '';
+  $hostname = ' ';
 }
 
 # initialize variables
@@ -719,7 +717,7 @@ if ($opt_p or $opt_a) {
   $date_peak_tcp_hour = convertdate($peak_tcp_hour_time);
   $date_peak_all_hour = convertdate($peak_all_hour_time);
 }
-printf("Subject: %sSquid-Report (%s - %s)\n\n", $hostname, $date_start,
+printf("Subject:%sSquid-Report (%s - %s)\n\n", $hostname, $date_start,
        $date_stop) if ($opt_m);
 if ($opt_w) {
   print("<html><head><title>Squid-Report</title></head><body>\n");
