@@ -221,9 +221,6 @@ But if you have an idea what is still missing in a software for parsing proxy
 log-files, let me know. --> <Calamaris@Cord.de>. I'll will build it in, or add
 it to the wish-list below :-)
 
-* Output-Option are subject to change in the next releases. I want to
-  concentrate that -m/-w/-W/-? into one switch.
-
 * adding an option to limit domain (and related) reports to a minimum number
   of transactions. (suggested by Franck Bourdonnec <fbourdonnec@chez.com>)
 
@@ -284,4 +281,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.40 2003-01-19 16:52:16 cord Exp $
+$Id: README,v 2.41 2003-02-08 23:06:07 cord Exp $
