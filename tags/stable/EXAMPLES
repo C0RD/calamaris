@@ -1,0 +1,377 @@
+I want to give the 'audience' some examples for using Calamaris.
+
+So if you build some Scripts, crontabs or else around Calamaris, please
+mail and describe them to <Calamaris@Cord.de>.
+
+I'll probably add them to this file. Thank You.
+
+Philipp Frauenfelder <pfrauenf@debian.org> added this to run Calamaris
+automagically in Debian:
+-----------------------------------------------------------------------
+/etc/cron.daily/calamaris
+=========================
+#! /bin/sh
+
+set -e
+
+# calamaris: daily cron script.
+# This script should be run before the one for squid. According to the
+# man page of run-parts this is okay: squid comes after calamaris in the
+# alphabet.
+
+# Date: 1998-10-07
+
+CONFFILE=/etc/calamaris.conf
+CALAMARIS=/usr/bin/calamaris
+
+if [ ! -x /usr/bin/calamaris ]; then
+    exit 0
+fi
+
+CALAMARISOPTIONS=-a
+ME=/etc/cron.daily/calamaris
+WEEKFILES=daily.1:daily.2:daily.3:daily.4:daily.5:daily.6:daily.0
+
+SQUIDLOGDIR=/var/log/squid
+cd $SQUIDLOGDIR || exit 1
+if [ ! -r access.log ]; then
+    exit 0
+fi
+
+LOGDIR=/var/log/calamaris
+cd $LOGDIR || exit 1
+
+# today
+DAYOFWEEK=`date +"%w"`
+
+# read configuration file: /etc/calamaris.conf
+# is there a more elegant way to do this?
+DAYMAIL=`awk -F: '(!/¨#/) && ($1 == "daily") { print $2; }' $CONFFILE`
+DAYWEB=`awk -F: '(!/¨#/) && ($1 == "daily") { print $3; }' $CONFFILE`
+DAYDO=`awk -F: '(!/¨#/) && ($1 == "daily") { print $4; }' $CONFFILE`
+DAYTITLE=`awk -F: '(!/¨#/) && ($1 == "daily") { print $5; }' $CONFFILE`
+
+WEEKMAIL=`awk -F: '(!/¨#/) && ($1 == "weekly") { print $2; }' $CONFFILE`
+WEEKWEB=`awk -F: '(!/¨#/) && ($1 == "weekly") { print $3; }' $CONFFILE`
+WEEKDO=`awk -F: '(!/¨#/) && ($1 == "weekly") { print $4; }' $CONFFILE`
+WEEKTITLE=`awk -F: '(!/¨#/) && ($1 == "weekly") { print $5; }' $CONFFILE`
+
+# perhaps sometimes I will do this,
+# but as weekends and ends of months don't meet always...
+
+# MONTHMAIL=`awk -F: '(!/¨#/) && ($1 == "monthly") { print $2; }' $CONFFILE`
+# MONTHWEB=`awk -F: '(!/¨#/) && ($1 == "monthly") { print $3; }' $CONFFILE`
+# MONTHDO=`awk -F: '(!/¨#/) && ($1 == "monthly") { print $4; }' $CONFFILE`
+# MONTHTITLE=`awk -F: '(!/¨#/) && ($1 == "monthly") { print $5; }' $CONFFILE`
+
+# if we need monthly or weekly reports save a summary
+if [ $WEEKDO != "nothing" ]; then
+    CALAMARISOPTIONSOLD="$CALAMARISOPTIONS"
+    CALAMARISOPTIONS="$CALAMARISOPTIONS -o daily.$DAYOFWEEK"
+fi
+
+# do the daily report
+case $DAYDO in
+    nothing) if [ $WEEKDO != "nothing" ]; then
+	cat $SQUIDLOGDIR/access.log | \
+	    nice -39 $CALAMARIS $CALAMARISOPTIONS > /dev/null
+	fi
+    ;;
+    mail) (
+	    echo "To: $DAYMAIL"
+	    cat $SQUIDLOGDIR/access.log | \
+		nice -39 $CALAMARIS $CALAMARISOPTIONS -F mail -H "$DAYTITLE"
+	) | /usr/lib/sendmail -t
+    ;;
+    web) cat $SQUIDLOGDIR/access.log | \
+	    nice -39 $CALAMARIS $CALAMARISOPTIONS -F html -H "$DAYTITLE" > $DAYWEB
+    ;;
+    both) cat $SQUIDLOGDIR/access.log | \
+	    nice -39 $CALAMARIS $CALAMARISOPTIONS -F html -H "$DAYTITLE" > $DAYWEB
+	(
+	    echo "To: $DAYMAIL"
+	    cat $SQUIDLOGDIR/access.log | \
+		nice -39 $CALAMARIS $CALAMARISOPTIONS -F mail -H "$DAYTITLE"
+	) | /usr/lib/sendmail -t
+    ;;
+    *) echo "the 'todo' for the daily Squid report in $CONFFILE"
+	echo -n "is '$DAYDO' instead of one out of "
+	echo "(nothing, mail, web, both)." >&2
+	exit 1
+    ;;
+esac
+
+# do the weekly report on Sunday <=> $DAYOFWEEK==0
+if [ -n "$CALAMARISOPTIONSOLD" ]; then
+    CALAMARISOPTIONS="$CALAMARISOPTIONSOLD"
+fi
+
+
+if [ $DAYOFWEEK = "0" ]; then
+    case $WEEKDO in
+	nothing)
+	;;
+	mail) (
+		echo "To: $WEEKMAIL"
+		nice -39 $CALAMARIS $CALAMARISOPTIONS -i $WEEKFILES \
+		    -zH "$WEEKTITLE" -F mail
+	    ) | /usr/lib/sendmail -t
+	;;
+	web) nice -39 $CALAMARIS $CALAMARISOPTIONS -i $WEEKFILES \
+		-zH "$WEEKTITLE" -F html > $WEEKWEB
+	;;
+	both) nice -39 $CALAMARIS $CALAMARISOPTIONS -i $WEEKFILES \
+		-zH "$WEEKTITLE" -F html > $WEEKWEB
+	    (
+		echo "To: $WEEKMAIL"
+		nice -39 $CALAMARIS $CALAMARISOPTIONS -i $WEEKFILES \
+		    -zH "$WEEKTITLE" -F mail
+	    ) | /usr/lib/sendmail -t
+	;;
+	*) echo "the 'todo' for the weekly Squid report in $CONFFILE"
+	    echo -n "is '$WEEKDO' instead of one out of "
+	    echo "(nothing, mail, web, both)." >&2
+	    exit 1
+	;;
+    esac
+#    if [ $MONTHDP != "nothing" ]; then
+#	nice -39 $CALAMARIS $CALAMARISOPTIONS -i $WEEKFILES -z -o weekly.$WEEKWHAT > /dev/null
+#    fi
+fi
+
+# do the monthly report and rotate the monthly logs: nothing to do :-)
+
+exit 0
+
+
+
+/etc/calamaris.conf
+===================
+# configuration file for calamaris
+# by Philipp Frauenfelder <pfrauenf@debian.org>
+# 1998-10-09
+
+# there are three categories: daily, weekly and monthly. For each of these
+# one line is responsible. There must be a line for each category but only
+# one.
+
+# cat: [daily|weekly|monthly]
+# mailto: mailaddress, eg. root
+# webto: path incl. file name, eg. /var/www/daily.html. The script does
+#			currently not check wether the directory exists and
+#			fail with a rather ugly error.
+# todo: [nothing|mail|web|both]
+# title: try it :-)
+
+# cat:mailto:webto:todo:title
+daily:root:/var/www/calamaris/daily.html:both:'Squid daily'
+weekly:root:/var/www/calamaris/weekly.html:both:'Squid weekly'
+
+# monthly does not work right now.
+#monthly:root:/var/www/monthly.html:both:'Squid monthly'
+
+# how many months of calamaris logs should be kept: integer
+#monthstokeep 2
+-----------------------------------------------------------------------
+
+
+Matthew King <nerd@zip.com.au> squidreport.cron:
+-----------------------------------------------------------------------
+#!/bin/sh
+
+# SquidReport Script by Matthew King
+# Last update: 27-03-99.
+
+# This script will remove the current Squid HTML report, and will replace
+# it with a fresh one. The report will include all available squid access
+# log files.. Roughly 7 days worth. The report will then be dumped into
+# /home/httpd/html/ to be viewed via a web browser.
+
+# Remove the current report!
+cd /home/httpd/html/
+rm -f squidreport.html
+echo > squidreport.html
+cd /
+
+# Create the new report and place it into the /home/httpd/html/ dir..
+cd /var/log/squid/
+cat access.log.7 access.log.6 access.log.5 access.log.4 access.log.3 \
+    access.log.2 access.log.1 access.log \
+    | /usr/local/bin/calamaris.pl -a -F html > /home/httpd/html/squidreport.html
+
+# Phew! It is done :) 60 odd seconds later :)
+-----------------------------------------------------------------------
+
+
+Alain Williams <addw@phcomp.co.uk> suggested to make the above long line with
+all access.log-Files easier (and shorter):
+-----------------------------------------------------------------------
+
+        ( zcat $( ls -tr access.log.*.gz )
+          cat access.log
+        ) | calamaris -a -F html > /var/www/html/calamaris.html
+
+
+
+Gottfried Hamm <ghamm@ghks.de> idea of using calamaris for reporting:
+(thanks to Hanno 'Rince' Wagner <wagner@rince.de> for bugfixing.)
+-----------------------------------------------------------------------
+squid.conf
+==========
+[...]
+logfile_rotate 7
+[...]
+
+crontab
+=======
+[...]
+0 0 * * *       /usr/local/squid/bin/squidrep
+[...]
+
+/usr/local/squid/bin/squidrep
+=============================
+#!/bin/sh
+
+# SquidReport by Gottfried Hamm <ghamm@ghks.de>
+# Created       07.01.2000
+# Updated
+
+BINDIR=/usr/local/squid/bin
+LOGDIR=/usr/local/squid/logs
+DAYOFWEEK=`date +"%w"`
+DATE=`date +"%Y%m%d"`
+
+## Rotate the logs
+#
+$BINDIR/squid -k rotate
+sleep 300
+
+## Daily report via mail to webmaster
+#
+cd $LOGDIR
+cat access.log.0 | \
+$BINDIR/calamaris -aH 'Daily' -F mail | \
+mailx -s "Daily Proxy-Report `date`" squidmaster@cord.de
+
+## Weekly report will be stored as web page
+#
+if [ $DAYOFWEEK = "0" ]; then
+       	cat access.log.? | $BINDIR/calamaris -a -F html -l '<A
+HREF="http://www.ghks.de/">GHKS</A>' > \
+       	/data/www/ghks.de/admin/proxy/report-$DATE.html
+fi
+
+exit 0
+-----------------------------------------------------------------------
+
+
+Thomas Wahyudi <thomas@home.unpar.ac.id> method:
+-----------------------------------------------------------------------
+#!/bin/sh
+# SquidReport Script by Matthew King
+# rewriten by Thomas Wahyudi <thomas@home.unpar.ac.id>
+# Last update: 15-05-2000.
+
+# Sample Crontab
+# 0  0  *  *  *   /cache/squid/bin/squid -k rotate
+# 30 0  *  *  *   /cache/squid/bin/squidreport
+
+##################################################
+
+dailyreport="/www/htdocs/Squid/report/daily/"
+weeklyreport="/www/htdocs/Squid/report/weekly/"
+programpath="/cache/squid/bin/calamaris"
+squidlog="/cache/squid/logs"
+
+hef1=`/bin/date | /usr/bin/awk '{print $2}'`
+hef2=`/bin/date | /usr/bin/awk '{print $3}'`
+hef3=`/bin/date | /usr/bin/awk '{print $1}'`
+hef4=`/bin/date | /usr/bin/awk '{print $6}'`
+
+# Convert date if less then 10
+##############################
+
+if [ "$hef2" -lt "10" ]
+then
+     hef2="0$hef2"
+fi
+
+# Create the new report and place it into the report location
+# report in file ex. Mar.28.Tue.2000.htm will contain yesterday performance
+###########################################################################
+
+cat $squidlog/access.log.0 | nice -39 $programpath -aH 'Yesterday worf' -F mail,html >
+"$dailyreport$hef1.$hef2.$hef3.$hef4.htm"
+
+# This script will remove the outdated Squid HTML report,
+# The report will include all available squid access log files..
+# Roughly 31 days worth. The report will then be dumped into
+# report location to be viewed via a web browser.
+################################################################
+
+totalreport=`/bin/ls $dailyreport | /usr/bin/wc | /usr/bin/awk '{print $1}'`
+
+if [ $totalreport -gt 31 ]
+then
+   get1file=`/bin/ls $dailyreport | /usr/bin/head -n 1`
+   /bin/rm $dailyreport$get1file
+fi
+
+# Every Monday will create report for weekly report
+###################################################
+
+totalreport=`/bin/ls $weeklyreport | /usr/bin/wc | /usr/bin/awk '{print
+$1}'`
+
+if [ "$hef3" = "Mon" ]
+then
+
+cat $squidlog/access.log.6 $squidlog/access.log.5 $squidlog/access.log.4
+$squidlog/access.log.3 \
+    $squidlog/access.log.2 $squidlog/access.log.1 $squidlog/access.log.0 \
+    | $programpath -aH 'Weekly worf' -F mail,html >
+"$weeklyreport$hef1.$hef2.$hef3.$hef4.htm"
+
+if [ $totalreport -gt 5 ]
+then
+   get1file=`/bin/ls $weeklyreport | /usr/bin/head -n 1`
+   /bin/rm $weeklyreport$get1file
+fi
+
+fi
+-----------------------------------------------------------------------
+
+
+My <cord@Wunder-Nett.org> method:
+-----------------------------------------------------------------------
+
+squid.conf:
+-----------------------------------------------------
+[...]
+logfile_rotate 7
+[...]
+-----------------------------------------------------
+
+crontab:
+-----------------------------------------------------
+0 0 * * *	/usr/local/squid/bin/squid -k rotate
+30 0 * * *	cat /var/log/squid/access.log.0 | \
+		nice -39 /usr/local/squid/bin/calamaris -aH 'daily worf' -F mail | \
+		mail Squidmaster@Cord.de
+0 3 * * 7	(cd /var/log/squid/; cat access.log.6 access.log.5 \
+		access.log.4 access.log.3 access.log.2 access.log.1 \
+		access.log.0) | \
+		nice -39 /usr/local/squid/bin/calamaris -aH 'weekly worf' -F mail | \
+		mail Squidmaster@Cord.de
+-----------------------------------------------------
+
+Everyone who really uses <Squidmaster@Cord.de> while testing has to send me a
+	postcard!
+-----------------------------------------------------------------------
+
+
+
+Version of the EXAMPLES
+-----------------------
+
+$Id: EXAMPLES,v 2.12 2004-03-02 20:17:24 cord Exp $

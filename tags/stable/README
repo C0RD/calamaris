@@ -1,0 +1,295 @@
+Calamaris
+Version 2
+
+What is it?
+-----------
+
+Calamaris is a Perl script, which was first intended as demo for a statistical
+software for Squid.  I started it at 13 January 1997 (Version 1.1) as a
+rewrite of my old Squid-Analysis-Script weekly.pl (which was in German
+language). I announced it (Version 1.16) to the public at 28 Feb 1997.  (see
+http://www.squid-cache.org/mail-archive/squid-users/199702/0551.html for the
+Original-Announcement) Since then it is used by people all around the world,
+and i decided to build a new improved version of it.  Calamaris V2 is a nearly
+complete rewrite, with changed and more reports.
+
+
+Which software can produce Calamaris-parseable Log-files?
+---------------------------------------------------------
+
+* Squid V1.1.alpha1-V2.x (http://www.squid-cache.org/)
+* NetCache V??? (http://www.netapp.com/products/netcache/)
+* Inktomi Traffic Server V???
+  (http://www.inktomi.com/products/network/products/)
+* Oops! proxy server V??? (http://zipper.paco.net/~igor/oops.eng/)
+* Compaq Tasksmart (http://www.compaq.com/tasksmart/)
+* Novell Internet Caching System (http://www.novell.com/products/ics/)
+* Netscape/iPlanet/SunONE Web Proxy Server
+  (http://www.iplanet.com/downloads/download/detail_14_13.html)
+* Squid with the SmartFilter-patch
+* Cisco Content Engines
+  (http://www.cisco.com/en/US/products/hw/contnetw/index.html)
+
+Where to get Calamaris?
+-----------------------
+
+The Calamaris-Home-page is located at http://Calamaris.Cord.de/
+
+There is also an Announcement-Mailing-list. To subscribe send mail with
+'subscribe your@mail.adr.ess' in the Mail-Body to
+<Calamaris-announce-request@Cord.de>.  Subscribers will get a mail on every new
+release, including a list of the changes. --> low traffic.
+
+Philipp Frauenfelder <pfrauenf@debian.org> has build a Debian Package, which
+can be found via http://packages.debian.org/calamaris .
+
+There is a port for FreeBSD, which can be found at
+http://www.freebsd.org/ports/www.html
+
+A port for NetBSD is here:
+ftp://ftp.netbsd.org/pub/NetBSD/NetBSD-current/pkgsrc/www/calamaris/
+
+Henri Gomez build Red-Hat rpm's which can be obtained from
+ftp://ftp.falsehope.com/home/gomez/calamaris/
+
+rpm's are also available from various people. You can search for them
+via http://rpmfind.net/linux/rpm2html/search.php?query=calamaris, for
+SuSE-Linux search for 'calamari'. (Yes, without the tailing 's', they use for
+some reason a 8.3-scheme for their packages.)
+
+
+How to use it?
+--------------
+
+* You'll need Perl Version 5 (see http://www.Perl.com/). Calamaris is reported
+  to work with Perl 5.001 (maybe you have to remove the '-w' from the first
+  line and comment out the 'use vars'-line), but it is highly recommended
+  (especially for security of your computer) that you use a recent version
+  (>=5.005_03) of it.
+
+* You'll also need one of the noted log-files:
+
+  + Squid V1.1.alpha1-V1.1.beta25 Native log-files
+  + Squid V1.1.beta26-V2.x Native log-files
+  + Squid V1.1.beta26-V2.x Native log-files with log_mime_hdrs enabled
+  + NetCache V??? Squid-style Log-files
+  + NetCache V5.x Default Log-file-Format (Extended Log-file-Format)
+  + Inktomi Traffic Server V??? Log-files
+  + OOPS V??? Native log-files
+  + Extended Log-file-Format
+  + NetApp Default Log-file-Format (some kind of Extended Log-file-Format)
+  + NetApps understanding of Squid Native log-files
+  + Squid with SmartFilter-Patch Log-files
+  + Cisco Content Engines
+
+  If Calamaris can't parse the input, check your log-file format.
+  + Squid-Log-files: http://www.squid-cache.org/Doc/FAQ/FAQ-6.html
+  + Extended Log-file-Format: http://www.w3.org/TR/WD-logfile
+
+* Put Calamaris itself into a warm, dry place on your computer (i.e. into the
+  Squid-bin-directory, or /usr/local/bin/). Maybe (if your Perl isn't located
+  at /usr/bin/perl) you'll have to change the first line of Calamaris to point
+  to your copy of Perl.
+
+* There is also a man-page for Calamaris. You should copy it to an appropriate
+  place like /usr/local/man/man1, where your man(1) can find it.
+
+* Use it!
+
+  'cat access.log.1 access.log.0 | calamaris'
+
+  Calamaris by default generates by a brief ASCII report of incoming and
+  outgoing requests.
+
+  NOTE: If you pipe more than one log-file into Calamaris, make sure that they
+    are chronologically ordered (oldest file first), else some reports can
+    return wrong values.
+
+  You can alter Calamaris' behaviour with switches. Start Calamaris with '-h'
+  or check the man-page.
+
+  You should also take a look at the EXAMPLES-File, for
+  'Real-Life'-usage-examples of Calamaris.
+
+
+Are there known bugs or other problems?
+---------------------------------------
+
+* RedHat 8.0 has set the LANG-Variable to en_US.UTF-8, which caused Calamaris
+  to crash with 'Split loop at (eval 1) line 21, <> line 1', maybe due to a
+  perl-bug. (Investigation needed). You can workaround this problem by
+  unsetting LANG. Please see
+  https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=77437 .
+
+* There is a problem if you parse Logfiles from accelerating proxies. In
+  iPlanet Web Proxy Server there is only an 'unqualified' URL in the Logfiles,
+  which confuses all reports that rely on that field. (reported by Pawel
+  Worach <pawel.worach@nordea.com>)
+
+* Calamaris can't resolve IPv6-IPs to DNS-Names yet. If you can tell me how i
+  can do it in perl, let me know ;-)
+
+* the byte-histogram sometimes displays a 0-0-byte line. this is correct. the
+  requests added there are really logged as 0-byte-sized in the Logfile. Note
+  that empty byte-ranges as 1-9 (which is impossible because of
+  protocol-overhead) are skipped and not displayed in the report, so you can
+  end up with 0-0 followed by 10-99 in the report. (noted by Reagan Blundell
+  <reagan@muppet.whatever.net.au> through Debian-Bug-Tracking)
+
+* there were many requests to add something that enables Calamaris to track
+  down who is using the Cache to get what. I added these with stomach-ache,
+  because it breaks the privacy of the users. So please read the following
+  and think about it, before using Calamaris to be the 'Big Brother':
+
+  - If you don't trust your users than there is something more wrong than
+    the loss of productivity.
+  - Squid has some nice acl-mechanisms. If you think that your users don't
+    use the net properly, don't let them use it. (You can also open the net
+    at specific times or to specific sites, if you want.)
+
+  If you still want to use Calamaris that way, let your vict^Wusers know
+  that they'll be monitored. (in Germany you have to let them know!)
+
+  After some discussion in a newsgroup i was 'accused' to not announce the
+  spy-features of Calamaris. THIS IS INTENTIONAL. This is MY program, it can
+  spy on users, because there are many people who want to have that feature,
+  but what i write on the feature-sheet is MY decision. Don't annoy me, you
+  might damage my motivation to maintain this FREE (as in speech) piece of
+  software.
+
+* I fixed a bug regarding caching of Performance-Data. This breaks old
+  Calamaris-Cache-Files... I put a workaround in, which allows to parse old
+  and new cache-files. But you will loose the 'Cache-Hits'-value from old
+  files in the Performance-Report.  It is set to '-' in the output.
+
+* If you reuse a cache-file, which is not created with
+  '-d -1 -r -1 -t -1 -R -1' the number of 'others' is likely wrong everywhere.
+  (reported by Clare Lahiff <clare@tarboosh.anu.edu.au>)
+
+  If i store the number of 'others' somewhere i still don't know which data is
+  ment there, and in the next run (if i sum up) the number of others is to
+  high (if the number of occurrences is below the threshold) or the summed up
+  data misses the occurrences of the last run (if the number of occurances is
+  above the threshold). i think i can't fix this...
+
+* If you want to parse more than one logfile (i.e. from the 'logfilerotate')
+  or want to use more than one input-cache-file you have to put them in
+  chronological sorted order (oldest first), else you get wrong peak values.
+
+  However: If you use the caching function the peak-values can be wrong,
+  because peaks occurring during log-rotate-time can't be detected.
+
+  Calamaris will add a warning to the report if it recognises unsorted input.
+
+* Squid with SmartFilter-Patch and Cisco Content Engines have the ability to
+  block or allow requests by checking against a database, and write this to
+  the Logfiles. I will not add a report to give an overview about the usage
+  of the Categories. (see first point of this chapter.)
+
+* Squid doesn't log outgoing UDP-Requests, so i can't put them into the
+  statistics without parsing squid.conf and the cache.log-file. (Javier Puche
+  <Javier.Puche@rediris.es> asked for this), but i don't think that i should
+  put this into Calamaris...
+
+* Squid and NetCache also support some kind of 'Common Logfile-format'.  I
+  won't support that, because Common Log is missing some very important data
+  i.e. the request-time and the hierarchie-information. If you're still stuck
+  with that format, i recommend the 'analog'-software by Steven Turner. Other
+  way round:  change logging to 'native' and convert it to 'common'. There is
+  software for that available, i.e. my shrimp.pl. This also applies for the
+  Common-style Log-files which NetCache produces.
+
+* If you use Calamaris at UNIX-epoch-date 2147483648 or later (~19.Jan 2038)
+  you might get wrong dates on 32bit-systems.  (I just added this to delight
+  the people who really read this ;-) and to make a statement on this... on
+  Y2K they found many systems which wasn't expected to run in that year. If
+  you read this while checking if this package is Y2K038-compatible, then
+  this is probably a really old system ;-)
+  Y2038-Statement: Calamaris is as buggy as the used perl-version.
+
+* It is written in Perl. Yea, Perl is a great language for something like this
+  (also it is the only one I'm able to write something like this in ;-).
+  Calamaris was first intended as demo for what i expect from a statistical
+  software. (OK, it is fun to write it, and it is even more fun to recognise
+  that many people use the script). For my Caches with about 150MB logfile per
+  week it is OK, but for those people on a heavy loaded Parent-cache it is
+  possibly to slow.  How does it perform with the perlcc coming in Perl5.6 or
+  Perl6?
+
+
+What will happen next?
+----------------------
+
+I think that Calamaris v2 is now finished. (except for bugs, that maybe were
+not found yet.)
+
+But if you have an idea what is still missing in a software for parsing proxy
+log-files, let me know. --> <Calamaris@Cord.de>. I'll will build it in, or add
+it to the wish-list below :-)
+
+* adding an option to limit domain (and related) reports to a minimum number
+  of transactions. (suggested by Franck Bourdonnec <fbourdonnec@chez.com>)
+
+* I suggest that the '-P' option has a <number of lines> option, like all
+  other analyses. So the time step would be something like = <analysis time> /
+  <number of lines>. (Ahmad Kamal <eng_ak@link.net>)
+
+* rewrite peak-measurement. The new calculation method is very time intensive
+  and slows down Calamaris by 30 or more percent, but it is faster than the
+  old way. However: i'm not really satisfied with it, so i put it out of the
+  -a -option. You'll have to add a '-p (old|new)' -option to get old or new
+  peak-statistic.
+
+  HELP REQUEST: If someone has an idea how to build an efficient AND fast
+  method to work it out... let me know!
+
+* try 'use integer'. This can result in a less memory-hungry, but faster
+  version of Calamaris. (idea by Gerold Meerkoetter)
+
+* build graphics (hope i remember who suggested this first, the mail must be
+  somewhere in my work-mailbox ;-) (This is a thing for Calamaris v3, if i
+  ever going to write it. there are nice gd-libs in Perl ;-)
+
+* make Calamaris faster. see above. If someone wants to rewrite Calamaris in a
+  faster language: Feel Free! (But respect the GNU-License) It would be nice
+  if you drop me a line about it, I'll mention it below. And please please
+  please don't use the name 'Calamaris' for it without asking me!
+
+
+Is there anything else?
+-----------------------
+
+Ernst Heiri has build a spin-off of my Calamaris V1, which can be found
+*where?*
+
+There is also a C++-port of Ernst Heiri's Calamaris available. It is
+(according to the author Jens-S. Voeckler <voeckler@rvs.uni-hannover.de>) five
+times faster than the Perl-variant.  check
+http://www.cache.dfn.de/DFN-Cache/Development/seafood.html for this.
+
+more Squid-logfile-Analysers can be found via the Squid-Home-page at
+http://www.squid-cache.org/Scripts/
+
+
+Thank You!
+----------
+
+* The developers and contributors of Squid.
+* The developers and contributors of Perl.
+* The contributors, feature requesters and bug-reporters of Calamaris.
+* Gerold 'Nimm Perl' Meerkoetter.
+* Massimo Carnevali <lec3748@iperbole.bologna.it>
+
+
+Not happy yet?
+--------------
+
+Drop me a line to <Calamaris@Cord.de> and tell me what is missing or wrong or
+not clear or whatever. You are welcome (especially if you read this file that
+far :-)
+
+
+Version of the README
+---------------------
+
+$Id: README,v 2.43 2004-06-06 16:29:02 cord Exp $
