@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.30 2000-05-13 20:03:11 cord Exp $
+# $Id: calamaris,v 2.31 2000-05-24 21:31:15 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic for Squid and NetCache Native Log-files
 #
@@ -51,6 +51,7 @@
 #	Patrik Rak (patrik@ash.ein.cz)
 #	Steve Snyder (swsnyder@home.com)
 #	Michael Smith (good_guy93@hotmail.com)
+#	Warren Brown (wbrown@inktomi.com)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -87,7 +88,7 @@ use Sys::Hostname;
 
 getopts('ab:cCd:f:hH:i:l:mno:Op:P:r:st:TuvVwz');
 
-$VERSION='Calamaris $Revision: 2.30 $';
+$VERSION='Calamaris $Revision: 2.31 $';
 
 $COPYRIGHT='Copyright (C) 1997, 1998, 1999, 2000 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
@@ -934,7 +935,7 @@ for (; $line; $line = <>) {';
       $tcp_hit_urlext{$urlext}++;
       $tcp_hit_urlprot{$urlprot}++;' if ($opt_t);
   $loop .= '
-    } elsif ($log_hier_method =~ m#NONE|^\-$#o or $log_hitfail =~ m#^ERR_#o) {
+    } elsif ($log_hier_method =~ m#EMPTY|NONE|^\-$#o or $log_hitfail =~ m#^ERR_#o) {
       $tcp_miss_none++;
       $tcp_miss_none_size += $log_size;
       $tcp_miss_none_time += $log_reqtime;';
@@ -967,7 +968,7 @@ for (; $line; $line = <>) {';
       $tcp_miss_requester_size{$requester} += $log_size;' if ($opt_r);
   $loop .= '
     }
-    if ($log_hier_method !~ m#NONE|^\-$#o) {
+    if ($log_hier_method !~ m#EMPTY|NONE|^\-$#o) {
       $hier++;
       $hier_size += $log_size;
       $hier_time += $log_reqtime;
@@ -1113,7 +1114,7 @@ if ($opt_w) {
 <html>
  <head>
   <title>${hostname}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.30 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.31 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
@@ -1888,7 +1889,7 @@ close(CACHE);
 if ($opt_w) {
   print('  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.30 $, Copyright &copy; 1997, 1998, 1999, 2000
+   $Revision: 2.31 $, Copyright &copy; 1997, 1998, 1999, 2000
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
