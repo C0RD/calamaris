@@ -35,12 +35,13 @@ How to use it?
 --------------
 
 * You'll need Perl Version 5 (see http://www.Perl.com/) Calamaris is reported
-  to work with Perl 5.001, but it is highly recommended (especially for
-  security of your computer) that you use an actual version (>=5.005_02) of
-  it.
+  to work with Perl 5.001 (maybe you have to remove the '-w' from the first
+  line and comment out the 'use vars'-line), but it is highly recommended
+  (especially for security of your computer) that you use an actual version
+  (>=5.005_02) of it.
 
 * You'll also need Squid (see http://squid.nlanr.net/) Version 1.1.x or later
-  (or Log-files derived from that). It has to produce the 'Native
+  (or Log-files derived from it). It has to produce the 'Native
   Log-file-Format' (which is the default since Version 1.1.x). If Calamaris
   can't parse the access.log, check your Log-file-format.  It is explained in
   the Squid FAQ which can be reached via the Address above.
@@ -263,4 +264,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.3 1998-10-10 13:35:37 cord Exp $
+$Id: README,v 2.4 1998-10-12 18:37:58 cord Exp $
