@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.109 1998-05-09 15:36:53 cord Exp $
+# $Id: calamaris.pl,v 1.110 1998-05-10 20:54:00 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - get statistic out of the Squid Native Log.
 #
@@ -88,6 +88,14 @@
 # i added switches, so everybody can switch on or off the reports wanted. But
 # this is also a speed disadvantage because of the many checks if set or not...
 
+# todo
+
+# * check bugs from Thoralf Freitag <Thoralf.Freitag@isst.fhg.de>
+
+# * add switch for limiting output.
+
+# * add report for byte-peak (Andreas Strotmann <A.Strotmann@Uni-Koeln.DE>)
+
 require 5;
 
 use vars qw($opt_a $opt_b $opt_c $opt_d $opt_h $opt_H $opt_i $opt_m $opt_n
@@ -98,14 +106,14 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pr:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.109 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.110 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
 
 ';
 
-$USAGE='Usage: cat log | ' . $0 . ' [-achmnpsuwz] [-bdrt [n]] [-H [name]] [-io file]
+$USAGE='Usage: cat log | ' . $0 . ' [switches]
 
 Reports:
 -a	    all  (extracts all reports available)
@@ -717,6 +725,8 @@ if ($opt_p or $opt_a) {
   $date_peak_tcp_hour = convertdate($peak_tcp_hour_time);
   $date_peak_all_hour = convertdate($peak_all_hour_time);
 }
+print("Content-Type: text/html; charset=us-ascii
+Content-Transfer-Encoding: 7bit\n") if ($opt_m and $opt_w);
 printf("Subject:%sSquid-Report (%s - %s)\n\n", $hostname, $date_start,
        $date_stop) if ($opt_m);
 if ($opt_w) {
