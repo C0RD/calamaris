@@ -1,4 +1,4 @@
-.TH CALAMARIS 1 "$Date: 2003-01-19 16:58:33 $" Handmade "Calamaris Manual"
+.TH CALAMARIS 1 "$Date: 2003-02-09 00:06:59 $" Handmade "Calamaris Manual"
 
 .SH NAME
 calamaris \- generate statistic out of log files from Proxy-Cache-Servers
@@ -15,7 +15,7 @@ is used to produce statistical output from
 .B NetCache,
 .B Inktomi Traffic Server,
 .B Oops! proxy server,
-.B Compaq Tasksmart
+.B Compaq Tasksmart,
 .B Cisco Content Engines
 or related Proxy log files.  The resulting output can be
 .I ascii
@@ -114,7 +114,7 @@ or
 .I 'squid-extended'
 .B Calamaris
 expects native logfile derived from
-.B Squid V1.1.alpha1-V1.1.beta25
+.B Squid V1.1.alpha1-V2.x
 with
 .I log_mime_hdrs
 enabled or
@@ -165,19 +165,28 @@ Logfile Format (from
 Standard output format is plain ascii with 80 chars width.
 
 .TP
-.I -m
-mail: adds a subject header to the beginning of the report.
+.I -F type[,type[,type[,...]]]
+Format: sets the format of the output-report. If set to
 
-.TP
-.I -w
-web: all output is given in html with tables.  Can be combined with
-.I -m
+.I 'mail'
+adds a subject header to the beginning of the report.
+
+.I 'html'
+all output is given in html with tables.  Can be combined with
+.I 'mail'
 to send html mails.
 
-.TP
-.I -W
-Web: all output is given in html with tables without HTML-Headers. Useful for
+.I 'html-embed'
+all output is given in html with tables without HTML-Headers. Useful for
 Server-Side-Includes.
+
+.I 'unformatted'
+gives out the raw numbers seperated by spaces. Useful for re-using the output
+in other scripts. If you use this along with 
+.I -U,
+ the byte values are calculated in the given Unit, and displayed without
+indication along with the numbers. the indication moves up to the header of
+the report.
 
 .TP
 .I -l string
@@ -453,9 +462,9 @@ Cord Beermann.
 
 .SH VERSION
 
-Version of this manpage: $Id: calamaris.1,v 1.26 2003-01-19 16:58:33 cord Exp $
+Version of this manpage: $Id: calamaris.1,v 1.27 2003-02-09 00:06:59 cord Exp $
 
-It describes the usage of Calamaris V2.55 and later.
+It describes the usage of Calamaris V2.57 and later.
 
 Information about new releases, mailing lists, and other related issues
 can be found from the
