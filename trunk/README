@@ -124,11 +124,6 @@ Are there known bugs or other problems?
   If you still want to use Calamaris that way, let your vict^Wusers know
   that they'll be monitored. (in Germany you have to let them know!)
 
-* I added input-file guessing to Calamaris. This is probably buggy, but as
-  nobody reported a problem yet, i switched it to the default. To get the old
-  default back you have to add '-f squid' on the invocation line. However: if
-  all works correct you shouldn't notice any difference to the old behaviour.
-
 * I fixed a bug regarding caching of Performance-Data. This breaks old
   Calamaris-Cache-Files... I put a workaround in, which allows to parse old
   and new cachefiles. But you will loose the 'Cache-Hits'-value from old files
@@ -150,6 +145,10 @@ Are there known bugs or other problems?
   (Is this something that i should fix? Don't think so...)
 
 * However: If you use the caching function the peak-values can be wrong.
+
+* I have one report about Calamaris eating up all available memory, while
+  generating a month-report out of Logfiles from 8 different machines. Please
+  notify me, if this happens to you too.
 
 * Squid doesn't log outgoing UDP-Requests, so i can't put them into the
   statistics without parsing squid.conf and the cache.log-file. (Javier Puche
@@ -257,4 +256,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.31 2002-01-17 19:46:57 cord Exp $
+$Id: README,v 2.32 2002-01-18 18:27:13 cord Exp $
