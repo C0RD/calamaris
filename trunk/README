@@ -155,6 +155,11 @@ How to use it?
 Are there known bugs or other problems?
 ---------------------------------------
 
+* I fixed a bug regarding caching of Performance-Data. This broke old
+  Calamaris-Cache-Files... I put now a workaround in, which allows to parse
+  old and new cachefiles. This sets the missing variable to a defined value,
+  and results in wrong values in the Performance-report on 'Cache-Hits'.
+
 * It is possible that you encounter problems if you use Squid V1.2.x/V2.x.
   Calamaris isn't well tested with the new release. (I don't have a production
   cache of it yet.) If you find problems, please report them to
@@ -171,8 +176,8 @@ Are there known bugs or other problems?
   produces broken Log-files with different counts of fields, is that a buggy
   version?)
 
-* If you want to parse more than one Log-file (i.e. from the 'logfilerotate') or
-  want to use more than one input-cache-file you have to put them in
+* If you want to parse more than one Log-file (i.e. from the 'logfilerotate')
+  or want to use more than one input-cache-file you have to put them in
   chronological sorted order (oldest first), else you get wrong peak values.
   (Is this something that i should fix? Don't think so...)
 
@@ -264,4 +269,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.4 1998-10-12 18:37:58 cord Exp $
+$Id: README,v 2.5 1998-10-12 19:22:50 cord Exp $
