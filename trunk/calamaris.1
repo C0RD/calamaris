@@ -1,10 +1,7 @@
-.TH CALAMARIS 1 "$Date: 2000-05-13 20:06:45 $" Handmade "Calamaris Manual"
+.TH CALAMARIS 1 "$Date: 2000-06-22 10:58:03 $" Handmade "Calamaris Manual"
 
 .SH NAME
-calamaris \- generate statistic out of log files from 
-.BR Squid ,
-.B NetCache
-and relatives
+calamaris \- generate statistic out of log files from Proxy-Cache-Servers
 
 .SH SYNOPSIS
 cat log |
@@ -15,7 +12,10 @@ cat log |
 .B Calamaris
 is used to produce statistical output from
 .BR Squid ,
-.B NetCache
+.B NetCache,
+.B Inktomi Traffic Server
+.B OOPS
+.B Compaq Tasksmart
 or related Proxy log files.  The resulting output can be
 .I ascii
 or
@@ -79,24 +79,27 @@ format: sets the type of input logfiles. If set to
 
 .I 'auto'
 .B Calamaris
-tries to guess the input file format.  This will be the Default
-in a later release.
+tries to guess the input file format.  This is the Default.
 
 .B Note:
-If the first line of your input file is corrupted, Calamaris will
-stop with an error.
+If the first line of your input file is corrupted, Calamaris will stop with 
+an error.
 
 .I 'squid'
 .B Calamaris 
-expects native logfile derived from Squid V1.1.beta26-V2.x. This is the
-Default.
+expects native logfile derived from 
+.B Squid V1.1.beta26-V2.x
+or 
+.B OOPS.
 
 .I 'squid-mime' 
 .B Calamaris 
-expects native logfile with enabled derived from Squid V1.1.alpha1-V1.1.beta25
+expects native logfile with enabled derived from
+.B Squid V1.1.alpha1-V1.1.beta25
 with
 .I log_mime_hdrs 
-enabled. (This only enables parsing of these kind of logfile, the additional
+enabled. (T
+his only enables parsing of these kind of logfile, the additional
 data will be ignored.)
 
 .B Warning:
@@ -104,10 +107,24 @@ Logging of MIME-Headers breaks the privacy of your users!
 
 .I 'squid-old' 
 .B Calamaris 
-expects native logfile derived from Squid V1.1.alpha1-V1.1.beta25. 
+expects native logfile derived from
+.B Squid V1.1.alpha1-V1.1.beta25. 
 
 .I 'nc'
-it expects Logfiles from NetCache. (Please see the README on this.)
+.B Calamaris
+expects Logfiles from
+.B NetCache. 
+(Please see the README on this.)
+
+.I 'its'
+.B Calamaris
+expects Logfiles from
+.B Inktomi Traffic Server.
+
+.I 'cts'
+.B Calamaris
+expects Logfiles from
+.B Compaq Tasksmart.
 
 .SS Output Format
 Standard output format is plain ascii with 80 chars width.
@@ -180,8 +197,8 @@ order: Changes the sort order in the reports to request size, default is
 sorting by number of requests.
 
 .TP
-.I -T
-Time: Adjust the Performancereport for non GMT-Timezoners.
+.I -T n
+Time: Adjust the Performancereport in minutes for non GMT-Timezoners.
 
 .TP
 .I -c
@@ -276,9 +293,9 @@ Cord Beermann.
 
 .SH VERSION
 
-Version of this manpage: $Id: calamaris.1,v 1.12 2000-05-13 20:06:45 cord Exp $
+Version of this manpage: $Id: calamaris.1,v 1.13 2000-06-22 10:58:03 cord Exp $
 
-It describes the usage of Calamaris V2.30 and later.
+It describes the usage of Calamaris V2.33 and later.
 
 Information about new releases, mailing lists, and other related issues
 can be found from the 
@@ -290,7 +307,7 @@ home page at http://Calamaris.Cord.de/
 comes with "absolutely no warranty".
 
 .SH COPYRIGHT
-Copyright (C) 1997, 1998, 1999 Cord Beermann
+Copyright (C) 1997, 1998, 1999, 2000 Cord Beermann
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
