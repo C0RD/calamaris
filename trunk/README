@@ -59,7 +59,7 @@ How to use it?
 
 * Use it! 
 
-  'cat access.log.1 access.log.0 | calamaris.pl'
+  'cat access.log.1 access.log.0 | calamaris'
 
   Calamaris generates by default a brief ASCII report of incoming and outgoing
   requests.
@@ -85,7 +85,7 @@ How to use it?
 
     -p	    peak-report.  Measure the peaks of the Squid usage in requests per
 	    second, minute and hour. It reports peaks for TCP, UDP and ALL
-	    requests.
+	    requests. This option makes Calamaris 30% or more slower.
 
     -P n    performance-report.  It shows the throughput of TCP-Requests for
 	    every n minutes.
@@ -222,6 +222,10 @@ But if you have an idea what is still missing in a software for parsing
 Proxy-Log-files, let me know. --> Calamaris@Cord.de. I'll will build it in, or
 add it to the wish-list below :-)
 
+* rewrite peak-measurement. The current calculation method is very time
+  intensive and slows down Calamaris by 30 or more percent. (Maybe I should
+  build a less accurate and more effective method? But how? any ideas?)
+
 * add report for byte-peak (inspirated by Andreas Strotmann
   <A.Strotmann@Uni-Koeln.DE>) (I have no idea how to calculate that)
 
@@ -271,4 +275,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.9 1998-10-20 09:37:56 cord Exp $
+$Id: README,v 2.10 1998-11-16 21:52:51 cord Exp $

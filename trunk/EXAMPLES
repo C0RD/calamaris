@@ -19,8 +19,8 @@ logfile_rotate 7
 crontab:
 -----------------------------------------------------
 0 0 * * *	/usr/local/squid/bin/squid -k rotate
-30 0 * * *	cat /var/log/squid/access.log.0 | nice -39 /usr/local/squid/bin/calamaris.pl -amH 'daily worf' |mail Squidmaster@Cord.de
-0 3 * * 7	(cd /var/log/squid/; cat access.log.6 access.log.5 access.log.4 access.log.3 access.log.2 access.log.1 access.log.0) | nice -39 /usr/local/squid/bin/calamaris.pl -amH 'weekly worf' |mail Squidmaster@Cord.de
+30 0 * * *	cat /var/log/squid/access.log.0 | nice -39 /usr/local/squid/bin/calamaris -amH 'daily worf' |mail Squidmaster@Cord.de
+0 3 * * 7	(cd /var/log/squid/; cat access.log.6 access.log.5 access.log.4 access.log.3 access.log.2 access.log.1 access.log.0) | nice -39 /usr/local/squid/bin/calamaris -amH 'weekly worf' |mail Squidmaster@Cord.de
 -----------------------------------------------------
 -----------------------------------------------------------------------
 
@@ -29,4 +29,4 @@ crontab:
 Version of the EXAMPLES
 -----------------------
 
-$Id: EXAMPLES,v 2.1 1998-10-05 18:50:28 cord Exp $
+$Id: EXAMPLES,v 2.2 1998-11-16 21:52:51 cord Exp $
