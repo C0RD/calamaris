@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.114 1998-07-18 21:52:07 cord Exp $
+# $Id: calamaris.pl,v 1.115 1998-07-19 11:41:46 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Logfiles.
 #
@@ -122,7 +122,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pr:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.114 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.115 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -1322,7 +1322,8 @@ sub getfqdn {
     return $host;
   } elsif ($host =~ /^([^@]+@)?(([0-9][0-9]{0,2}\.){3}[0-9][0-9]{0,2}$)/) {
     $hostcache{$2} = addtonam($2) unless defined $hostcache{$2};
-    return $1 . $hostcache{$2};
+    return $1 . $hostcache{$2} if defined $1;
+    return $hostcache{$2};
   } else {
     return $host;
   }
