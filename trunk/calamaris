@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.44 2002-01-18 18:28:53 cord Exp $
+# $Id: calamaris,v 2.45 2002-01-25 21:24:18 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
@@ -64,6 +64,8 @@
 #	Klaus Brinkmeyer (Klaus_Brinkmeyer@inasys.de)
 #	Filip ? (mechanix@digibel.org)
 #	Matt Hubbard (m.hubbard@ic.ac.uk)
+#	James Crocker (jcrocker@menasha.com)
+#	Enrico Ardizzoni (enrico@unife.it)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -101,7 +103,7 @@ use Sys::Hostname;
 
 getopts('ab:cCd:D:f:hH:i:l:Lmno:Op:P:r:R:st:T:uU:vVwz');
 
-$VERSION='Calamaris $Revision: 2.44 $';
+$VERSION='Calamaris $Revision: 2.45 $';
 
 $COPYRIGHT='Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
@@ -138,6 +140,8 @@ Input Format:
 		squid = Native-Logfile derived from Squid V1.1.beta26-V2.x
 		squid-mime = Native-Logfile with log_mime_hdrs enabled derived
 			from Squid V1.1.beta26-V2.x (*)
+		squid-smartfilter = Native-Logfile from Squid with 
+			Smartfilter-Patch
 		squid-old = Native-Logfile derived from Squid
 			V1.1.alpha1-V1.1.beta25
 		nc = Squid-style Logfiles derived from NetCache V?? (<5.x)
@@ -306,6 +310,10 @@ if ($opt_i) {
 	$hier_parent_time += $cache[39];
 ### This section is for backward compatibility
       } elsif ($x eq 'B' and $#cache == 17) {
+	unless ($peak_udp_sec == 0) {
+	  warn ("multiple cache files.\n") if $opt_v;
+	  $peak_warn = 'Peak values are possibly wrong!';
+	}
 	if ($peak_udp_sec < $cache[0]) {
 	  $peak_udp_sec = $cache[0];
 	  $peak_udp_sec_time = $cache[1];
@@ -341,6 +349,10 @@ if ($opt_i) {
 	$peak_all_hour{$cache[17]} += $cache[16];
 ### End of section, remove it in a later release.
       } elsif ($x eq 'B' and $#cache == 23) {
+	unless ($peak_udp_sec == 0) {
+	  warn ("multiple cache files.\n") if $opt_v;
+	  $peak_warn = 'Peak values are possibly wrong!';
+	}
 	if ($peak_udp_sec < $cache[0]) {
 	  $peak_udp_sec = $cache[0];
 	  $peak_udp_sec_time = $cache[1];
@@ -608,6 +620,12 @@ unless ($opt_z) {
 	print(STDERR "guessing... using '-f squid-mime'\n") if ($opt_v);
 	last;
       } elsif ($line =~
+	  m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+\s+\S+\s*$#)
+      {
+	$opt_f = 'squid-smartfilter';
+	print(STDERR "guessing... using '-f squid-smartfilter'\n") if ($opt_v);
+	last;
+      } elsif ($line =~
 	       m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+$#)
       {
 	$opt_f = 'squid-old';
@@ -672,6 +690,14 @@ for (; $line; $line = <>) {';
     split(/\s+/, $line);
   if (not defined $foo or not defined $log_content or $foo ne \'\' or
       $log_content eq \'\' or $log_reqtime < 0 or
+      $log_date !~ m#^\d+\.\d{3}$#) {';
+} elsif ($opt_f eq 'squid-smartfilter') {
+  $loop .= '
+  ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
+   $log_method, $log_url, $log_ident, $log_hier, $log_content, $log_smart, 
+   $foo) = split(/\s+/, $line);
+  if (not defined $foo or not defined $log_smart or $foo ne \'\' or
+      $log_smart eq \'\' or $log_reqtime < 0 or
       $log_date !~ m#^\d+\.\d{3}$#) {';
 } elsif ($opt_f eq 'its') {
   $loop .= '
@@ -771,7 +797,7 @@ for (; $line; $line = <>) {';
       $tmpline2 .= '
     $log_cached = $' . ++$offset . ';';
     } elsif ($_ eq 'x-transaction') {
-      $tmpline1 .= '(\w+\/\d+)';
+      $tmpline1 .= '(\w+\/[\d\-]+)';
       $tmpline2 .= '
     $log_status = $' . ++$offset . ';';
       $log_status = 0;
@@ -1052,9 +1078,23 @@ Thank You.\n\n");
   $method_time{$log_method} += $log_reqtime;
   $time_begin = $log_date if $log_date < $time_begin;
   $time_end = $log_date if $log_date > $time_end;';
-  if (not defined $opt_p) {
-  } elsif ($opt_p eq 'old') {
+  if (defined $opt_p) {
     $loop .= '
+  if (defined(@peak_all)) {
+    if ($log_date < $peak_all[$#peak_all]) {
+      $peak_warn = \'Peak values are most likely wrong due to unsorted input!\';
+      undef(@peak_all);
+      undef(@peak_udp);
+      undef(@peak_tcp);
+      $peak_all_min_pointer = $peak_all_sec_pointer = $peak_tcp_min_pointer =
+	$peak_tcp_sec_pointer = $peak_udp_min_pointer =
+	$peak_udp_sec_pointer = 0;
+      chomp($line);
+      warn (\'unsorted input: "\' . $line . "\"\n") if $opt_v;
+    }
+  }';
+    if ($opt_p eq 'old') {
+      $loop .= '
   $peak_all_sec_pointer++;
   $peak_all_min_pointer++;
   unshift(@peak_all,$log_date);
@@ -1075,8 +1115,8 @@ Thank You.\n\n");
     $peak_all_sec = $peak_all_sec_pointer;
     $peak_all_sec_time = $log_date - 1;
   }';
-  } elsif ($opt_p eq 'new') {
-    $loop .= '
+    } elsif ($opt_p eq 'new') {
+      $loop .= '
   $date_hour = int(($log_date - ($log_reqtime / 1000)) / 3600) * 3600;
   foreach $i (($date_hour / 3600) .. int($log_date / 3600)) {
     $peak_all_hour{$i * 3600} = $peak_all_hour_size{$i * 3600} = 0 unless
@@ -1098,9 +1138,10 @@ Thank You.\n\n");
     $peak_all_sec = $peak_all_sec_pointer;
     $peak_all_sec_time = $log_date - 1;
   }';
-  } else {
-    print(STDERR "$0: unknown value at -p -option: \"$opt_p\"\n\n$USAGE\n\n");
-    exit 1;
+    } else {
+      print(STDERR "$0: unknown value at -p -option: \"$opt_p\"\n\n$USAGE\n\n");
+      exit 1;
+    }
   }
   $loop .= '
   if (($log_method =~ m#^ICP_#o) or ($log_status =~ m#^ICP#o)) {
@@ -1327,7 +1368,8 @@ Thank You.\n\n");
     $tcp_urlext_size{$urlext} += $log_size;' if ($opt_t);
   if ($opt_f eq 'elff') {
     $loop .= '
-    if ($log_hitfail eq \'1\' or $log_hitfail =~ m#^HIT_#o) {';
+    if ($log_hitfail eq \'1\' or $log_hitfail =~ m#^HIT_#o or
+	$log_hitfail =~ m#^TCP_HIT#o) {';
   } else {
     $loop .= '
     if ($log_hitfail =~ m#^TCP_\w*HIT#o) {';
@@ -1557,7 +1599,7 @@ if ($opt_w) {
 <html>
  <head>
   <title>${hostname}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.44 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.45 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
@@ -1591,8 +1633,8 @@ if ($opt_w) {
     outref('Incoming UDP-requests by host', 13);
     outref('Incoming TCP-requests by host', 14);
   }
-  outref("Performance in $opt_P minute steps", 15) if ($opt_P);
-  outref("Distribution Histogram", 16) if ($opt_D);
+  outref("Distribution Histogram", 15) if ($opt_D);
+  outref("Performance in $opt_P minute steps", 16) if ($opt_P);
   print("  </ul>\n");
 } else {
   print("\n${hostname}Proxy-Report ($date_start - $date_stop)\n");
@@ -1612,12 +1654,23 @@ outline('unique hosts/users:', scalar keys %tcp_requester) if $opt_r;
 outline('parse time (sec):', $time_run);
 outstop();
 
-if (($invalid / $counter) > .05 and !$opt_v and $counter > 1000) {
+if (($invalid / $counter) > .05 and $counter > 1000) {
   @format=(60);
   outstart();
   outline('');
   outline('More than 5% discarded logfile-lines.');
-  outline('Please check your logfile with calamaris -v');
+  outline('Please check your logfile with calamaris -v') unless ($opt_v);
+  outstop();
+}
+
+if (defined($peak_warn)) {
+  @format=(60);
+  outstart();
+  outline('');
+  outline("$peak_warn");
+  outline('Please read the README on unsorted input');
+  outline('To find out which line caused this, try calamaris -v') 
+    unless ($opt_v);
   outstop();
 }
 
@@ -2444,10 +2497,10 @@ if ($opt_r) {
 
 if ($opt_D) {
   if ($tcp == 0) {
-    outtitle("Distribution Histogram: no matching requests", 16);
+    outtitle("Distribution Histogram: no matching requests", 15);
   } else {
     @format=(33,9,'%',8,'%',4,'kbs');
-    outtitle("Distribution Histogram", 16);
+    outtitle("Distribution Histogram", 15);
     outstart();
     outheader('object-size (bytes)', ' request', 'hit-%', '  Byte', 'hit-%',
 	      'sec', ' kB/sec');
@@ -2483,10 +2536,10 @@ if ($opt_D) {
 
 if ($opt_P) {
   if ($tcp == 0) {
-    outtitle("Performance in $opt_P minute steps: no matching requests", 15);
+    outtitle("Performance in $opt_P minute steps: no matching requests", 16);
   } else {
     @format=(15,9,5,'kbs','kbs','kbs','kbs','kbs','kbs');
-    outtitle("Performance in $opt_P minute steps", 15);
+    outtitle("Performance in $opt_P minute steps", 16);
     outstart();
     outheader('', '', '', 'incomin', '   hit', '  miss', ' direct', 'sibling',
 	      ' fetch');
@@ -2537,7 +2590,7 @@ close(CACHE);
 if ($opt_w) {
   print('  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.44 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002
+   $Revision: 2.45 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
