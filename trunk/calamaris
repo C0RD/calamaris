@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.52 2002-08-28 16:58:22 cord Exp $
+# $Id: calamaris,v 2.53 2002-11-23 17:35:11 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
@@ -76,6 +76,7 @@
 #	Michael R. Schwarzbach (spg@fs.tum.de)
 #	Radu - Eosif Mihailescu (rmihailescu@lumina.ro)
 #	Michael Pophal (michael.pophal@siemens.com)
+#	Steffen Sledz (sledz@zone42.org)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -105,13 +106,13 @@
 # If you have to remove this, read the README!
 require 5.002;
 use vars qw($opt_3 $opt_a $opt_b $opt_c $opt_C $opt_d $opt_D $opt_f $opt_h
-	    $opt_H $opt_i $opt_l $opt_L $opt_m $opt_n $opt_N $opt_o $opt_O
-	    $opt_p $opt_P $opt_r $opt_R $opt_s $opt_S $opt_t $opt_T $opt_u
-	    $opt_U $opt_v $opt_V $opt_w $opt_W $opt_z);
+	    $opt_H $opt_i $opt_I $opt_l $opt_L $opt_m $opt_n $opt_N $opt_o
+	    $opt_O $opt_p $opt_P $opt_r $opt_R $opt_s $opt_S $opt_t $opt_T
+	    $opt_u $opt_U $opt_v $opt_V $opt_w $opt_W $opt_z);
 use Getopt::Std;
 use Sys::Hostname;
 
-getopts('3ab:cCd:D:f:hH:i:l:LmnN:o:Op:P:r:R:sS:t:T:uU:vVwWz');
+getopts('3ab:cCd:D:f:hH:i:I:l:LmnN:o:Op:P:r:R:sS:t:T:uU:vVwWz');
 
 if ( $opt_b and $opt_b < 1 ) {
   print STDERR "$0: wrong value at -b -option: \"$opt_b\"\n\n";
@@ -155,6 +156,27 @@ if ($opt_N) {
     } else {
       print STDERR "$0: wrong value at -N -option: \"$opt_N\"\n\n";
     }
+    $usage_err = 1;
+  }
+}
+
+if ($opt_I) {
+  use Time::Local;
+  ($interval_begin, $interval_end) = split('-', $opt_I);
+  if ($interval_begin =~ m#^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$#) {
+    $interval_begin = timegm( $6, $5, $4, $3, $2 - 1, $1 - 1900 );
+  } elsif ( $interval_begin eq '' ) {
+    $interval_begin = 0;
+  } else {
+    print STDERR "$0: wrong value at -I -option: \"$opt_I\"\n\n";
+    $usage_err = 1;
+  }
+  if ($interval_end =~ m#^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$#) {
+    $interval_end = timegm( $6, $5, $4, $3, $2 - 1, $1 - 1900 );
+  } elsif ( $interval_end eq '' ) {
+    $interval_end = 9999999999;
+  } else {
+    print STDERR "$0: wrong value at -I -option: \"$opt_I\"\n\n";
     $usage_err = 1;
   }
 }
@@ -208,7 +230,7 @@ if ( $opt_N == -1 or $opt_N > 2 ) {
 	    'Distribution Histogram', "Performance in $P minute steps"
 	    );
 
-$VERSION='Calamaris $Revision: 2.52 $';
+$VERSION='Calamaris $Revision: 2.53 $';
 
 $COPYRIGHT = 'Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
@@ -238,15 +260,14 @@ Reports:
 		choose 2, 10 or 100 for useful output. (You can also play
 		with this ;-))
 
-Input Format:
+Input:
+-z	zero	(no input via stdin)
 -f type	format	(sets the type of input logfiles)
 		auto = tries to guess the input format
 		(This is the Default)
 		squid = Native-Logfile derived from Squid V1.1.beta26-V2.x
 		squid-mime = Native-Logfile with log_mime_hdrs enabled derived
 			from Squid V1.1.beta26-V2.x (*)
-		squid-smartfilter = Native-Logfile from Squid with
-			Smartfilter-Patch
 		squid-old = Native-Logfile derived from Squid
 			V1.1.alpha1-V1.1.beta25
 		nc = Squid-style Logfiles derived from NetCache V?? (<5.x)
@@ -255,16 +276,22 @@ Input Format:
 			Internet Caching System, NetCache 5.x)
 		nse = Netscape Extended-1/2 Logfile Format
 
-Output Format: (Default is plain text)
--m	mail	(mail format)
--w	web	(HTML format, can be combined with -m)
--W	Web	(HTML format without HTML-headers)
--l string logo	(add this string to the head of the report. works only in
-		 combination with -w)
--U string Unit  (define the Unit for the Byte-values, else it will be auto)
-		K(ilo), M(ega), G(iga), T(era)
--S list Show    (Shows only the defined reports (comma-seperated list) in the
-		 specified order.) The following numbers are defined:
+Output: (Default is plain text)
+-m	mail	  (mail format)
+-w	web	  (HTML format, can be combined with -m)
+-W	Web	  (HTML format without HTML-headers)
+-l string logo	  (add this string to the head of the report. works only in
+		   combination with -w)
+-H name Host-name (a name for the Output, -H \'lookup\' issues a lookup for
+		   the current host)
+-O	Order	  (changes the sort order in the reports to request size,
+		   default is sorting by number of requests)
+-N n	N-level   (change all 2nd-level-reports to N-level-reports. N can be
+		   any number from 2 up. -1 means full report.)
+-U string Unit    (define the Unit for the Byte-values, else it will be auto)
+		   K(ilo), M(ega), G(iga), T(era)
+-S list Show      (Shows only the defined reports (comma-seperated list) in the
+		   specified order.) The following numbers are defined:
 ';
 foreach ( 0 .. $#reports ) {
   $USAGE .= "\t\t$_\t$reports[$_]\n";
@@ -275,24 +302,19 @@ $USAGE .= '		(Note: only putting out one report does not speed up Calamaris
 		 report-switches. Default: Reports are displayed based on
 		 activated reports.)
 
-
 Caching:
 -i file	input-file (input-datafile for caching, to add many files separate
 		    them with a \':\')
 -o file	output-file (output-datafile for caching, can be the same as -i)
 
 Misc:
--H name Host-name (a name for the Output, -H \'lookup\' issues a lookup for
-		   the current host)
 -n	no-lookup (don\'t look IP-Numbers up)
--O	Order	(changes the sort order in the reports to request size,
-		 default is sorting by number of requests)
--N n	N-level (change all 2nd-level-reports to N-level-reports. N can be
-		 any number from 2 up. -1 means full report.)
 -T n	Time	(adjust the Performance-Report in minutes)
 -c	case	(switch to case-insensitive (useful for extensions-report))
 -u	user	(use ident information if available) (*)
--z	zero	(no input via stdin)
+-I t-t  Interval (defines which time-interval should be parsed)
+		  t has to be the format yyyymmddhhmmss
+		  omitting the beginning or ending is allowed.
 
 -b n	benchmark (prints a hash-sign (#) to stderr for each n lines
 		   processed)
@@ -326,12 +348,12 @@ $counter = $hier = $hier_direct = $hier_direct_size = $hier_direct_time =
   $peak_all_sec_time = $peak_all_hour = $peak_all_hour_time = $peak_tcp_min =
   $peak_tcp_min_time = $peak_tcp_sec = $peak_tcp_sec_time = $peak_tcp_hour =
   $peak_tcp_hour_time = $peak_udp_min = $peak_udp_min_time = $peak_udp_sec =
-  $peak_udp_sec_time = $peak_udp_hour = $peak_udp_hour_time = $size = $tcp =
-  $tcp_hit = $tcp_hit_size = $tcp_hit_time = $tcp_miss = $tcp_miss_none =
-  $tcp_miss_none_size = $tcp_miss_none_time = $tcp_miss_size =
-  $tcp_miss_time = $tcp_size = $tcp_time = $time = $time_end = $time_run =
-  $udp = $udp_hit = $udp_hit_size = $udp_hit_time = $udp_miss =
-  $udp_miss_size = $udp_miss_time = $udp_size = $udp_time = 0;
+  $peak_udp_sec_time = $peak_udp_hour = $peak_udp_hour_time = $size =
+  $skipped = $tcp = $tcp_hit = $tcp_hit_size = $tcp_hit_time = $tcp_miss =
+  $tcp_miss_none = $tcp_miss_none_size = $tcp_miss_none_time =
+  $tcp_miss_size = $tcp_miss_time = $tcp_size = $tcp_time = $time =
+  $time_end = $time_run = $udp = $udp_hit = $udp_hit_size = $udp_hit_time =
+  $udp_miss = $udp_miss_size = $udp_miss_time = $udp_size = $udp_time = 0;
 $time_begin = 9999999999;
 @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
 
@@ -1165,7 +1187,14 @@ Thank You.\n\n";
   $loop .= '
     $invalid++;
     next;
-  }
+  }';
+  $loop .= '
+    if (($log_date < $interval_begin) or ($log_date > $interval_end)) {
+      $skipped++;
+      next;
+    }
+  ';
+  $loop .= '
   $log_reqtime = .1 if $log_reqtime == 0;
   ( $log_hitfail, $log_code ) = split \'/\', $log_status;
   $log_size = .0000000001 if ( $log_size eq \'-\' or $log_size == 0 );
@@ -1808,7 +1837,7 @@ if ( $opt_w or $opt_W ) {
 <html>
  <head>
   <title>${host_name}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.52 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.53 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
@@ -1897,10 +1926,21 @@ if ( $cache_warn1 or $cache_warn2 or $cache_warn3 ) {
   outline( 'E', 'the workarounds are scheduled to be removed in 08/2003' );
 }
 
+if ( $opt_I and $opt_i ) {
+  @format = (60);
+  outstart('E');
+  outline( 'E', '' );
+  outline( 'E', 'You have run Calamaris with the -I (Interval) and the -i' );
+  outline( 'E', '(input cache) option. This is normally not useful,' );
+  outline( 'E', 'because the time-interval cannot be applied to' );
+  outline( 'E', 'cache-files.' );
+}
+
 @format = ( 19, 8 );
 outstart(0);
 outline( 0, 'lines parsed:', $counter );
 outline( 0, 'invalid lines:', $invalid );
+outline( 0, 'skipped lines:', $skipped ) if $opt_I;
 outline( 0, 'unique hosts/users:', scalar keys %tcp_requester ) if $opt_r;
 outline( 0, 'parse time (sec):', $time_run );
 outstop(0);
@@ -3036,7 +3076,7 @@ if ($opt_S) {
     print $out_body{$index};
   }
 } else {
-  foreach ( 'E', 0 .. 16 ) {
+  foreach ( 'E', 0 .. $#reports ) {
     print $out_body{$_} if defined( $out_body{$_} );
   }
 }
@@ -3044,7 +3084,7 @@ if ($opt_S) {
 if ( $opt_w or $opt_W ) {
   print '  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.52 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002
+   $Revision: 2.53 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
