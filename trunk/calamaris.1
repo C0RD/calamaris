@@ -1,4 +1,4 @@
-.TH CALAMARIS 1 "$Date: 2002-01-25 21:25:11 $" Handmade "Calamaris Manual"
+.TH CALAMARIS 1 "$Date: 2002-05-17 20:49:10 $" Handmade "Calamaris Manual"
 
 .SH NAME
 calamaris \- generate statistic out of log files from Proxy-Cache-Servers
@@ -125,7 +125,7 @@ PRIVACY-Section below)
 
 .I 'squid-smartfilter'
 .B Calamaris
-expects logfile derived from 
+expects logfile derived from
 .B Squid
 with
 .B Smartfilter-Patch.
@@ -160,7 +160,7 @@ or
 .I 'nse'
 .B Calamaris
 expects Logfiles in Netscape Extended-1 or Netscape Extended-2
-Logfile Format (from 
+Logfile Format (from
 .B Netscape/ipoint Proxy-Server
 )
 
@@ -194,6 +194,69 @@ works only in combination with
 Unit: You can define this to K(ilo), M(ega), G(iga) or T(era) for
 the Byte-units.
 
+.TP
+.I -S n[,n[,n[,...]]]
+Show: Shows only the defined reports in the specified order. Default is to
+display the reports as they are defined through the report-switches above. The
+following numbers are defined:
+
+.RS
+0  Summary
+.RE
+.RS
+1  Incoming request peak per protocol
+.RE
+.RS
+2  Incoming transfer volume per protocol
+.RE
+.RS
+3  Incoming requests by method
+.RE
+.RS
+4  Incoming UDP-requests by status
+.RE
+.RS
+5  Incoming TCP-requests by status
+.RE
+.RS
+6  Outgoing requests by status
+.RE
+.RS
+7  Outgoing requests by destination
+.RE
+.RS
+8  Request-destinations by 2ndlevel-domain
+.RE
+.RS
+9  Request-destinations by toplevel-domain
+.RE
+.RS
+10 TCP-Request-protocol
+.RE
+.RS
+11 Requested content-type
+.RE
+.RS
+12 Requested extensions
+.RE
+.RS
+13 Incoming UDP-requests by host
+.RE
+.RS
+14 Incoming TCP-requests by host
+.RE
+.RS
+15 Distribution Histogram
+.RE
+.RS
+16 Performance in  minute steps
+
+.B Note:
+Using this doesn't make
+.B Calamaris
+any faster, the internal calculations will
+be done as the report-switches were set (see above).
+
 .SS Caching
 
 .TP
@@ -207,7 +270,7 @@ if you use more than one cache file, make sure they are chronologicaly
 ordered (oldest first).
 
 .B Note:
-if you reuse cache-files, which were not created with 
+if you reuse cache-files, which were not created with
 .I -d -1 -r -1 -t -1 -R -1
 the number of 'others' is likely wrong everywhere.
 
@@ -245,6 +308,11 @@ order: Changes the sort order in the reports to request size, default is
 sorting by number of requests.
 
 .TP
+.I -3
+3rd-level: All DNS-Related reports will be switched from 2nd-level to
+3rd-level-reports.
+
+.TP
 .I -T n
 Time: Adjust the Performancereport in minutes for non GMT-Timezoners.
 
@@ -278,7 +346,7 @@ lines.
 .TP
 .I -v
 verbose: print more information about what is Calamaris is doing
-and believing. 
+and believing.
 
 .TP
 .I -L
@@ -372,9 +440,9 @@ Cord Beermann.
 
 .SH VERSION
 
-Version of this manpage: $Id: calamaris.1,v 1.20 2002-01-25 21:25:11 cord Exp $
+Version of this manpage: $Id: calamaris.1,v 1.21 2002-05-17 20:49:10 cord Exp $
 
-It describes the usage of Calamaris V2.45 and later.
+It describes the usage of Calamaris V2.46 and later.
 
 Information about new releases, mailing lists, and other related issues
 can be found from the
