@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.99 1997-12-28 21:51:42 cord Exp $
+# $Id: calamaris.pl,v 1.99.1.1 1997-12-29 20:53:02 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - get statistic out of the Squid Native Log.
 #
@@ -98,22 +98,22 @@
 # this is also a disadvantage because of the many checks if set or not ...
 
 
-use vars qw($opt_a $opt_b $opt_c $opt_d $opt_f $opt_h $opt_m $opt_n $opt_p
-	    $opt_r $opt_s $opt_t $opt_u $opt_w $opt_z);
+use vars qw($opt_a $opt_b $opt_c $opt_d $opt_h $opt_i $opt_m $opt_n $opt_o
+	    $opt_p $opt_r $opt_s $opt_t $opt_u $opt_w $opt_z);
 
 use Getopt::Std;
 use Sys::Hostname;
 
-getopts('ab:cd:f:hmnprs:t:uwz');
+getopts('ab:cd:hi:mno:pr:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.99 $, Copyright (C) 1997 Cord Beermann
+$COPYRIGHT='calamaris $Revision: 1.99.1.1 $, Copyright (C) 1997 Cord Beermann
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
 
 ';
 
-$USAGE='Usage: cat access.log | ' . $0 . ' [-achmnpsuwz] [-bdtr[n]] [-f name]
+$USAGE='Usage: cat access.log | ' . $0 . ' [-achmnpsuwz] [-bdrt[n]] [-io file]
 
 Reports:
 -a	    all  (extracts all reports available)
@@ -128,8 +128,10 @@ Output Format: (Default is plain text)
 -w	    web   (HTML format)
 
 Misc:
+-i file	    input-file (input-datafile for caching)
+-o file	    output-file (output-datafile for caching, could be the same as -i)
+
 -b n	    benchmark (prints a hash for each n lines)
--f name	    file (datafile for caching)
 -n	    nolookup (don\'t look IP-Numbers up)
 -u	    user (use ident information if available)
 -z	    zero (no input via stdin)
@@ -161,459 +163,455 @@ $c = $h = $h_d = $h_d_sz = $h_d_tm = $h_p = $h_p_sz = $h_p_tm = $h_s = $h_s_sz
     = $u_m_sz = $u_m_tm = $u_sz = $u_tm = 0;
 $tm_b = 9999999999;
 
-if ($opt_f) {
-    if (-w $opt_f) {
-	open(CACHE, "$opt_f") or
-	    die("$0: can't open $opt_f for reading: $!\n");
-	while (<CACHE>) {
-	    chomp;
-	    @c = split('µ');
-	    $x = shift(@c);
-	    if ($x eq A) {
-		($tm_b, $tm_e, $c, $sz, $tm, $i, $tm_r, $u, $u_sz, $u_tm,
-		 $u_h, $u_h_sz, $u_h_tm, $u_m, $u_m_sz, $u_m_tm, $t, $t_sz,
-		 $t_tm, $t_h, $t_h_sz, $t_h_tm, $t_m, $t_m_sz, $t_m_tm,
-		 $t_m_nn, $t_m_nn_sz, $t_m_nn_tm, $h, $h_sz, $h_tm, $h_d,
-		 $h_d_sz, $h_d_tm, $h_s, $h_s_sz, $h_s_tm, $h_p, $h_p_sz,
-		 $h_p_tm) = @c;
-	    } elsif ($x eq B) {
-		($p_u_s, $p_u_s_tm, $p_u_m, $p_u_m_tm, $p_u_h, $p_u_h_tm,
-		 $p_t_s, $p_t_s_tm, $p_t_m, $p_t_m_tm, $p_t_h, $p_t_h_tm,
-		 $p_a_s, $p_a_s_tm, $p_a_m, $p_a_m_tm, $p_a_h, $p_a_h_tm) =
-		 @c;
-	    } elsif ($x eq C) {
-		$y = shift(@c);
-		($m{$y}, $m_sz{$y}, $m_tm{$y}) = @c;
-	    } elsif ($x eq D) {
-		$y = shift(@c);
-		($u_h{$y}, $u_h_sz{$y}, $u_h_tm{$y}) = @c;
-	    } elsif ($x eq E) {
-		$y = shift(@c);
-		($u_m{$y}, $u_m_sz{$y}, $u_m_tm{$y}) = @c;
-	    } elsif ($x eq F) {
-		$y = shift(@c);
-		($t_h{$y}, $t_h_sz{$y}, $t_h_tm{$y}) = @c;
-	    } elsif ($x eq G) {
-		$y = shift(@c);
-		($t_m{$y}, $t_m_sz{$y}, $t_m_tm{$y}) = @c;
-	    } elsif ($x eq H) {
-		$y = shift(@c);
-		($t_m_nn{$y}, $t_m_nn_sz{$y}, $t_m_nn_tm{$y}) = @c;
-	    } elsif ($x eq I) {
-		$y = shift(@c);
-		($h_d{$y}, $h_d_sz{$y}, $h_d_tm{$y}) = @c;
-	    } elsif ($x eq J) {
-		$y = shift(@c);
-		($h_s{$y}, $h_s_sz{$y}, $h_s_tm{$y}) = @c;
-	    } elsif ($x eq K) {
-		$y = shift(@c);
-		($h_p{$y}, $h_p_sz{$y}, $h_p_tm{$y}) = @c;
-	    } elsif ($x eq L) {
-		$y = shift(@c);
-		($h_n{$y}, $h_n_sz{$y}, $h_n_tm{$y}) = @c;
-	    } elsif ($x eq M) {
-		$y = shift(@c);
-		$z = shift(@c);
-		($h_n_st{$y}{$z}, $h_n_st_sz{$y}{$z}, $h_n_st_tm{$y}{$z}) =
-		 @c;
-	    } elsif ($x eq N) {
-		$y = shift(@c);
-		($t_u{$y}, $t_u_sz{$y}, $t_h_u{$y}) = @c;
-	    } elsif ($x eq O) {
-		$y = shift(@c);
-		($t_ut{$y}, $t_ut_sz{$y}, $t_h_ut{$y}) = @c;
-	    } elsif ($x eq P) {
-		$y = shift(@c);
-		($t_up{$y}, $t_up_sz{$y}, $t_h_up{$y}) = @c;
-	    } elsif ($x eq Q) {
-		$y = shift(@c);
-		($t_ct{$y}, $t_ct_sz{$y}, $t_h_ct{$y}) = @c;
-	    } elsif ($x eq R) {
-		$y = shift(@c);
-		($t_ue{$y}, $t_ue_sz{$y}, $t_h_ue{$y}) = @c;
-	    } elsif ($x eq S) {
-		$y = shift(@c);
-		($u_r{$y}, $u_r_sz{$y}, $u_r_tm{$y}, $u_h_r{$y},
-		 $u_h_r_sz{$y}) = @c;
-	    } elsif ($x eq T) {
-		$y = shift(@c);
-		($t_r{$y}, $t_r_sz{$y}, $t_r_tm{$y}, $t_h_r{$y},
-		 $t_h_r_sz{$y}) = @c;
-	    } else {
-		warn("unknown cache-line: \"@c\"\n");
-	    }
+if ($opt_i and -r $opt_i) {
+    open(CACHE, "$opt_i") or die("$0: can't open $opt_i for reading: $!\n");
+    while (<CACHE>) {
+	chomp;
+	@c = split('µ');
+	$x = shift(@c);
+	unless ($x) {
+	    next;
+	} elsif ($x eq A and $#c = 40) {
+	    ($tm_b, $tm_e, $c, $sz, $tm, $i, $tm_r, $u, $u_sz, $u_tm, $u_h,
+	     $u_h_sz, $u_h_tm, $u_m, $u_m_sz, $u_m_tm, $t, $t_sz, $t_tm, $t_h,
+	     $t_h_sz, $t_h_tm, $t_m, $t_m_sz, $t_m_tm, $t_m_nn, $t_m_nn_sz,
+	     $t_m_nn_tm, $h, $h_sz, $h_tm, $h_d, $h_d_sz, $h_d_tm, $h_s,
+	     $h_s_sz, $h_s_tm, $h_p, $h_p_sz, $h_p_tm) = @c;
+	} elsif ($x eq B and $#c = 18) {
+	    ($p_u_s, $p_u_s_tm, $p_u_m, $p_u_m_tm, $p_u_h, $p_u_h_tm, $p_t_s,
+	     $p_t_s_tm, $p_t_m, $p_t_m_tm, $p_t_h, $p_t_h_tm, $p_a_s,
+	     $p_a_s_tm, $p_a_m, $p_a_m_tm, $p_a_h, $p_a_h_tm) = @c;
+	} elsif ($x eq C and $#c = 4) {
+	    $y = shift(@c);
+	    ($m{$y}, $m_sz{$y}, $m_tm{$y}) = @c;
+	} elsif ($x eq D and $#c = 4) {
+	    $y = shift(@c);
+	    ($u_h{$y}, $u_h_sz{$y}, $u_h_tm{$y}) = @c;
+	} elsif ($x eq E and $#c = 4) {
+	    $y = shift(@c);
+	    ($u_m{$y}, $u_m_sz{$y}, $u_m_tm{$y}) = @c;
+	} elsif ($x eq F and $#c = 4) {
+	    $y = shift(@c);
+	    ($t_h{$y}, $t_h_sz{$y}, $t_h_tm{$y}) = @c;
+	} elsif ($x eq G and $#c = 4) {
+	    $y = shift(@c);
+	    ($t_m{$y}, $t_m_sz{$y}, $t_m_tm{$y}) = @c;
+	} elsif ($x eq H and $#c = 4) {
+	    $y = shift(@c);
+	    ($t_m_nn{$y}, $t_m_nn_sz{$y}, $t_m_nn_tm{$y}) = @c;
+	} elsif ($x eq I and $#c = 4) {
+	    $y = shift(@c);
+	    ($h_d{$y}, $h_d_sz{$y}, $h_d_tm{$y}) = @c;
+	} elsif ($x eq J and $#c = 4) {
+	    $y = shift(@c);
+	    ($h_s{$y}, $h_s_sz{$y}, $h_s_tm{$y}) = @c;
+	} elsif ($x eq K and $#c = 4) {
+	    $y = shift(@c);
+	    ($h_p{$y}, $h_p_sz{$y}, $h_p_tm{$y}) = @c;
+	} elsif ($x eq L and $#c = 4) {
+	    $y = shift(@c);
+	    ($h_n{$y}, $h_n_sz{$y}, $h_n_tm{$y}) = @c;
+	} elsif ($x eq M and $#c = 5) {
+	    $y = shift(@c);
+	    $z = shift(@c);
+	    ($h_n_st{$y}{$z}, $h_n_st_sz{$y}{$z}, $h_n_st_tm{$y}{$z}) = @c;
+	} elsif ($x eq N and $#c = 4) {
+	    $y = shift(@c);
+	    ($t_u{$y}, $t_u_sz{$y}, $t_h_u{$y}) = @c;
+	} elsif ($x eq O and $#c = 4) {
+	    $y = shift(@c);
+	    ($t_ut{$y}, $t_ut_sz{$y}, $t_h_ut{$y}) = @c;
+	} elsif ($x eq P and $#c = 4) {
+	    $y = shift(@c);
+	    ($t_up{$y}, $t_up_sz{$y}, $t_h_up{$y}) = @c;
+	} elsif ($x eq Q and $#c = 4) {
+	    $y = shift(@c);
+	    ($t_ct{$y}, $t_ct_sz{$y}, $t_h_ct{$y}) = @c;
+	} elsif ($x eq R and $#c = 4) {
+	    $y = shift(@c);
+	    ($t_ue{$y}, $t_ue_sz{$y}, $t_h_ue{$y}) = @c;
+	} elsif ($x eq S and $#c = 6) {
+	    $y = shift(@c);
+	    ($u_r{$y}, $u_r_sz{$y}, $u_r_tm{$y}, $u_h_r{$y}, $u_h_r_sz{$y}) =
+		@c;
+	} elsif ($x eq T and $#c = 6) {
+	    $y = shift(@c);
+	    ($t_r{$y}, $t_r_sz{$y}, $t_r_tm{$y}, $t_h_r{$y}, $t_h_r_sz{$y}) =
+		@c;
+	} else {
+	    warn("can't parse cache-line: \"@c\"\n");
 	}
-    } else {
-	open(CACHE, ">$opt_f") or
-	    die("$0: can't open $opt_f for writing: $!\n");
     }
     close(CACHE);
 }
 
-goto OUTPUT if ($opt_z);
-
-print("print a hash for each $opt_b lines:\n") if ($opt_b);
-
-$tm_r = time - $tm_r;
-
-while (<>) {
-    ($l_d, $l_tm, $l_r, $l_st, $l_sz, $l_m, $l_u, $l_i, $l_h, $l_c, $foo) =
-     split;
-    if (not defined $foo or not defined $l_c or $foo ne '' or $l_c eq '' ) {
-	chomp; warn ('invalid line: "' . $_ . "\"\n"); $i++; next;
-    }
-    $l_tm = .1 if $l_tm == 0;
-    $rhost = getfqdn($l_r);
-    $l_hf = (split(m#/#o,$l_st))[0];
-    $l_sz = .0000000001 if $l_sz == 0;
-    @u = split(m#[/\\]#o,$l_u);
-    ($up, $uh, $ue) = (@u)[0,2,$#u];
-    $ue = '.<none>' if $#u <= 2;
-    $ue = '.<dynamic>' if $ue =~ m#[\?\;\&\$\,\!\@\=\|]#o;
-    unless (defined $uh) {
-	$uh = $up;
-	$up = '<none>';
-    }
-    $uh =~ s#^.*@##o;
-    $uh =~ s#[:\?].*$##o;
-    @ue = split(m#\.#o,$ue);
-    $ue = (@ue)[$#ue];
-    $ue = '<none>' if $#ue <= 0;
-    if ($uh =~ /^(([0-9][0-9]{0,2}\.){3})[0-9][0-9]{0,2}$/o) {
-	$uh = $1 . '*';
-	$ut = '<unresolved>';
-    } elsif ($uh =~ /^(.*\.([^\.]+\.)?)?([^\.]+\.([^\.]+))\.?$/o) {
-	@list = split(/\./o, $uh);
-	$ut = $uh = '.' . pop @list;
-	$uh = '.' . pop(@list) . $uh;
-
-	if ($ut =~
-	    /\.(ar|au|br|co|hk|id|il|jp|kr|mx|nz|pe|pl|sg|th|tr|tw|uk|us|yu|za)$/o
-	    and $#list >= 0) {
-	    $uh = '*.' . pop(@list) . $uh;
+unless ($opt_z) {
+    print("print a hash for each $opt_b lines:\n") if ($opt_b);
+    $tm_r = time - $tm_r;
+    while (<>) {
+	($l_d, $l_tm, $l_r, $l_st, $l_sz, $l_m, $l_u, $l_i, $l_h, $l_c, $foo)
+	    = split;
+	if (not defined $foo or not defined $l_c or $foo ne '' or $l_c eq '' )
+	{
+	    chomp;
+	    warn ('invalid line: "' . $_ . "\"\n");
+	    $i++;
+	    next;
+	}
+	$l_tm = .1 if $l_tm == 0;
+	$rh = getfqdn($l_r);
+	$l_hf = (split(m#/#o,$l_st))[0];
+	$l_sz = .0000000001 if $l_sz == 0;
+	@u = split(m#[/\\]#o,$l_u);
+	($up, $uh, $ue) = (@u)[0,2,$#u];
+	$ue = '.<none>' if $#u <= 2;
+	$ue = '.<dynamic>' if $ue =~ m#[\?\;\&\$\,\!\@\=\|]#o;
+	unless (defined $uh) {
+	    $uh = $up;
+	    $up = '<none>';
+	}
+	$uh =~ s#^.*@##o;
+	$uh =~ s#[:\?].*$##o;
+	@ue = split(m#\.#o,$ue);
+	$ue = (@ue)[$#ue];
+	$ue = '<none>' if $#ue <= 0;
+	if ($uh =~ /^(([0-9][0-9]{0,2}\.){3})[0-9][0-9]{0,2}$/o) {
+	    $uh = $1 . '*';
+	    $ut = '<unresolved>';
+	} elsif ($uh =~ /^(.*\.([^\.]+\.)?)?([^\.]+\.([^\.]+))\.?$/o) {
+	    @list = split(/\./o, $uh);
+	    $ut = $uh = '.' . pop @list;
+	    $uh = '.' . pop(@list) . $uh;
+	    if ($ut =~
+		/\.(ar|au|br|co|hk|id|il|jp|kr|mx|nz|pe|pl|sg|th|tr|tw|uk|us|yu|za)$/o
+		and $#list >= 0) {
+		$uh = '*.' . pop(@list) . $uh;
+	    } else {
+		$uh = '*' . $uh;
+	    }
+	    $ut = '*' . $ut;
+	} elsif ($uh =~ /([!a-z0-9\.\-]|\.\.)/o) {
+	    $uh = $ut = $ue = '<error>';
 	} else {
-	    $uh = '*' . $uh;
+	    $ut = $uh;
 	}
-	$ut = '*' . $ut;
-    } elsif ($uh =~ /([!a-z0-9\.\-]|\.\.)/o) {
-	$uh = $ut = $ue = '<error>';
-    } else {
-	$ut = $uh;
-    }
-    if ($opt_u) {
-	$r = $l_i . '@' . $rhost;
-    } else {
-	$r = $rhost;
-    }
-    ($l_h_m, $l_h_h) = (split(m#/#o, $l_h))[0,1];
-    $l_c = '<unknown>' if $l_c eq '-';
-    $l_c =~ tr/A-Z/a-z/;
-    print('#') if ($opt_b and ($c / $opt_b) eq int($c / $opt_b));
-    $c++;
-    $sz += $l_sz;
-    $tm += $l_tm;
-    $m{$l_m} = $m_sz{$l_m} = $m_tm{$l_m} = 0 unless defined $m{$l_m};
-    $m{$l_m}++;
-    $m_sz{$l_m} += $l_sz;
-    $m_tm{$l_m} += $l_tm;
-    $tm_b = $l_d if not defined $tm_b or $l_d < $tm_b;
-    $tm_e = $l_d if not defined $tm_e or $l_d > $tm_e;
-    if ($opt_p or $opt_a) {
-	$p_a_s_pntr++;
-	$p_a_m_pntr++;
-	unshift(@p_a,$l_d);
-	$p_a_s_pntr-- while $p_a[$p_a_s_pntr - 1] < ($l_d - 1);
-	$p_a_m_pntr-- while $p_a[$p_a_m_pntr - 1] < ($l_d - 60);
-	pop(@p_a) while $p_a[$#p_a] < ($l_d - 3600);
-	if ($p_a_h < @p_a) {
-	    $p_a_h = @p_a;
-	    $p_a_h_tm = $l_d - 3600;
+	if ($opt_u) {
+	    $r = $l_i . '@' . $rh;
+	} else {
+	    $r = $rh;
 	}
-	if ($p_a_m < $p_a_m_pntr) {
-	    $p_a_m = $p_a_m_pntr;
-	    $p_a_m_tm = $l_d - 60;
-	}
-	if ($p_a_s < $p_a_s_pntr) {
-	    $p_a_s = $p_a_s_pntr;
-	    $p_a_s_tm = $l_d - 1;
-	}
-    }
-    if ($l_m eq 'ICP_QUERY') {
-	$u++;
-        $u_sz += $l_sz;
-	$u_tm += $l_tm;
-	if ($opt_r or $opt_a) {
-	    $u_r{$r} = $u_r_sz{$r} = $u_r_tm{$r} = $u_h_r{$r} = $u_h_r_sz{$r}
-		= 0 unless defined $u_r{$r};
-	    $u_r{$r}++;
-	    $u_r_sz{$r} += $l_sz;
-	    $u_r_tm{$r} += $l_tm;
-	}
+	($l_h_m, $l_h_h) = (split(m#/#o, $l_h))[0,1];
+	$l_c = '<unknown>' if $l_c eq '-';
+	$l_c =~ tr/A-Z/a-z/;
+	print('#') if ($opt_b and ($c / $opt_b) eq int($c / $opt_b));
+	$c++;
+	$sz += $l_sz;
+	$tm += $l_tm;
+	$m{$l_m} = $m_sz{$l_m} = $m_tm{$l_m} = 0 unless defined $m{$l_m};
+	$m{$l_m}++;
+	$m_sz{$l_m} += $l_sz;
+	$m_tm{$l_m} += $l_tm;
+	$tm_b = $l_d if not defined $tm_b or $l_d < $tm_b;
+	$tm_e = $l_d if not defined $tm_e or $l_d > $tm_e;
 	if ($opt_p or $opt_a) {
-	    $p_u_s_pntr++;
-	    $p_u_m_pntr++;
-	    unshift(@p_u,$l_d);
-	    $p_u_s_pntr-- while $p_u[$p_u_s_pntr - 1] < ($l_d - 1);
-	    $p_u_m_pntr-- while $p_u[$p_u_m_pntr - 1] < ($l_d - 60);
-	    pop @p_u while $p_u[$#p_u] < ($l_d - 3600);
-	    if ($p_u_h < @p_u) {
-		$p_u_h = @p_u;
-		$p_u_h_tm = $l_d - 3600;
+	    $p_a_s_pntr++;
+	    $p_a_m_pntr++;
+	    unshift(@p_a,$l_d);
+	    $p_a_s_pntr-- while $p_a[$p_a_s_pntr - 1] < ($l_d - 1);
+	    $p_a_m_pntr-- while $p_a[$p_a_m_pntr - 1] < ($l_d - 60);
+	    pop(@p_a) while $p_a[$#p_a] < ($l_d - 3600);
+	    if ($p_a_h < @p_a) {
+		$p_a_h = @p_a;
+		$p_a_h_tm = $l_d - 3600;
 	    }
-	    if ($p_u_m < $p_u_m_pntr) {
-		$p_u_m = $p_u_m_pntr;
-		$p_u_m_tm = $l_d - 60;
+	    if ($p_a_m < $p_a_m_pntr) {
+		$p_a_m = $p_a_m_pntr;
+		$p_a_m_tm = $l_d - 60;
 	    }
-	    if ($p_u_s < $p_u_s_pntr) {
-		$p_u_s = $p_u_s_pntr;
-		$p_u_s_tm = $l_d - 1;
+	    if ($p_a_s < $p_a_s_pntr) {
+		$p_a_s = $p_a_s_pntr;
+		$p_a_s_tm = $l_d - 1;
 	    }
 	}
-	if ($l_hf =~ /^UDP_HIT/o) {
-	    $u_h++;
-	    $u_h_sz += $l_sz;
-	    $u_h_tm += $l_tm;
+	if ($l_m eq 'ICP_QUERY') {
+	    $u++;
+	    $u_sz += $l_sz;
+	    $u_tm += $l_tm;
 	    if ($opt_r or $opt_a) {
-		$u_h_r{$r}++;
-		$u_h_r_sz{$r} += $l_sz;
+		$u_r{$r} = $u_r_sz{$r} = $u_r_tm{$r} = $u_h_r{$r} =
+		    $u_h_r_sz{$r} = 0 unless defined $u_r{$r};
+		$u_r{$r}++;
+		$u_r_sz{$r} += $l_sz;
+		$u_r_tm{$r} += $l_tm;
 	    }
-	    if ($opt_s or $opt_a) {
-		$u_h{$l_hf} = $u_h_sz{$l_hf} = $u_h_tm{$l_hf} = 0 unless
-		    defined $u_h{$l_hf};
-		$u_h{$l_hf}++;
-		$u_h_sz{$l_hf} += $l_sz;
-		$u_h_tm{$l_hf} += $l_tm;
+	    if ($opt_p or $opt_a) {
+		$p_u_s_pntr++;
+		$p_u_m_pntr++;
+		unshift(@p_u,$l_d);
+		$p_u_s_pntr-- while $p_u[$p_u_s_pntr - 1] < ($l_d - 1);
+		$p_u_m_pntr-- while $p_u[$p_u_m_pntr - 1] < ($l_d - 60);
+		pop @p_u while $p_u[$#p_u] < ($l_d - 3600);
+		if ($p_u_h < @p_u) {
+		    $p_u_h = @p_u;
+		    $p_u_h_tm = $l_d - 3600;
+		}
+		if ($p_u_m < $p_u_m_pntr) {
+		    $p_u_m = $p_u_m_pntr;
+		    $p_u_m_tm = $l_d - 60;
+		}
+		if ($p_u_s < $p_u_s_pntr) {
+		    $p_u_s = $p_u_s_pntr;
+		    $p_u_s_tm = $l_d - 1;
+		}
+	    }
+	    if ($l_hf =~ /^UDP_HIT/o) {
+		$u_h++;
+		$u_h_sz += $l_sz;
+		$u_h_tm += $l_tm;
+		if ($opt_r or $opt_a) {
+		    $u_h_r{$r}++;
+		    $u_h_r_sz{$r} += $l_sz;
+		}
+		if ($opt_s or $opt_a) {
+		    $u_h{$l_hf} = $u_h_sz{$l_hf} = $u_h_tm{$l_hf} = 0 unless
+			defined $u_h{$l_hf};
+		    $u_h{$l_hf}++;
+		    $u_h_sz{$l_hf} += $l_sz;
+		    $u_h_tm{$l_hf} += $l_tm;
+		}
+	    } else {
+		$u_m++;
+		$u_m_sz += $l_sz;
+		$u_m_tm += $l_tm;
+		if ($opt_s or $opt_a) {
+		    $u_m{$l_hf} = $u_m_sz{$l_hf} = $u_m_tm{$l_hf} = 0 unless
+			defined $u_m{$l_hf};
+		    $u_m{$l_hf}++;
+		    $u_m_sz{$l_hf} += $l_sz;
+		    $u_m_tm{$l_hf} += $l_tm;
+		}
 	    }
 	} else {
-            $u_m++;
-	    $u_m_sz += $l_sz;
-	    $u_m_tm += $l_tm;
-	    if ($opt_s or $opt_a) {
-		$u_m{$l_hf} = $u_m_sz{$l_hf} = $u_m_tm{$l_hf} = 0 unless
-		    defined $u_m{$l_hf};
-		$u_m{$l_hf}++;
-		$u_m_sz{$l_hf} += $l_sz;
-		$u_m_tm{$l_hf} += $l_tm;
-	    }
-	}
-    } else {
-	$t++;
-	$t_sz += $l_sz;
-	$t_tm += $l_tm;
-	if ($opt_r or $opt_a) {
-	    $t_r{$r} = $t_r_sz{$r} = $t_r_tm{$r} = $t_h_r{$r} = $t_h_r_sz{$r}
-		= 0 unless defined $t_r{$r};
-	    $t_r{$r}++;
-	    $t_r_sz{$r} += $l_sz;
-	    $t_r_tm{$r} += $l_tm;
-	}
-	if ($opt_d or $opt_a) {
-	    $t_u{$uh} = $t_u_sz{$uh} = $t_h_u{$uh} = 0 unless defined
-		$t_u{$uh};
-	    $t_u{$uh}++;
-	    $t_u_sz{$uh} += $l_sz;
-	    $t_ut{$ut} = $t_ut_sz{$ut} = $t_h_ut{$ut} = 0 unless defined
-		$t_ut{$ut};
-	    $t_ut{$ut}++;
-	    $t_ut_sz{$ut} += $l_sz;
-	}
-	if ($opt_t or $opt_a) {
-	    $t_up{$up} = $t_up_sz{$up} = $t_h_up{$up} = 0 unless defined
-		$t_up{$up};
-	    $t_up{$up}++;
-	    $t_up_sz{$up} += $l_sz;
-	}
-	if ($opt_p or $opt_a) {
-	    $p_t_s_pntr++;
-	    $p_t_m_pntr++;
-	    unshift(@p_t, $l_d);
-	    $p_t_s_pntr-- while $p_t[$p_t_s_pntr - 1] < ($l_d - 1);
-	    $p_t_m_pntr-- while $p_t[$p_t_m_pntr - 1] < ($l_d - 60);
-	    pop(@p_t) while $p_t[$#p_t] < ($l_d - 3600);
-	    if ($p_t_h < @p_t) {
-		$p_t_h = @p_t;
-		$p_t_h_tm = $l_d - 3600;
-	    }
-	    if ($p_t_m < $p_t_m_pntr) {
-		$p_t_m = $p_t_m_pntr;
-		$p_t_m_tm = $l_d - 60;
-	    }
-	    if ($p_t_s < $p_t_s_pntr) {
-		$p_t_s = $p_t_s_pntr;
-		$p_t_s_tm = $l_d - 1;
-	    }
-	}
-	if ($opt_t or $opt_a) {
-	    $t_ct{$l_c} = $t_ct_sz{$l_c} = $t_h_ct{$l_c} = 0 unless defined
-		$t_ct{$l_c};
-	    $t_ct{$l_c}++;
-	    $t_ct_sz{$l_c} += $l_sz;
-	    $t_ue{$ue} = $t_ue_sz{$ue} = $t_h_ue{$ue} = 0 unless defined
-		$t_ue{$ue};
-	    $t_ue{$ue}++;
-	    $t_ue_sz{$ue} += $l_sz;
-	}
-	if ($l_hf =~ /^TCP\w+HIT/o) {
-	    $t_h++;
-	    $t_h_sz += $l_sz;
-	    $t_h_tm += $l_tm;
-	    if ($opt_s or $opt_a) {
-		$t_h{$l_hf} = $t_h_sz{$l_hf} = $t_h_tm{$l_hf} = 0 unless
-		    defined $t_h{$l_hf};
-		$t_h{$l_hf}++;
-		$t_h_sz{$l_hf} += $l_sz;
-		$t_h_tm{$l_hf} += $l_tm;
-	    }
+	    $t++;
+	    $t_sz += $l_sz;
+	    $t_tm += $l_tm;
 	    if ($opt_r or $opt_a) {
-		$t_h_r{$r}++;
-		$t_h_r_sz{$r} += $l_sz;
+		$t_r{$r} = $t_r_sz{$r} = $t_r_tm{$r} = $t_h_r{$r} =
+		    $t_h_r_sz{$r} = 0 unless defined $t_r{$r};
+		$t_r{$r}++;
+		$t_r_sz{$r} += $l_sz;
+		$t_r_tm{$r} += $l_tm;
 	    }
 	    if ($opt_d or $opt_a) {
-		$t_h_u{$uh}++;
-		$t_h_ut{$ut}++;
+		$t_u{$uh} = $t_u_sz{$uh} = $t_h_u{$uh} = 0 unless defined
+		    $t_u{$uh};
+		$t_u{$uh}++;
+		$t_u_sz{$uh} += $l_sz;
+		$t_ut{$ut} = $t_ut_sz{$ut} = $t_h_ut{$ut} = 0 unless defined
+		    $t_ut{$ut};
+		$t_ut{$ut}++;
+		$t_ut_sz{$ut} += $l_sz;
 	    }
 	    if ($opt_t or $opt_a) {
-		$t_h_ct{$l_c}++;
-		$t_h_ue{$ue}++;
-		$t_h_up{$up}++;
+		$t_up{$up} = $t_up_sz{$up} = $t_h_up{$up} = 0 unless defined
+		    $t_up{$up};
+		$t_up{$up}++;
+		$t_up_sz{$up} += $l_sz;
 	    }
-	} elsif (($l_h_m eq 'NONE') or ($l_hf =~ /^ERR_/o)) {
-	    $t_m_nn++;
-	    $t_m_nn_sz += $l_sz;
-	    $t_m_nn_tm += $l_tm;
-	    if ($opt_s or $opt_a) {
-		$t_m_nn{$l_hf} = $t_m_nn_sz{$l_hf} = $t_m_nn_tm{$l_hf} = 0
-		    unless defined $t_m_nn{$l_hf};
-		$t_m_nn{$l_hf}++;
-		$t_m_nn_sz{$l_hf} += $l_sz;
-		$t_m_nn_tm{$l_hf} += $l_tm;
-	    }
-	} else {
-	    $t_m++;
-	    $t_m_sz += $l_sz;
-	    $t_m_tm += $l_tm;
-	    if ($opt_s or $opt_a) {
-		$t_m{$l_hf} = $t_m_sz{$l_hf} = $t_m_tm{$l_hf} = 0 unless
-		    defined $t_m{$l_hf};
-		$t_m{$l_hf}++;
-		$t_m_sz{$l_hf} += $l_sz;
-		$t_m_tm{$l_hf} += $l_tm;
-	    }
-	    if ($opt_r or $opt_a) {
-		$t_m_r{$r} = $t_m_r_sz{$r} = 0 unless defined $t_m_r{$r};
-		$t_m_r{$r}++;
-		$t_m_r_sz{$r} += $l_sz;
-	    }
-	    if ($l_h_m =~ /(DIRECT|SOURCE_FASTEST)/o) {
-		$t_m_d++;
-		$t_m_d_sz += $l_sz;
-		$t_m_d_tm += $l_tm;
-	    } elsif ($l_h_m =~ /(PARENT|SIBLING)\w+HIT/o) {
-		$t_m_n_h++;
-		$t_m_n_h_tm += $l_tm;
-		$t_m_n_h_sz += $l_sz;
-		$t_m_n_h{$l_h_h} = $t_m_n_h_sz{$l_h_h} = $t_m_n_h_tm{$l_h_h} =
-		    0 unless defined $t_m_n_h{$l_h_h};
-		$t_m_n_h{$l_h_h}++;
-		$t_m_n_h_sz{$l_h_h} += $l_sz;
-		$t_m_n_h_tm{$l_h_h} += $l_tm;
-	    } elsif ($l_h_m =~
-		     /(PARENT_MISS|(DEFAULT|FIRST_UP|SINGLE|PASSTHROUGH|ROUNDROBIN)_PARENT)/o) {
-		$t_m_n_m++;
-		$t_m_n_m_sz += $l_sz;
-		$t_m_n_m_tm += $l_tm;
-		$t_m_n{$l_h_h} = $t_m_n_m_sz{$l_h_h} = $t_m_n_m_tm{$l_h_h} = 0
-		    unless defined $t_m_n{$l_h_h};
-		$t_m_n_m{$l_h_h}++;
-		$t_m_n_m_sz{$l_h_h} += $l_sz;
-		$t_m_n_m_tm{$l_h_h} += $l_tm;
-	    } else {
-		warn("unknown l_h_m: \"$l_h_m\"
-		     Please report this to cord\@Wunder-Nett.org\n");
-	    }
-	}
-	if ($l_h_m ne 'NONE') {
-	    $h++;
-	    $h_sz += $l_sz;
-	    $h_tm += $l_tm;
-	    if ($l_h_m =~ /(DIRECT|SOURCE_FASTEST)/o) {
-		$h_d++;
-		$h_d_sz += $l_sz;
-		$h_d_tm += $l_tm;
-		if ($opt_s or $opt_a) {
-		    $h_d{$l_h_m} = $h_d_sz{$l_h_m} = $h_d_tm{$l_h_m} = 0
-			unless defined $h_d{$l_h_m};
-		    $h_d{$l_h_m}++;
-		    $h_d_sz{$l_h_m} += $l_sz;
-		    $h_d_tm{$l_h_m} += $l_tm;
+	    if ($opt_p or $opt_a) {
+		$p_t_s_pntr++;
+		$p_t_m_pntr++;
+		unshift(@p_t, $l_d);
+		$p_t_s_pntr-- while $p_t[$p_t_s_pntr - 1] < ($l_d - 1);
+		$p_t_m_pntr-- while $p_t[$p_t_m_pntr - 1] < ($l_d - 60);
+		pop(@p_t) while $p_t[$#p_t] < ($l_d - 3600);
+		if ($p_t_h < @p_t) {
+		    $p_t_h = @p_t;
+		    $p_t_h_tm = $l_d - 3600;
 		}
-	    } elsif ($l_h_m =~ /(PARENT|SIBLING)\w+HIT/o) {
-		$h_s++;
-		$h_s_sz += $l_sz;
-		$h_s_tm += $l_tm;
-		if ($opt_s or $opt_a) {
-		    $h_s{$l_h_m} = $h_s_sz{$l_h_m} = $h_s_tm{$l_h_m} = 0
-			unless defined $h_s{$l_h_m};
-		    $h_s{$l_h_m}++;
-		    $h_s_sz{$l_h_m} += $l_sz;
-		    $h_s_tm{$l_h_m} += $l_tm;
+		if ($p_t_m < $p_t_m_pntr) {
+		    $p_t_m = $p_t_m_pntr;
+		    $p_t_m_tm = $l_d - 60;
 		}
-		$h_n{$l_h_h} = $h_n_sz{$l_h_h} = $h_n_tm{$l_h_h} = 0 unless
-		    $h_n{$l_h_h};
-		$h_n{$l_h_h}++;
-		$h_n_sz{$l_h_h} += $l_sz;
-		$h_n_tm{$l_h_h} += $l_tm;
-		if ($opt_s or $opt_a) {
-		    $h_n_st{$l_h_h}{$l_h_m} = $h_n_st_sz{$l_h_h}{$l_h_m} =
-			$h_n_st_tm{$l_h_h}{$l_h_m} = 0 unless
-			$h_n_st{$l_h_h}{$l_h_m};
-		    $h_n_st{$l_h_h}{$l_h_m}++;
-		    $h_n_st_sz{$l_h_h}{$l_h_m} += $l_sz;
-		    $h_n_st_tm{$l_h_h}{$l_h_m} += $l_tm;
+		if ($p_t_s < $p_t_s_pntr) {
+		    $p_t_s = $p_t_s_pntr;
+		    $p_t_s_tm = $l_d - 1;
 		}
-
-	    } elsif ($l_h_m =~ /(PARENT_MISS|(DEFAULT|FIRST_UP|SINGLE|PASSTHROUGH|ROUNDROBIN)_PARENT)/o) {
-		$h_p++;
-		$h_p_sz += $l_sz;
-		$h_p_tm += $l_tm;
+	    }
+	    if ($opt_t or $opt_a) {
+		$t_ct{$l_c} = $t_ct_sz{$l_c} = $t_h_ct{$l_c} = 0 unless
+		    defined $t_ct{$l_c};
+		$t_ct{$l_c}++;
+		$t_ct_sz{$l_c} += $l_sz;
+		$t_ue{$ue} = $t_ue_sz{$ue} = $t_h_ue{$ue} = 0 unless defined
+		    $t_ue{$ue};
+		$t_ue{$ue}++;
+		$t_ue_sz{$ue} += $l_sz;
+	    }
+	    if ($l_hf =~ /^TCP\w+HIT/o) {
+		$t_h++;
+		$t_h_sz += $l_sz;
+		$t_h_tm += $l_tm;
 		if ($opt_s or $opt_a) {
-		    $h_p{$l_h_m} = $h_p_sz{$l_h_m} = $h_p_tm{$l_h_m} = 0
-			unless defined $h_p{$l_h_m};
-		    $h_p{$l_h_m}++;
-		    $h_p_sz{$l_h_m} += $l_sz;
-		    $h_p_tm{$l_h_m} += $l_tm;
+		    $t_h{$l_hf} = $t_h_sz{$l_hf} = $t_h_tm{$l_hf} = 0 unless
+			defined $t_h{$l_hf};
+		    $t_h{$l_hf}++;
+		    $t_h_sz{$l_hf} += $l_sz;
+		    $t_h_tm{$l_hf} += $l_tm;
 		}
-		$h_n{$l_h_h} = $h_n_sz{$l_h_h} = $h_n_tm{$l_h_h} = 0 unless
-		    defined $h_n{$l_h_h};
-		$h_n{$l_h_h}++;
-		$h_n_sz{$l_h_h} += $l_sz;
-		$h_n_tm{$l_h_h} += $l_tm;
+		if ($opt_r or $opt_a) {
+		    $t_h_r{$r}++;
+		    $t_h_r_sz{$r} += $l_sz;
+		}
+		if ($opt_d or $opt_a) {
+		    $t_h_u{$uh}++;
+		    $t_h_ut{$ut}++;
+		}
+		if ($opt_t or $opt_a) {
+		    $t_h_ct{$l_c}++;
+		    $t_h_ue{$ue}++;
+		    $t_h_up{$up}++;
+		}
+	    } elsif (($l_h_m eq 'NONE') or ($l_hf =~ /^ERR_/o)) {
+		$t_m_nn++;
+		$t_m_nn_sz += $l_sz;
+		$t_m_nn_tm += $l_tm;
 		if ($opt_s or $opt_a) {
-		    $h_n_st{$l_h_h}{$l_h_m} = $h_n_st_sz{$l_h_h}{$l_h_m} =
-			$h_n_st_tm{$l_h_h}{$l_h_m} = 0 unless
-			$h_n_st{$l_h_h}{$l_h_m};
-		    $h_n_st{$l_h_h}{$l_h_m}++;
-		    $h_n_st_sz{$l_h_h}{$l_h_m} += $l_sz;
-		    $h_n_st_tm{$l_h_h}{$l_h_m} += $l_tm;
+		    $t_m_nn{$l_hf} = $t_m_nn_sz{$l_hf} = $t_m_nn_tm{$l_hf} = 0
+			unless defined $t_m_nn{$l_hf};
+		    $t_m_nn{$l_hf}++;
+		    $t_m_nn_sz{$l_hf} += $l_sz;
+		    $t_m_nn_tm{$l_hf} += $l_tm;
 		}
 	    } else {
-		warn("unknown l_h_m: \"$l_h_m\"
-		     Please report this to cord\@Wunder-Nett.org\n");
+		$t_m++;
+		$t_m_sz += $l_sz;
+		$t_m_tm += $l_tm;
+		if ($opt_s or $opt_a) {
+		    $t_m{$l_hf} = $t_m_sz{$l_hf} = $t_m_tm{$l_hf} = 0 unless
+			defined $t_m{$l_hf};
+		    $t_m{$l_hf}++;
+		    $t_m_sz{$l_hf} += $l_sz;
+		    $t_m_tm{$l_hf} += $l_tm;
+		}
+		if ($opt_r or $opt_a) {
+		    $t_m_r{$r} = $t_m_r_sz{$r} = 0 unless defined $t_m_r{$r};
+		    $t_m_r{$r}++;
+		    $t_m_r_sz{$r} += $l_sz;
+		}
+		if ($l_h_m =~ /(DIRECT|SOURCE_FASTEST)/o) {
+		    $t_m_d++;
+		    $t_m_d_sz += $l_sz;
+		    $t_m_d_tm += $l_tm;
+		} elsif ($l_h_m =~ /(PARENT|SIBLING)\w+HIT/o) {
+		    $t_m_n_h++;
+		    $t_m_n_h_tm += $l_tm;
+		    $t_m_n_h_sz += $l_sz;
+		    $t_m_n_h{$l_h_h} = $t_m_n_h_sz{$l_h_h} =
+			$t_m_n_h_tm{$l_h_h} = 0 unless defined
+			$t_m_n_h{$l_h_h};
+		    $t_m_n_h{$l_h_h}++;
+		    $t_m_n_h_sz{$l_h_h} += $l_sz;
+		    $t_m_n_h_tm{$l_h_h} += $l_tm;
+		} elsif ($l_h_m =~
+		     /(PARENT_MISS|(DEFAULT|FIRST_UP|SINGLE|PASSTHROUGH|ROUNDROBIN)_PARENT)/o)
+		{
+		    $t_m_n_m++;
+		    $t_m_n_m_sz += $l_sz;
+		    $t_m_n_m_tm += $l_tm;
+		    $t_m_n{$l_h_h} = $t_m_n_m_sz{$l_h_h} = $t_m_n_m_tm{$l_h_h}
+			= 0 unless defined $t_m_n{$l_h_h};
+		    $t_m_n_m{$l_h_h}++;
+		    $t_m_n_m_sz{$l_h_h} += $l_sz;
+		    $t_m_n_m_tm{$l_h_h} += $l_tm;
+		} else {
+		    warn("unknown l_h_m: \"$l_h_m\"
+			  Please report this to cord\@Wunder-Nett.org\n");
+		}
+	    }
+	    if ($l_h_m ne 'NONE') {
+		$h++;
+		$h_sz += $l_sz;
+		$h_tm += $l_tm;
+		if ($l_h_m =~ /(DIRECT|SOURCE_FASTEST)/o) {
+		    $h_d++;
+		    $h_d_sz += $l_sz;
+		    $h_d_tm += $l_tm;
+		    if ($opt_s or $opt_a) {
+			$h_d{$l_h_m} = $h_d_sz{$l_h_m} = $h_d_tm{$l_h_m} = 0
+			    unless defined $h_d{$l_h_m};
+			$h_d{$l_h_m}++;
+			$h_d_sz{$l_h_m} += $l_sz;
+			$h_d_tm{$l_h_m} += $l_tm;
+		    }
+		} elsif ($l_h_m =~ /(PARENT|SIBLING)\w+HIT/o) {
+		    $h_s++;
+		    $h_s_sz += $l_sz;
+		    $h_s_tm += $l_tm;
+		    if ($opt_s or $opt_a) {
+			$h_s{$l_h_m} = $h_s_sz{$l_h_m} = $h_s_tm{$l_h_m} = 0
+			    unless defined $h_s{$l_h_m};
+			$h_s{$l_h_m}++;
+			$h_s_sz{$l_h_m} += $l_sz;
+			$h_s_tm{$l_h_m} += $l_tm;
+		    }
+		    $h_n{$l_h_h} = $h_n_sz{$l_h_h} = $h_n_tm{$l_h_h} = 0
+			unless $h_n{$l_h_h};
+		    $h_n{$l_h_h}++;
+		    $h_n_sz{$l_h_h} += $l_sz;
+		    $h_n_tm{$l_h_h} += $l_tm;
+		    if ($opt_s or $opt_a) {
+			$h_n_st{$l_h_h}{$l_h_m} = $h_n_st_sz{$l_h_h}{$l_h_m} =
+			    $h_n_st_tm{$l_h_h}{$l_h_m} = 0 unless
+			    $h_n_st{$l_h_h}{$l_h_m};
+			$h_n_st{$l_h_h}{$l_h_m}++;
+			$h_n_st_sz{$l_h_h}{$l_h_m} += $l_sz;
+			$h_n_st_tm{$l_h_h}{$l_h_m} += $l_tm;
+		    }
+		} elsif ($l_h_m =~
+			 /(PARENT_MISS|(DEFAULT|FIRST_UP|SINGLE|PASSTHROUGH|ROUNDROBIN)_PARENT)/o)
+		{
+		    $h_p++;
+		    $h_p_sz += $l_sz;
+		    $h_p_tm += $l_tm;
+		    if ($opt_s or $opt_a) {
+			$h_p{$l_h_m} = $h_p_sz{$l_h_m} = $h_p_tm{$l_h_m} = 0
+			    unless defined $h_p{$l_h_m};
+			$h_p{$l_h_m}++;
+			$h_p_sz{$l_h_m} += $l_sz;
+			$h_p_tm{$l_h_m} += $l_tm;
+		    }
+		    $h_n{$l_h_h} = $h_n_sz{$l_h_h} = $h_n_tm{$l_h_h} = 0
+			unless defined $h_n{$l_h_h};
+		    $h_n{$l_h_h}++;
+		    $h_n_sz{$l_h_h} += $l_sz;
+		    $h_n_tm{$l_h_h} += $l_tm;
+		    if ($opt_s or $opt_a) {
+			$h_n_st{$l_h_h}{$l_h_m} = $h_n_st_sz{$l_h_h}{$l_h_m} =
+			    $h_n_st_tm{$l_h_h}{$l_h_m} = 0 unless
+			    $h_n_st{$l_h_h}{$l_h_m};
+			$h_n_st{$l_h_h}{$l_h_m}++;
+			$h_n_st_sz{$l_h_h}{$l_h_m} += $l_sz;
+			$h_n_st_tm{$l_h_h}{$l_h_m} += $l_tm;
+		    }
+		} else {
+		    warn("unknown l_h_m: \"$l_h_m\"
+			 Please report this to cord\@Wunder-Nett.org\n");
+		}
 	    }
 	}
     }
-}
-
 $tm_r = time - $tm_r;
+}
 
 ### Yea! File read. Now give the output...
 
-OUTPUT: if ($c == 0) {
+if ($c == 0) {
     print('no requests found');
     exit(0);
 }
-
-open(CACHE, ">$opt_f") if ($opt_f);
+open(CACHE, ">$opt_o") or die("$0: can't open $opt_i for writing: $!\n")
+    if ($opt_o);
 writec(A, $tm_b, $tm_e, $c, $sz, $tm, $i, $tm_r, $u, $u_sz, $u_tm, $u_h,
        $u_h_sz, $u_h_tm, $u_m, $u_m_sz, $u_m_tm, $t, $t_sz, $t_tm, $t_h,
        $t_h_sz, $t_h_tm, $t_m, $t_m_sz, $t_m_tm, $t_m_nn, $t_m_nn_sz,
@@ -622,33 +620,33 @@ writec(A, $tm_b, $tm_e, $c, $sz, $tm, $i, $tm_r, $u, $u_sz, $u_tm, $u_h,
 writec(B, $p_u_s, $p_u_s_tm, $p_u_m, $p_u_m_tm, $p_u_h, $p_u_h_tm, $p_t_s,
        $p_t_s_tm, $p_t_m, $p_t_m_tm, $p_t_h, $p_t_h_tm, $p_a_s, $p_a_s_tm,
        $p_a_m, $p_a_m_tm, $p_a_h, $p_a_h_tm);
-    $d_start = convertdate($tm_b);
-    $d_stop = convertdate($tm_e);
+    $d_start = condat($tm_b);
+    $d_stop = condat($tm_e);
     if ($opt_p or $opt_a) {
-	$d_p_u_s = convertdate($p_u_s_tm);
-	$d_p_t_s = convertdate($p_t_s_tm);
-	$d_p_a_s = convertdate($p_a_s_tm);
-	$d_p_u_m = convertdate($p_u_m_tm);
-	$d_p_t_m = convertdate($p_t_m_tm);
-	$d_p_a_m = convertdate($p_a_m_tm);
-	$d_p_u_h = convertdate($p_u_h_tm);
-	$d_p_t_h = convertdate($p_t_h_tm);
-	$d_p_a_h = convertdate($p_a_h_tm);
+	$d_p_u_s = condat($p_u_s_tm);
+	$d_p_t_s = condat($p_t_s_tm);
+	$d_p_a_s = condat($p_a_s_tm);
+	$d_p_u_m = condat($p_u_m_tm);
+	$d_p_t_m = condat($p_t_m_tm);
+	$d_p_a_m = condat($p_a_m_tm);
+	$d_p_u_h = condat($p_u_h_tm);
+	$d_p_t_h = condat($p_t_h_tm);
+	$d_p_a_h = condat($p_a_h_tm);
     }
 
-printf("Subject: %s Squid-Report (%s - %s)\n\n", hostname() , $d_start,
+printf("Subject: %s Squid-Report (%s - %s)\n\n", hostname, $d_start,
        $d_stop) if ($opt_m);
 
 if ($opt_w) {
     print("<html><head><title>Squid-Report</title></head><body>\n");
-    printf("<h1>%s Squid-Report (%s - %s)</h1>\n", hostname() , $d_start,
+    printf("<h1>%s Squid-Report (%s - %s)</h1>\n", hostname, $d_start,
 	   $d_stop);
 } else {
-    printf("%s Squid-Report (%s - %s)\n", hostname() , $d_start, $d_stop);
+    printf("%s Squid-Report (%s - %s)\n", hostname, $d_start, $d_stop);
 }
 
 @f=(17,8);
-reptit('Summary for ' . hostname());
+reptit('Summary for ' . hostname);
 repsta();
 replin('lines parsed:', $c);
 replin('invalid lines:', $i);
@@ -872,25 +870,25 @@ if ($opt_d or $opt_a) {
 	rephea('destination',' request','% ','  kByte','% ','hit-%');
 	repsep();
 	@c = keys %t_u;
-	$o_host = $#c + 1;
+	$o_u = $#c + 1;
 	$o = $t;
 	$o_sz = $t_sz;
 	$o_h = $t_h;
-	$linec = $opt_d;
+	$o_c = $opt_d;
 	foreach $uh (sort {$t_u{$b} <=> $t_u{$a}} keys(%t_u)) {
-	    $o_host--;
+	    $o_u--;
 	    $o -= $t_u{$uh};
 	    $o_sz -= $t_u_sz{$uh};
 	    $o_h -= $t_h_u{$uh};
 	    writec(N, $uh, $t_u{$uh}, $t_u_sz{$uh}, $t_h_u{$uh});
 	    replin($uh, $t_u{$uh}, 100 * $t_u{$uh} / $t, $t_u_sz{$uh} / 1024,
 		   100 * $t_u_sz{$uh} / $t_sz, 100 * $t_h_u{$uh} / $t_u{$uh});
-	    last if (--$linec == 0 and $o != 1);
+	    last if (--$o_c == 0 and $o != 1);
 	}
 	if ($o) {
 	    writec(N, '<other>', $o, $o_sz, $o_h);
-	    replin('other: ' . $o_host . ' 2nd-level-domains', $o, 100 * $o /
-		   $t, $o_sz / 1024, 100 * $o_sz / $t_sz, 100 * $o_h / $o);
+	    replin('other: ' . $o_u . ' 2nd-level-domains', $o, 100 * $o / $t,
+		   $o_sz / 1024, 100 * $o_sz / $t_sz, 100 * $o_h / $o);
 	}
 	repsep();
 	replin(Sum, $t, 100, $t_sz / 1024, 100, 100 * $t_h / $t);
@@ -904,7 +902,7 @@ if ($opt_d or $opt_a) {
 	$o = $t;
 	$o_sz = $t_sz;
 	$o_h = $t_h;
-	$linec = $opt_d;
+	$o_c = $opt_d;
 	foreach $ut (sort {$t_ut{$b} <=> $t_ut{$a}} keys(%t_ut)) {
 	    $o_tld--;
 	    $o -= $t_ut{$ut};
@@ -914,7 +912,7 @@ if ($opt_d or $opt_a) {
 	    replin($ut, $t_ut{$ut}, 100 * $t_ut{$ut} / $t, $t_ut_sz{$ut} /
 		   1024, 100 * $t_ut_sz{$ut} / $t_sz, 100 * $t_h_ut{$ut} /
 		   $t_ut{$ut});
-	    last if (--$linec == 0 and $o != 1);
+	    last if (--$o_c == 0 and $o != 1);
 	}
 	if ($o) {
 	    writec(O, '<other>', $o, $o_sz, $o_h);
@@ -957,7 +955,7 @@ if ($opt_t or $opt_a) {
 	$o = $t;
 	$o_sz = $t_sz;
 	$o_h = $t_h;
-	$linec = $opt_t;
+	$o_c = $opt_t;
 	foreach $ct (sort {$t_ct{$b} <=> $t_ct{$a}} keys(%t_ct)) {
 	    $o_ct--;
 	    $o -= $t_ct{$ct};
@@ -967,7 +965,7 @@ if ($opt_t or $opt_a) {
 	    replin($ct, $t_ct{$ct}, 100 * $t_ct{$ct} / $t, $t_ct_sz{$ct} /
 		   1024, 100 * $t_ct_sz{$ct} / $t_sz, 100 * $t_h_ct{$ct} /
 		   $t_ct{$ct});
-	    last if (--$linec == 0 and $o != 1);
+	    last if (--$o_c == 0 and $o != 1);
 	}
 	if ($o) {
 	    writec(Q, '<other>', $o, $o_sz, $o_h);
@@ -990,7 +988,7 @@ if ($opt_t or $opt_a) {
 	$o = $t;
 	$o_sz = $t_sz;
 	$o_h = $t_h;
-	$linec = $opt_t;
+	$o_c = $opt_t;
 	foreach $ue (sort {$t_ue{$b} <=> $t_ue{$a}} keys(%t_ue)) {
 	    $o_ue--;
 	    $o -= $t_ue{$ue};
@@ -1000,7 +998,7 @@ if ($opt_t or $opt_a) {
 	    replin($ue, $t_ue{$ue}, 100 * $t_ue{$ue} / $t, $t_ue_sz{$ue} /
 		   1024, 100 * $t_ue_sz{$ue} / $t_sz, 100 * $t_h_ue{$ue} /
 		   $t_ue{$ue});
-	    last if (--$linec == 0 and $o != 1);
+	    last if (--$o_c == 0 and $o != 1);
 	}
 	if ($o) {
 	    writec(R, '<other>', $o, $o_sz, $o_h);
@@ -1042,14 +1040,14 @@ if ($opt_r or $opt_a) {
 	repsta();
 	rephea('host',' request','hit-%','  kByte','hit-%','sec',' kB/sec');
 	repsep();
-	@c = keys %t_sz;
-	$o_r = $#t + 1;
+	@c = keys %t_r;
+	$o_r = $#c + 1;
 	$o = $t;
 	$o_sz = $t_sz;
 	$o_tm = $t_tm;
 	$o_h = $t_h;
 	$o_h_sz = $t_h_sz;
-	$linec = $opt_r;
+	$o_c = $opt_r;
 	foreach $r (sort {$t_r{$b} <=> $t_r{$a}} keys(%t_r)) {
 	    $o_r--;
 	    $o -= $t_r{$r};
@@ -1063,7 +1061,7 @@ if ($opt_r or $opt_a) {
 		   1024, 100 * $t_h_r_sz{$r} / $t_r_sz{$r}, $t_r_tm{$r} /
 		   (1000 * $t_r{$r}), 1000 * $t_r_sz{$r} / (1024 *
 		   $t_r_tm{$r}));
-	    last if(--$linec == 0 and $o != 1);
+	    last if(--$o_c == 0 and $o != 1);
 	}
 	if ($o) {
 	    writec(T, '<other>', $o, $o_sz, $o_tm, $o_h, $o_h_sz);
@@ -1086,19 +1084,18 @@ if ($opt_w) {
 }
 
 sub getfqdn {
-    my ($host) = @_;
+    my ($h) = @_;
     if ($opt_n) {
-	return $host;
-    } elsif ($host =~ /^([0-9][0-9]{0,2}\.){3}[0-9][0-9]{0,2}$/) {
-	$nscache{$host} = addresstoname($host) unless defined
-	    $nscache{$host};
-	return $nscache{$host};
+	return $h;
+    } elsif ($h =~ /^([0-9][0-9]{0,2}\.){3}[0-9][0-9]{0,2}$/) {
+	$nsc{$h} = addtonam($h) unless defined $nsc{$h};
+	return $nsc{$h};
     } else {
-	return $host;
+	return $h;
     }
 }
 
-sub addresstoname {
+sub addtonam {
     my ($address) = shift (@_);
     my (@octets);
     my ($name, $aliases, $type, $len, $addr);
@@ -1107,8 +1104,8 @@ sub addresstoname {
     if ($#octets != 3) {
 	undef;
     }
-    $ip_number = pack ("CCCC", @octets[0..3]);
-    ($name, $aliases, $type, $len, $addr) = gethostbyaddr ($ip_number, 2);
+    $ip = pack ("CCCC", @octets[0..3]);
+    ($name, $aliases, $type, $len, $addr) = gethostbyaddr ($ip, 2);
     if ($name) {
 	$name;
     } else {
@@ -1116,7 +1113,7 @@ sub addresstoname {
     }
 }
 
-sub convertdate {
+sub condat {
     my $d = shift(@_);
     if ($d) {
 	my ($s,$m,$h,$mday,$mon,$y) = (localtime($d))[0,1,2,3,4,5,6];
@@ -1246,7 +1243,7 @@ sub repsto {
 }
 
 sub writec {
-    if ($opt_f) {
+    if ($opt_o) {
 	print CACHE join('µ', @_) . "\n";
     }
 }
