@@ -121,6 +121,11 @@ Are there known bugs or other problems?
   unsetting LANG. Please see
   https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=77437 .
 
+* There is a problem if you parse Logfiles from accelerating proxies. In
+  iPlanet Web Proxy Server there is only an 'unqualified' URL in the Logfiles,
+  which confuses all reports that rely on that field. (reported by Pawel
+  Worach <pawel.worach@nordea.com>)
+
 * Calamaris can't resolve IPv6-IPs to DNS-Names yet. If you can tell me how i
   can do it in perl, let me know ;-)
 
@@ -225,6 +230,10 @@ it to the wish-list below :-)
 * adding an option to limit domain (and related) reports to a minimum number
   of transactions. (suggested by Franck Bourdonnec <fbourdonnec@chez.com>)
 
+* I suggest that the '-P' option has a <number of lines> option, like all
+  other analyses. So the time step would be something like = <analysis time> /
+  <number of lines>. (Ahmad Kamal <eng_ak@link.net>)
+
 * rewrite peak-measurement. The new calculation method is very time intensive
   and slows down Calamaris by 30 or more percent, but it is faster than the
   old way. However: i'm not really satisfied with it, so i put it out of the
@@ -283,4 +292,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.42 2003-05-14 21:00:25 cord Exp $
+$Id: README,v 2.43 2004-06-06 16:29:02 cord Exp $
