@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.58 2003-05-14 21:13:55 cord Exp $
+# $Id: calamaris,v 2.59 2004-06-06 16:26:14 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
-# Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003 Cord Beermann
+# Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004 Cord Beermann
 #
 # URL: http://Calamaris.Cord.de/
 # Announcement-Mailing-list: send Mail with 'subscribe' in the Mail-Body to
@@ -75,12 +75,14 @@
 #	Helge Oldach <calamaris@oldach.net>
 #	Michael R. Schwarzbach <spg@fs.tum.de>
 #	Radu - Eosif Mihailescu <rmihailescu@lumina.ro>
-#	Michael Pophal <michael.pophal@siemens.com>
+#	Michael Pophal <michael.pophal@nefkom.net>
 #	Steffen Sledz <sledz@zone42.org>
 #	Kenytt Avery <kavery@willingminds.com>
 #	SO Kwok Tsun <ktso@cuhk.edu.hk>
 #	Chris Knight <chris@aims.com.au>
 #	ycdtosa ? <ycdtosa@eupla.unizar.es>
+#	Peter W. Osel <pwo@Infineon.COM>
+#	Pawel Worach <pawel.worach@nordea.com>
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -159,6 +161,10 @@ if ( $opt_N and $opt_N != -1 and $opt_N < 2 ) {
 if ($opt_I) {
   use Time::Local;
   ( $interval_begin, $interval_end ) = split ( '-', $opt_I );
+  if ($interval_begin > $interval_end) { 
+    print STDERR "$0: wrong value at -I -option: \"$opt_I\". Interval begin newer than interval end!\n\n";
+    $usage_err = 1;
+  }
   if ( $interval_begin =~ m#^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$# ) {
     $interval_begin = timegm( $6, $5, $4, $3, $2 - 1, $1 - 1900 );
   } elsif ( $interval_begin eq '' ) {
@@ -250,7 +256,9 @@ $opt_N = 2 unless $opt_N;
 $opt_T = 0 unless $opt_T;
 $opt_r = $opt_R unless $opt_r;
 
-$P = $opt_P ? $opt_P : '60';
+$P = $opt_P ? "$opt_P minute" : '60 minute';
+if ( defined($opt_P) and ($opt_P%60) == 0 ) { $P =  $opt_P/60 . " hour" };
+if ( defined($opt_P) and ($opt_P%1440) == 0 ) { $P =  $opt_P/1440 . " day" };
 
 if ( $opt_N == -1 or $opt_N > 2 ) {
   if ( $opt_N == 3 ) {
@@ -274,13 +282,13 @@ if ( $opt_N == -1 or $opt_N > 2 ) {
 	    'Request-destinations by toplevel-domain', 'TCP-Request-protocol',
 	    'Requested content-type', 'Requested extensions',
 	    'Incoming UDP-requests by host', 'Incoming TCP-requests by host',
-	    'Distribution Histogram', "Performance in $P minute steps"
+	    'Distribution Histogram', "Performance in $P steps"
 	    );
 
-$VERSION='Calamaris $Revision: 2.58 $';
+$VERSION='Calamaris $Revision: 2.59 $';
 
 $COPYRIGHT =
-'Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003 Cord Beermann.
+'Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
 welcome to redistribute it under certain conditions. See source for details.
 Calamaris-Homepage: http://Calamaris.Cord.de/';
@@ -883,6 +891,7 @@ for ( ; $line ; $line = <> ) {';
   ( $log_date, $log_reqtime, $log_requester, $log_status, $log_size,
    $log_method, $log_url, $log_ident, $log_hier, $log_content)
     = split ( /\s+/, $line, 10 );
+  chomp($log_content);
   if ( not defined $log_content
       or $log_content eq \'\'
       or $log_reqtime < 0
@@ -999,9 +1008,12 @@ for ( ; $line ; $line = <> ) {';
 	       or $_ eq 'cs(Cookie)'
 	       or $_ eq 'cs(Referer)'
 	       or $_ eq 'sc(Referer)'
-	       or $_ eq 'cs(X-Forwarded-For)' )
+	       or $_ eq 'cs(X-Forwarded-For)'
+	       or $_ eq 'x-hiername' )
       {
-	$tmpline1 .= '\"[^\"]*\"';
+	$tmpline1 .= '(\"[^\"]*\"|-)';
+	$tmpline2 .= '
+    ++$offset;';
       } elsif ( $_ eq 'cached' ) {
 	$tmpline1 .= '(\d+)';
 	$tmpline2 .= '
@@ -1083,6 +1095,7 @@ Thank You.\n\n";
       last unless $line =~ /^\s*#/;
     }
   } elsif ( $opt_f eq 'nse' ) {
+    $line =~ s#^format=##og;
     @fields = split ( /\s+/, $line );
     $loop .= '
   use Time::Local;
@@ -1733,7 +1746,7 @@ Thank You.\n\n";
       and $opt_f ne 'elff';
   $loop .= '
       } elsif ( $log_hier_method =~
-	       m#CARP|(CACHE_DIGEST|NEIGHBOR|PARENT|SIBLING)_\w*HIT|SIBLING#o )
+	       m#(CACHE_DIGEST|NEIGHBOR|PARENT|SIBLING)_\w*HIT|SIBLING#o )
       {
 	$hier_sibling++;
 	$hier_sibling_size += $log_size;
@@ -1770,7 +1783,7 @@ Thank You.\n\n";
 	  $log_reqtime;' if ($opt_s);
   $loop .= '
       } elsif ( $log_hier_method =~
-	       m#(ANY|CLOSEST|DEFAULT|FIRST_UP|PASSTHROUGH|ROUNDROBIN|SINGLE)_PARENT|PARENT_MISS|PARENT|PROXY#o
+	       m#(ANY|CLOSEST|DEFAULT|FIRST_UP|PASSTHROUGH|ROUNDROBIN|SINGLE)_PARENT|CARP|PARENT_MISS|PARENT|PROXY#o
 	       )
       {
 	$hier_parent++;
@@ -1855,6 +1868,7 @@ writecache(
 	   );
 $date_start = convertdate($time_begin);
 $date_stop = convertdate($time_end);
+$generated = convertdate(time);
 
 $out_head = '';
 $out_head .= 'MIME-Version: 1.0
@@ -1871,7 +1885,7 @@ if ( $outtype_html or $outtype_htmlembed ) {
 <html>
  <head>
   <title>${host_name}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.58 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.59 $' . "\">
 " . ( $opt_M ? '  ' . $opt_M . "\n" : '' ) .
 " </head>
  <body bgcolor=\"#FFFFFF\">
@@ -1920,7 +1934,10 @@ if ( $outtype_html or $outtype_htmlembed ) {
   }
   $out_head .= "  </ul>\n";
 } else {
-  $out_head .= "\n${host_name}Proxy-Report ($date_start - $date_stop)\n";
+  $out_head .= "
+${host_name}Proxy-Report\n
+Report period: $date_start - $date_stop
+Generated at:  $generated\n";
 }
 
 if ( ( $invalid / $counter ) > .05 and $counter > 1000 ) {
@@ -3094,7 +3111,7 @@ if ($opt_S) {
 if ( $outtype_html or $outtype_htmlembed ) {
   print '  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.58 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002, 2003
+   $Revision: 2.59 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
