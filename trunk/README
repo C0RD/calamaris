@@ -142,13 +142,11 @@ Are there known bugs or other problems?
 * If you want to parse more than one logfile (i.e. from the 'logfilerotate')
   or want to use more than one input-cache-file you have to put them in
   chronological sorted order (oldest first), else you get wrong peak values.
-  (Is this something that i should fix? Don't think so...)
 
-* However: If you use the caching function the peak-values can be wrong.
+  However: If you use the caching function the peak-values can be wrong,
+  because peaks occuring during log-rotate-time can't be detected.
 
-* I have one report about Calamaris eating up all available memory, while
-  generating a month-report out of Logfiles from 8 different machines. Please
-  notify me, if this happens to you too.
+  Calamaris will add a warning to the report if it recognizes unsorted input.
 
 * Squid doesn't log outgoing UDP-Requests, so i can't put them into the
   statistics without parsing squid.conf and the cache.log-file. (Javier Puche
@@ -256,4 +254,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.32 2002-01-18 18:27:13 cord Exp $
+$Id: README,v 2.33 2002-01-25 21:19:05 cord Exp $
