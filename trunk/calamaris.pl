@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.113 1998-07-09 19:56:06 cord Exp $
+# $Id: calamaris.pl,v 1.114 1998-07-18 21:52:07 cord Exp $
 #
-# DESCRIPTION: calamaris.pl - statistic for Squid or NetCache Proxy Native Log.
+# DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Logfiles.
 #
 # Copyright (C) 1997, 1998 Cord Beermann
 #
@@ -10,19 +10,20 @@
 #
 # AUTHOR: Cord Beermann (cord@Wunder-Nett.org)
 #
-# Thanks to these contributors:
+# Thanks to these contributors, bug reporters, and feature requesters:
 #	John Heaton (John@MCC.ac.uk),
 #	Andreas Lamprecht (Andreas.Lamprecht@siemens.at)
 #	Kenny Ng (kennyng@cyberway.com.sg)
 #	Claus Langhans (langhans@rz.uni-frankfurt.de)
 #	Andreas Jung (ajung@sz-sb.de)
 #	Ernst Heiri (heiri@switch.ch)
-#	Shamil R. Yahin (SSHY@cclib.nsu.ru):
+#	Shamil R. Yahin (SSHY@cclib.nsu.ru)
 #	Thoralf Freitag (Thoralf.Freitag@isst.fhg.de)
 #	Marco Paganini (paganini@paganini.net)
 #	Michael Riedel (mr@fto.de)
 #	Kris Boulez (kris@belbone.be)
 #	Mark Visser (mark@snt.utwente.nl)
+#	Gary Palmer (gjp@erols.com)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -31,7 +32,7 @@
 
 # (If you modify and want to publish it under the name 'calamaris', please
 # ask me. I don't want to confuse the 'audience' with many different versions
-# of the same name and Version number.)
+# of the same name and/or Version number.)
 
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -88,10 +89,13 @@
 # Calamaris was first intended as demo for what i wanted from a statistical
 # software. (OK, it is fun to write it, and it is even more fun to recognize
 # that many people use the script). For my Caches with about 150MB-Logfile per
-# week it is OK, but for those people on a heavy loaded Parentcach it is
+# week it is OK, but for those people on a heavy loaded Parentcache it is
 # simply to slow. So if someone wants to rewrite calamaris in a faster
 # language: Feel Free! (But respect the GNU-License) (and it would be nice if
-# you drop me a note)
+# you drop me a line about it)
+# There is now a C++-port of an early modified calamaris available which is
+# (according to the author Jens-S. Voeckler (voeckler@rvs.uni-hannover.de))
+# about four times faster.
 
 # * Hmmm, while looking through those many different reports i generate, i
 # think that i generate more than anybody ever wants to now about squid :-) So
@@ -103,9 +107,10 @@
 # * add report for byte-peak (Andreas Strotmann <A.Strotmann@Uni-Koeln.DE>)
 # (Don't think that i put this in calamaris v2)
 
-# * build graphics (hope i remember who suggested this first ;-) (This is a
-# thing for calamaris v3, if i ever going to write it. there are nice gd-libs
-# in perl ;-)
+# * build graphics (hope i remember who suggested this first, the mail must be
+# somewhere in my work-mailbox ;-) (This is a thing for calamaris v3, if i
+# ever going to write it. there are nice gd-libs in perl ;-)
+
 
 require 5;
 
@@ -117,7 +122,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pr:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.113 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.114 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -305,7 +310,6 @@ unless ($opt_z) {
       next;
     }
     $log_reqtime = .1 if $log_reqtime == 0;
-    $requesterhost = getfqdn($log_requester);
     ($log_hitfail, $log_code) = split(m#/#o,$log_status);
     $log_size = .0000000001 if $log_size == 0;
     @url = split(m#[/\\]#o,$log_url);
@@ -347,9 +351,9 @@ unless ($opt_z) {
       $urltld = $urlhost;
     }
     if ($opt_u) {
-      $requester = $log_ident . '@' . $requesterhost;
+      $requester = $log_ident . '@' . $log_requester;
     } else {
-      $requester = $requesterhost;
+      $requester = $log_requester;
     }
     ($log_hier_method, $log_hier_host) = (split(m#/#o, $log_hier))[0,1];
     $log_content = '<unknown>' if $log_content eq '-';
@@ -1228,21 +1232,21 @@ if ($opt_r or $opt_a) {
     outstart();
     outheader('host',' request','hit-%','  kByte','hit-%','msec',' kB/sec');
     outseperator();
-    foreach $neighbor (sort {$udp_requester{$b} <=> $udp_requester{$a}}
-		       keys(%udp_requester)) {
-      writecache(S, $neighbor, $udp_requester{$neighbor},
-		 $udp_requester_size{$neighbor},
-		 $udp_requester_time{$neighbor},
-		 $udp_hit_requester{$neighbor},
-		 $udp_hit_requester_size{$neighbor});
-      outline($neighbor, $udp_requester{$neighbor}, 100 *
-	      $udp_hit_requester{$neighbor} / $udp_requester{$neighbor},
-	      $udp_requester_size{$neighbor} / 1024, 100 *
-	      $udp_hit_requester_size{$neighbor} /
-	      $udp_requester_size{$neighbor}, $udp_requester_time{$neighbor} /
-	      $udp_requester{$neighbor}, 1000 *
-	      $udp_requester_size{$neighbor} /
-	      (1024 * $udp_requester_time{$neighbor}));
+    foreach $requester (sort {$udp_requester{$b} <=> $udp_requester{$a}}
+			keys(%udp_requester)) {
+      writecache(S, $requester, $udp_requester{$requester},
+		 $udp_requester_size{$requester},
+		 $udp_requester_time{$requester},
+		 $udp_hit_requester{$requester},
+		 $udp_hit_requester_size{$requester});
+      outline(getfqdn($requester), $udp_requester{$requester}, 100 *
+	      $udp_hit_requester{$requester} / $udp_requester{$requester},
+	      $udp_requester_size{$requester} / 1024, 100 *
+	      $udp_hit_requester_size{$requester} /
+	      $udp_requester_size{$requester}, $udp_requester_time{$requester}
+	      / $udp_requester{$requester}, 1000 *
+	      $udp_requester_size{$requester} / (1024 *
+	      $udp_requester_time{$requester}));
     }
     outseperator();
     outline(Sum, $udp, 100 * $udp_hit / $udp, $udp_size / 1024, 100 *
@@ -1279,7 +1283,7 @@ if ($opt_r or $opt_a) {
 		 $tcp_requester_time{$requester},
 		 $tcp_hit_requester{$requester},
 		 $tcp_hit_requester_size{$requester});
-      outline($requester, $tcp_requester{$requester}, 100 *
+      outline(getfqdn($requester), $tcp_requester{$requester}, 100 *
 	      $tcp_hit_requester{$requester} / $tcp_requester{$requester},
 	      $tcp_requester_size{$requester} / 1024, 100 *
 	      $tcp_hit_requester_size{$requester} /
@@ -1316,9 +1320,9 @@ sub getfqdn {
   my ($host) = @_;
   if ($opt_n) {
     return $host;
-  } elsif ($host =~ /^([0-9][0-9]{0,2}\.){3}[0-9][0-9]{0,2}$/) {
-    $hostcache{$host} = addtonam($host) unless defined $hostcache{$host};
-    return $hostcache{$host};
+  } elsif ($host =~ /^([^@]+@)?(([0-9][0-9]{0,2}\.){3}[0-9][0-9]{0,2}$)/) {
+    $hostcache{$2} = addtonam($2) unless defined $hostcache{$2};
+    return $1 . $hostcache{$2};
   } else {
     return $host;
   }
