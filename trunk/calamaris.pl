@@ -1,17 +1,18 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.117 1998-08-12 21:48:48 cord Exp $
+# $Id: calamaris.pl,v 1.118 1998-09-18 22:30:57 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Logfiles.
 #
 # Copyright (C) 1997, 1998 Cord Beermann
 #
-# URL: http://home.pages.de/~cord/tools/squid/
+# URL: http://www.cord.de/~cord/tools/squid/
+# Announcement-Mailinglist: send Mail to calamaris-request@cord.de
 #
 # AUTHOR: Cord Beermann (cord@Wunder-Nett.org)
 #
 # Thanks to these contributors, bug reporters, and feature requesters:
-#	John Heaton (John@MCC.ac.uk),
+#	John Heaton (John@MCC.ac.uk)
 #	Andreas Lamprecht (Andreas.Lamprecht@siemens.at)
 #	Kenny Ng (kennyng@cyberway.com.sg)
 #	Claus Langhans (langhans@rz.uni-frankfurt.de)
@@ -69,12 +70,13 @@
 # * A Readme and so on has still to be written. (Maybe i should put this
 # section into a seperate file?)
 
-# * If you parse NetCache Logfiles with this, it seems that you can run into
-# trouble. I've looked for information on the Logfile-format from the vendor,
-# but they don't offer any info to people who don't want to tell them their
-# Name and Adress. So, if someone can provide me with that info, i'll try to
-# put it into calamaris, if not... (i've seen that NetCache produces broken
-# Logfiles with different counts of fields, is that a buggy version?)
+# * If you parse NetCache Logfiles with calamaris, it seems that you can run
+# into trouble. I've looked for information on the Logfile-format from the
+# vendor, but it seems that they don't give any info to people who don't want
+# to tell them their Name and Adress. So, if someone can provide me with that
+# info, i'll try to put it into calamaris, if not... (i've seen that NetCache
+# produces broken Logfiles with different counts of fields, is that a buggy
+# version?)
 
 # * I've seen problems with vars.pm which seems to get in the
 # perl-distribution later... if someone point me out which version it was, i'm
@@ -114,25 +116,29 @@
 
 # todos
 
-# * add report for byte-peak (Andreas Strotmann <A.Strotmann@Uni-Koeln.DE>)
-# (Don't think that i put this in calamaris v2)
+# * add report for byte-peak (inspirated by Andreas Strotmann
+# <A.Strotmann@Uni-Koeln.DE>) (Don't think that i put this in calamaris v2)
+
+# * change cachingfunction to add many cache-files at once. 
 
 # * build graphics (hope i remember who suggested this first, the mail must be
 # somewhere in my work-mailbox ;-) (This is a thing for calamaris v3, if i
 # ever going to write it. there are nice gd-libs in perl ;-)
 
+# * add NetCache-Support. The NetCache-Support is rudimentary working, but is
+# only in some kind of alpha-state. see 'Bugs and Shortcomings' above.
 
 require 5;
 
 use vars qw($opt_a $opt_b $opt_c $opt_d $opt_h $opt_H $opt_i $opt_m $opt_n
-	    $opt_o $opt_p $opt_r $opt_s $opt_t $opt_u $opt_w $opt_z);
+	    $opt_o $opt_p $opt_P $opt_r $opt_s $opt_t $opt_u $opt_w $opt_z);
 
 use Getopt::Std;
 use Sys::Hostname;
 
-getopts('ab:cd:hH:i:mno:pr:st:uwz');
+getopts('ab:cd:hH:i:mno:pP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.117 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.118 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -145,6 +151,7 @@ Reports:
 -a	    all  (extracts all reports available)
 -d n	    domain (show n Top-level and n second-level destinations)
 -p	    peak (measure peak requests)
+-P n	    Performance (show interim data for each n minutes)
 -r n	    requester (show n Requesters)
 -s	    status (show verbose status reports)
 -t n	    type (show n content-type, n extensions and requested protocols)
@@ -188,6 +195,10 @@ if ($opt_H) {
   }
 } else {
   $hostname = '';
+}
+
+if (defined($opt_a) and not defined($opt_P)) {
+  $opt_P = 60;
 }
 
 # initialize variables
@@ -298,6 +309,14 @@ if ($opt_i and -r $opt_i) {
       $y = shift(@cache);
       ($tcp_requester{$y}, $tcp_requester_size{$y}, $tcp_requester_time{$y},
        $tcp_hit_requester{$y}, $tcp_hit_requester_size{$y}) = @cache;
+    } elsif ($x eq U and $#cache = 14) {
+      $y = shift(@cache);
+      ($perf_counter{$y}, $perf_size{$y}, $perf_time{$y},
+       $perf_tcp_hit_size{$y}, $perf_tcp_miss_size{$y},
+       $perf_tcp_miss_time{$y}, $perf_hier_direct_size{$y},
+       $perf_hier_direct_time{$y}, $perf_hier_sibling_size{$y},
+       $perf_hier_sibling_time{$y}, $perf_hier_parent_size{$y},
+       $perf_hier_parent_time{$y}) = @cache;
     } else {
       warn("can't parse cache-line: \"@cache\"\n");
     }
@@ -372,6 +391,24 @@ unless ($opt_z) {
 								m#[45]\d\d#o);
     print('#') if ($opt_b and ($counter / $opt_b) eq int($counter / $opt_b));
     $counter++;
+    if ($opt_P) {
+      $perf_date = int($log_date / (60 * $opt_P)) * 60 * $opt_P;
+
+      unless (defined $perf_counter{$perf_date}) {
+	$perf_counter{$perf_date} = $perf_size{$perf_date} =
+	$perf_tcp_hit_size{$perf_date} = $perf_tcp_miss_size{$perf_date} =
+	$perf_hier_direct_size{$perf_date} =
+	$perf_hier_sibling_size{$perf_date} =
+	$perf_hier_parent_size{$perf_date} = 0;
+	$perf_time{$perf_date} = $perf_tcp_hit_time{$perf_date} =
+	$perf_tcp_miss_time{$perf_date} = $perf_hier_direct_time{$perf_date} =
+	$perf_hier_sibling_time{$perf_date} =
+	$perf_hier_parent_time{$perf_date} = .0000000001;
+      }
+      $perf_counter{$perf_date}++;
+      $perf_size{$perf_date} += $log_size;
+      $perf_time{$perf_date} += $log_reqtime;
+    }
     $size += $log_size;
     $time += $log_reqtime;
     $method{$log_method} = $method_size{$log_method} =
@@ -536,6 +573,10 @@ unless ($opt_z) {
 	$tcp_hit++;
 	$tcp_hit_size += $log_size;
 	$tcp_hit_time += $log_reqtime;
+	if ($opt_P) {
+	  $perf_tcp_hit_size{$perf_date} += $log_size;
+	  $perf_tcp_hit_time{$perf_date} += $log_reqtime;
+	}
 	if ($opt_s or $opt_a) {
 	  $tcp_hit{$log_hitfail} = $tcp_hit_size{$log_hitfail} =
 	    $tcp_hit_time{$log_hitfail} = 0 unless defined
@@ -573,6 +614,10 @@ unless ($opt_z) {
 	$tcp_miss++;
 	$tcp_miss_size += $log_size;
 	$tcp_miss_time += $log_reqtime;
+	if ($opt_P) {
+	  $perf_tcp_miss_size{$perf_date} += $log_size;
+	  $perf_tcp_miss_time{$perf_date} += $log_reqtime;
+	}
 	if ($opt_s or $opt_a) {
 	  $tcp_miss{$log_hitfail} = $tcp_miss_size{$log_hitfail} =
 	    $tcp_miss_time{$log_hitfail} = 0 unless defined
@@ -628,6 +673,10 @@ unless ($opt_z) {
 	  $hier_direct++;
 	  $hier_direct_size += $log_size;
 	  $hier_direct_time += $log_reqtime;
+	  if ($opt_P) {
+	    $perf_hier_direct_size{$perf_date} += $log_size;
+	    $perf_hier_direct_time{$perf_date} += $log_reqtime;
+	  }
 	  if ($opt_s or $opt_a) {
 	    $hier_direct{$log_hier_method} =
 	      $hier_direct_size{$log_hier_method} =
@@ -641,6 +690,10 @@ unless ($opt_z) {
 	  $hier_sibling++;
 	  $hier_sibling_size += $log_size;
 	  $hier_sibling_time += $log_reqtime;
+	  if ($opt_P) {
+	    $perf_hier_sibling_size{$perf_date} += $log_size;
+	    $perf_hier_sibling_time{$perf_date} += $log_reqtime;
+	  }
 	  if ($opt_s or $opt_a) {
 	    $hier_sibling{$log_hier_method} =
 	      $hier_sibling_size{$log_hier_method} =
@@ -674,6 +727,10 @@ unless ($opt_z) {
 	  $hier_parent++;
 	  $hier_parent_size += $log_size;
 	  $hier_parent_time += $log_reqtime;
+	  if ($opt_P) {
+	    $perf_hier_parent_size{$perf_date} += $log_size;
+	    $perf_hier_parent_time{$perf_date} += $log_reqtime;
+	  }
 	  if ($opt_s or $opt_a) {
 	    $hier_parent{$log_hier_method} =
 	      $hier_parent_size{$log_hier_method} =
@@ -709,10 +766,10 @@ unless ($opt_z) {
       }
     }
   }
-$time_run = time - $time_run;
+  $time_run = time - $time_run;
 }
 
-### Yea! File read. Now give the output...
+### Yea! File read. Now for something completly different ;-)
 
 if ($counter == 0) {
   print('no requests found');
@@ -737,17 +794,7 @@ writecache(B, $peak_udp_sec, $peak_udp_sec_time, $peak_udp_min,
 	   $peak_all_min_time, $peak_all_hour, $peak_all_hour_time);
 $date_start = convertdate($time_begin);
 $date_stop = convertdate($time_end);
-if ($opt_p or $opt_a) {
-  $date_peak_udp_sec = convertdate($peak_udp_sec_time);
-  $date_peak_tcp_sec = convertdate($peak_tcp_sec_time);
-  $date_peak_all_sec = convertdate($peak_all_sec_time);
-  $date_peak_udp_min = convertdate($peak_udp_min_time);
-  $date_peak_tcp_min = convertdate($peak_tcp_min_time);
-  $date_peak_all_min = convertdate($peak_all_min_time);
-  $date_peak_udp_hour = convertdate($peak_udp_hour_time);
-  $date_peak_tcp_hour = convertdate($peak_tcp_hour_time);
-  $date_peak_all_hour = convertdate($peak_all_hour_time);
-}
+
 print("Content-Type: text/html; charset=us-ascii
 Content-Transfer-Encoding: 7bit\n") if ($opt_m and $opt_w);
 printf("Subject:%sProxy-Report (%s - %s)\n\n", $hostname, $date_start,
@@ -777,6 +824,7 @@ if ($opt_w) {
     outref('Incoming UDP-requests by host', 13);
     outref('Incoming TCP-requests by host', 14);
   }
+  outref('Performance in $opt_P minute steps', 15) if ($opt_P);
   print("</ul><hr>\n");
 } else {
   printf("%sProxy-Report (%s - %s)\n", $hostname, $date_start, $date_stop);
@@ -802,13 +850,16 @@ if ($opt_p or $opt_a) {
   outheader('prt', ' sec', 'peak begins at', ' min', 'peak begins at', ' hour',
 	    'peak begins at');
   outseperator();
-  outline('UDP', $peak_udp_sec, $date_peak_udp_sec, $peak_udp_min,
-	  $date_peak_udp_min, $peak_udp_hour, $date_peak_udp_hour);
-  outline('TCP', $peak_tcp_sec, $date_peak_tcp_sec, $peak_tcp_min,
-	  $date_peak_tcp_min, $peak_tcp_hour, $date_peak_tcp_hour);
+  outline('UDP', $peak_udp_sec, convertdate($peak_udp_sec_time),
+	  $peak_udp_min, convertdate($peak_udp_min_time), $peak_udp_hour,
+	  convertdate($peak_udp_hour_time));
+  outline('TCP', $peak_tcp_sec, convertdate($peak_tcp_sec_time),
+	  $peak_tcp_min, convertdate($peak_tcp_min_time), $peak_tcp_hour,
+	  convertdate($peak_tcp_hour_time));
   outseperator();
-  outline('ALL', $peak_all_sec, $date_peak_all_sec, $peak_all_min,
-	  $date_peak_all_min, $peak_all_hour, $date_peak_all_hour);
+  outline('ALL', $peak_all_sec, convertdate($peak_all_sec_time),
+	  $peak_all_min, convertdate($peak_all_min_time), $peak_all_hour,
+	  convertdate($peak_all_hour_time));
   outstop();
 }
 
@@ -997,7 +1048,7 @@ if ($hier == 0) {
     outline('FETCH from Parent Cache', $hier_parent, 100 * $hier_parent /
 	    $hier, $hier_parent_size / 1024, 100 * $hier_parent_size /
 	    $hier_size, $hier_parent_time / (1000 * $hier_parent), 1000 *
-	    $hier_parent_size / (1024 * $hier_parent_time) );
+	    $hier_parent_size / (1024 * $hier_parent_time));
 
     foreach $hitfail (sort {$hier_parent{$b} <=> $hier_parent{$a}}
 		      keys(%hier_parent)) {
@@ -1317,6 +1368,50 @@ if ($opt_r or $opt_a) {
 	    $tcp_size / (1024 * $tcp_time));
     outstop();
   }
+}
+
+@format=(15,8,6,'kbs','kbs','kbs','kbs','kbs','kbs');
+if ($opt_P) {
+  outtitle("Performance in $opt_P minute steps", 15); outstart();
+  outheader('', '', '', 'incomin', '   hit', '  miss', ' direct', 'sibling',
+	    ' fetch');
+  outheader('date', ' request', ' MByte', ' kB/sec', ' kB/sec', ' kB/sec',
+	    ' kB/sec', ' kB/sec', ' kB/sec');
+  outseperator();
+  foreach $perf_date (sort keys(%perf_counter)) {
+    writecache(U, $perf_date, $perf_counter{$perf_date},
+	       $perf_size{$perf_date}, $perf_time{$perf_date},
+	       $perf_tcp_hit_size{$perf_date},
+	       $perf_tcp_miss_size{$perf_date},
+	       $perf_tcp_miss_time{$perf_date},
+	       $perf_hier_direct_size{$perf_date},
+	       $perf_hier_direct_time{$perf_date},
+	       $perf_hier_sibling_size{$perf_date},
+	       $perf_hier_sibling_time{$perf_date},
+	       $perf_hier_parent_size{$perf_date},
+	       $perf_hier_parent_time{$perf_date});
+    outline(substr(convertdate($perf_date),0,15), $perf_counter{$perf_date},
+	    $perf_size{$perf_date} / 1024, 1000 * $perf_size{$perf_date} /
+	    (1024 * $perf_time{$perf_date}), 1000 *
+	    $perf_tcp_hit_size{$perf_date} / (1024 *
+	    $perf_tcp_hit_time{$perf_date}), 1000 *
+	    $perf_tcp_miss_size{$perf_date} / (1024 *
+	    $perf_tcp_miss_time{$perf_date}), 1000 *
+	    $perf_hier_direct_size{$perf_date} / (1024 *
+	    $perf_hier_direct_time{$perf_date}), 1000 *
+	    $perf_hier_sibling_size{$perf_date} / (1024 *
+	    $perf_hier_sibling_time{$perf_date}), 1000 *
+	    $perf_hier_parent_size{$perf_date} / (1024 *
+	    $perf_hier_parent_time{$perf_date}));
+  }
+  outseperator();
+  outline('overall', $counter, $size / 1024, 1000 * $size / (1024 * $time),
+	  1000 * $tcp_hit_size / (1024 * $tcp_hit_time), 1000 * $tcp_miss_size
+	  / (1024 * $tcp_miss_time), 1000 * $hier_direct_size / (1024 *
+	  $hier_direct_time), 1000 * $hier_sibling_size / (1024 *
+	  $hier_sibling_time), 1000 * $hier_parent_size / (1024 *
+	  $hier_parent_time));
+  outstop();
 }
 close(CACHE);
 
