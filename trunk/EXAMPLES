@@ -80,18 +80,18 @@ case $DAYDO in
     mail) (
 	    echo "To: $DAYMAIL"
 	    cat $SQUIDLOGDIR/access.log | \
-		nice -39 $CALAMARIS $CALAMARISOPTIONS -mH "$DAYTITLE"
+		nice -39 $CALAMARIS $CALAMARISOPTIONS -F mail -H "$DAYTITLE"
 	) | /usr/lib/sendmail -t
     ;;
     web) cat $SQUIDLOGDIR/access.log | \
-	    nice -39 $CALAMARIS $CALAMARISOPTIONS -wH "$DAYTITLE" > $DAYWEB
+	    nice -39 $CALAMARIS $CALAMARISOPTIONS -F html -H "$DAYTITLE" > $DAYWEB
     ;;
     both) cat $SQUIDLOGDIR/access.log | \
-	    nice -39 $CALAMARIS $CALAMARISOPTIONS -wH "$DAYTITLE" > $DAYWEB
+	    nice -39 $CALAMARIS $CALAMARISOPTIONS -F html -H "$DAYTITLE" > $DAYWEB
 	(
 	    echo "To: $DAYMAIL"
 	    cat $SQUIDLOGDIR/access.log | \
-		nice -39 $CALAMARIS $CALAMARISOPTIONS -mH "$DAYTITLE"
+		nice -39 $CALAMARIS $CALAMARISOPTIONS -F mail -H "$DAYTITLE"
 	) | /usr/lib/sendmail -t
     ;;
     *) echo "the 'todo' for the daily Squid report in $CONFFILE"
@@ -114,18 +114,18 @@ if [ $DAYOFWEEK = "0" ]; then
 	mail) (
 		echo "To: $WEEKMAIL"
 		nice -39 $CALAMARIS $CALAMARISOPTIONS -i $WEEKFILES \
-		    -zmH "$WEEKTITLE"
+		    -zH "$WEEKTITLE" -F mail
 	    ) | /usr/lib/sendmail -t
 	;;
 	web) nice -39 $CALAMARIS $CALAMARISOPTIONS -i $WEEKFILES \
-		-zwH "$WEEKTITLE" > $WEEKWEB
+		-zH "$WEEKTITLE" -F html > $WEEKWEB
 	;;
 	both) nice -39 $CALAMARIS $CALAMARISOPTIONS -i $WEEKFILES \
-		-zwH "$WEEKTITLE" > $WEEKWEB
+		-zH "$WEEKTITLE" -F html > $WEEKWEB
 	    (
 		echo "To: $WEEKMAIL"
 		nice -39 $CALAMARIS $CALAMARISOPTIONS -i $WEEKFILES \
-		    -zmH "$WEEKTITLE"
+		    -zH "$WEEKTITLE" -F mail
 	    ) | /usr/lib/sendmail -t
 	;;
 	*) echo "the 'todo' for the weekly Squid report in $CONFFILE"
@@ -197,7 +197,7 @@ cd /
 cd /var/log/squid/
 cat access.log.7 access.log.6 access.log.5 access.log.4 access.log.3 \
     access.log.2 access.log.1 access.log \
-    | /usr/local/bin/calamaris.pl -a -w > /home/httpd/html/squidreport.html
+    | /usr/local/bin/calamaris.pl -a -F html > /home/httpd/html/squidreport.html
 
 # Phew! It is done :) 60 odd seconds later :)
 -----------------------------------------------------------------------
@@ -239,13 +239,13 @@ sleep 5m
 #
 cd $LOGDIR
 cat access.log.0 | \
-$BINDIR/calamaris -amH 'Daily' | \
+$BINDIR/calamaris -aH 'Daily' -F mail | \
 mail -s "Daily Proxy-Report `date`" webmaster@ghks.de
 
 ## Weekly report will be stored as web page
 #
 if [ $DAYOFWEEK = "0" ]; then
-       	cat access.log.? | $BINDIR/calamaris -awl '<A
+       	cat access.log.? | $BINDIR/calamaris -a -F html -l '<A
 HREF="http://www.ghks.de/">GHKS</A>' > \
        	/data/www/ghks.de/admin/proxy/report-$DATE.html
 fi
@@ -289,7 +289,7 @@ fi
 # report in file ex. Mar.28.Tue.2000.htm will contain yesterday performance
 ###########################################################################
 
-cat $squidlog/access.log.0 | nice -39 $programpath -wamH 'Yesterday worf' >
+cat $squidlog/access.log.0 | nice -39 $programpath -aH 'Yesterday worf' -F mail,html >
 "$dailyreport$hef1.$hef2.$hef3.$hef4.htm"
 
 # This script will remove the outdated Squid HTML report,
@@ -318,7 +318,7 @@ then
 cat $squidlog/access.log.6 $squidlog/access.log.5 $squidlog/access.log.4
 $squidlog/access.log.3 \
     $squidlog/access.log.2 $squidlog/access.log.1 $squidlog/access.log.0 \
-    | $programpath -wamH 'Weekly worf' >
+    | $programpath -aH 'Weekly worf' -F mail,html >
 "$weeklyreport$hef1.$hef2.$hef3.$hef4.htm"
 
 if [ $totalreport -gt 5 ]
@@ -345,12 +345,12 @@ crontab:
 -----------------------------------------------------
 0 0 * * *	/usr/local/squid/bin/squid -k rotate
 30 0 * * *	cat /var/log/squid/access.log.0 | \
-		nice -39 /usr/local/squid/bin/calamaris -amH 'daily worf' | \
+		nice -39 /usr/local/squid/bin/calamaris -aH 'daily worf' -F mail | \
 		mail Squidmaster@Cord.de
 0 3 * * 7	(cd /var/log/squid/; cat access.log.6 access.log.5 \
 		access.log.4 access.log.3 access.log.2 access.log.1 \
 		access.log.0) | \
-		nice -39 /usr/local/squid/bin/calamaris -amH 'weekly worf' | \
+		nice -39 /usr/local/squid/bin/calamaris -aH 'weekly worf' -F mail | \
 		mail Squidmaster@Cord.de
 -----------------------------------------------------
 
@@ -363,4 +363,4 @@ Everyone who really uses <Squidmaster@Cord.de> while testing has to send me a
 Version of the EXAMPLES
 -----------------------
 
-$Id: EXAMPLES,v 2.10 2003-01-19 16:50:03 cord Exp $
+$Id: EXAMPLES,v 2.11 2003-02-08 22:57:24 cord Exp $
