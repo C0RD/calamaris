@@ -23,6 +23,7 @@ Which software can produce Calamaris-parseable Logfiles?
   (http://www.inktomi.com/products/network/traffic/)
 * Oops! proxy server V??? (http://zipper.paco.net/~igor/oops.eng/)
 * Compaq Tasksmart (http://www.compaq.com/tasksmart/)
+* Novell Internet Caching System (http://www.novell.com/products/ics/)
 
 
 Where to get Calamaris?
@@ -230,4 +231,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.27 2000-09-02 20:34:54 cord Exp $
+$Id: README,v 2.28 2000-09-14 17:08:36 cord Exp $
