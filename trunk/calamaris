@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.22 1999-02-20 19:33:48 cord Exp $
+# $Id: calamaris,v 2.23 1999-04-02 15:17:01 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic for Squid and NetCache Native Log-files
 #
@@ -34,6 +34,8 @@
 #	Gerd Michael Hoffmann (Hoffmann@dvgw.de)
 #	Gerold Meerkoetter (gerold@noc.fh-lippe.de)
 #	Iain Lea (iain@bricbrac.de)
+#	Emmanuel Adeline (emmanuel.adeline@mail.dotcom.fr)
+#	John Line (webadm@info.cam.ac.uk)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -70,7 +72,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:f:hH:i:l:mno:Op:P:r:st:uwz');
 
-$COPYRIGHT='Calamaris $Revision: 2.22 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
+$COPYRIGHT='Calamaris $Revision: 2.23 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
 welcome to redistribute it under certain conditions.  See source for details.
 Calamaris-Homepage: http://Calamaris.Cord.de/';
@@ -126,8 +128,9 @@ Misc:
 
 ';
 
-die($USAGE, $COPYRIGHT) if ($opt_h);
-die($COPYRIGHT) if ($opt_c);
+print($USAGE, $COPYRIGHT, "\n") if ($opt_h);
+print($COPYRIGHT, "\n") if ($opt_c);
+exit 0 if (($opt_h) or ($opt_c));
 
 if ($opt_b and $opt_b < 1) {
   warn("$0: wrong value at -b -option: \"$opt_b\"\n");
@@ -519,7 +522,8 @@ if (not defined $opt_f or $opt_f eq 'squid') {
 			       $log_method eq POST);
   unless (defined $urlhost) {
     $urlhost = $urlprot;
-    $urlprot = \'<none>\';
+    $log_content = $urlprot = \'<secure>\';
+    $urlext = \'.<secure>\'
   }
   $urlhost =~ s#^.*@##o;
   $urlhost =~ s#[:\?].*$##o;
@@ -540,22 +544,24 @@ if (not defined $opt_f or $opt_f eq 'squid') {
     $urlhost = \'*\' . $urlhost;
     $urltld = \'*\' . $urltld;
   } elsif ($urlhost =~ m#([!a-z0-9\.\-]|\.\.)#o) {
-    $urlhost = $urltld = $urlext = \'<error>\';
+    $urlhost = $urltld = $urlext = $urlprot = \'<error>\';
   } else {
     $urltld = $urlhost;
   }';
-  if ($opt_u) {
-    $loop .= '
-  $requester = $log_ident . \'@\' . $log_requester;';
-  } else {
+  if ($opt_n) {
     $loop .= '
   $requester = $log_requester;';
+  } else {
+    $loop .= '
+  $requester = getfqdn($log_requester);';
   }
+    $loop .= '
+  $requester = $log_ident . \'@\' . $requester;' if ($opt_u);
   $loop .= '
   ($log_hier_method, $log_hier_host) = (split \'/\', $log_hier)[0,1];
   $log_content = \'<unknown>\' if $log_content eq \'-\';
   $log_content =~ tr/A-Z/a-z/;
-  $log_content = $urlhost = $urltld = $urlext = \'<error>\' if
+  $log_content = $urlhost = $urltld = $urlext = $urlprot = \'<error>\' if
     ($log_code =~ m#^[45]#o);';
   $loop .= "
   print('#') if (\$counter / $opt_b) eq int(\$counter / $opt_b);" if $opt_b;
@@ -882,9 +888,10 @@ if (not defined $opt_f or $opt_f eq 'squid') {
 	$hier_direct_size{$log_hier_method} += $log_size;
 	$hier_direct_time{$log_hier_method} += $log_reqtime;' if ($opt_s);
   $loop .= '
-      } elsif ($log_hier_method =~ m#CACHE_DIGEST_\w*HIT#o or $log_hier_method
-	       =~ m#NEIGHBOR_\w*HIT#o or $log_hier_method =~ m#PARENT_\w*HIT#o
-	       or $log_hier_method =~ m#SIBLING_\w*HIT#o) {
+      } elsif ($log_hier_method =~ m#CARP#o or $log_hier_method =~
+	       m#CACHE_DIGEST_\w*HIT#o or $log_hier_method =~
+	       m#NEIGHBOR_\w*HIT#o or $log_hier_method =~ m#PARENT_\w*HIT#o or
+	       $log_hier_method =~ m#SIBLING_\w*HIT#o) {
 	$hier_sibling++;
 	$hier_sibling_size += $log_size;
 	$hier_sibling_time += $log_reqtime;';
@@ -917,12 +924,12 @@ if (not defined $opt_f or $opt_f eq 'squid') {
 	$hier_neighbor_status_time{$log_hier_host}{$log_hier_method} +=
 	  $log_reqtime;' if ($opt_s);
   $loop .= '
-      } elsif ($log_hier_method =~ m#CARP#o or $log_hier_method =~
-	       m#CLOSEST_PARENT#o or $log_hier_method =~ m#DEFAULT_PARENT#o or
-	       $log_hier_method =~ m#FIRST_UP_PARENT#o or $log_hier_method =~
-	       m#PARENT_MISS#o or $log_hier_method =~ m#PASSTHROUGH_PARENT#o
-	       or $log_hier_method =~ m#ROUNDROBIN_PARENT#o or
-	       $log_hier_method =~ m#SINGLE_PARENT#o) {
+      } elsif ($log_hier_method =~ m#CLOSEST_PARENT#o or $log_hier_method =~
+	       m#DEFAULT_PARENT#o or $log_hier_method =~ m#FIRST_UP_PARENT#o
+	       or $log_hier_method =~ m#PARENT_MISS#o or $log_hier_method =~
+	       m#PASSTHROUGH_PARENT#o or $log_hier_method =~
+	       m#ROUNDROBIN_PARENT#o or $log_hier_method =~ m#SINGLE_PARENT#o)
+	       {
 	$hier_parent++;
 	$hier_parent_size += $log_size;
 	$hier_parent_time += $log_reqtime;';
@@ -998,7 +1005,7 @@ if ($opt_w) {
   print("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"
 \"http://www.w3.org/TR/REC-html40/loose.dtd\">
 <html><head><title>${hostname}Proxy Report ($date_start - $date_stop)</title>
-<META NAME=\"GENERATOR\" CONTENT=\"Calamaris/" . '$Revision: 2.22 $' . "\"></head>
+<META NAME=\"GENERATOR\" CONTENT=\"Calamaris/" . '$Revision: 2.23 $' . "\"></head>
 <body bgcolor=\"#FFFFFF\">
 <table border=\"0\">
 <tr>");
@@ -1598,7 +1605,7 @@ if ($opt_r) {
 		 $udp_requester_time{$requester},
 		 $udp_hit_requester{$requester},
 		 $udp_hit_requester_size{$requester});
-      outline(getfqdn($requester), $udp_requester{$requester}, 100 *
+      outline($requester, $udp_requester{$requester}, 100 *
 	      $udp_hit_requester{$requester} / $udp_requester{$requester},
 	      $udp_requester_size{$requester} / 1024, 100 *
 	      $udp_hit_requester_size{$requester} /
@@ -1643,7 +1650,7 @@ if ($opt_r) {
 		 $tcp_requester_time{$requester},
 		 $tcp_hit_requester{$requester},
 		 $tcp_hit_requester_size{$requester});
-      outline(getfqdn($requester), $tcp_requester{$requester}, 100 *
+      outline($requester, $tcp_requester{$requester}, 100 *
 	      $tcp_hit_requester{$requester} / $tcp_requester{$requester},
 	      $tcp_requester_size{$requester} / 1024, 100 *
 	      $tcp_hit_requester_size{$requester} /
@@ -1680,7 +1687,7 @@ if ($opt_P) {
     outheader('date', ' request', ' MByte', ' kB/sec', ' kB/sec', ' kB/sec',
 	      ' kB/sec', ' kB/sec', ' kB/sec');
     outseperator();
-    foreach $perf_date (sort keys(%perf_counter)) {
+    foreach $perf_date (sort {$a <=> $b} keys(%perf_counter)) {
       writecache(U, $perf_date, $perf_counter{$perf_date},
 		 $perf_size{$perf_date}, $perf_time{$perf_date},
 		 $perf_tcp_hit_size{$perf_date},
@@ -1722,7 +1729,7 @@ close(CACHE);
 
 if ($opt_w) {
   print("<hr><address><A HREF=\"http://Calamaris.Cord.de/\">Calamaris</A> " .
-    '$Revision: 2.22 $' . ", Copyright &copy; 1997, 1998, 1999 <A
+    '$Revision: 2.23 $' . ", Copyright &copy; 1997, 1998, 1999 <A
     HREF=\"http://Cord.de/\">Cord Beermann</A>.<br>Calamaris comes with
     ABSOLUTELY NO WARRANTY. It is free software, and you are welcome to
     redistribute it under certain conditions.  See source for
@@ -1745,9 +1752,7 @@ sub removezerotimes {
 
 sub getfqdn {
   my ($host) = @_;
-  if ($opt_n) {
-    return $host;
-  } elsif ($host =~ m#^([^@]+@)?(([0-9][0-9]{0,2}\.){3}[0-9][0-9]{0,2}$)#o) {
+  if ($host =~ m#^([^@]+@)?(([0-9][0-9]{0,2}\.){3}[0-9][0-9]{0,2}$)#o) {
     $hostcache{$2} = addtonam($2) unless defined $hostcache{$2};
     return $1 . $hostcache{$2} if defined $1;
     return $hostcache{$2};
@@ -1848,11 +1853,11 @@ sub outline {
 	unless ($print =~ s#^ ##go) {
 	  print("<td><strong>$print</strong>");
 	} else {
-	  print("<td>$print");
+	  print("<td>&nbsp;&nbsp;$print");
 	}
       } elsif ($format[$no] eq '%' or $format[$no] eq 'kbs') {
 	if ($print eq '' or $print eq '-') {
-	  print('<td>');
+	  print('<td>&nbsp;');
 	} else {
 	  printf("<td align=\"right\">%.2f", $print);
 	}
