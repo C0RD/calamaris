@@ -26,6 +26,7 @@ Which software can produce Calamaris-parseable Logfiles?
 * Novell Internet Caching System (http://www.novell.com/products/ics/)
 * Netscape/iplanet Web Proxy Server
   (http://www.iplanet.com/downloads/download/detail_14_13.html)
+* Squid with the Smartfilter-patch
 
 Where to get Calamaris?
 -----------------------
@@ -76,6 +77,7 @@ How to use it?
   + Extended Logfile-Format
   + NetApp Default Logfile-Format (some kind of Extended Logfile-Format)
   + NetApps understanding of Squid Native logfiles
+  + Squid with SmartFilter-Patch Logfiles
 
   If Calamaris can't parse the input, check your logfile format.
   + Squid-Logfiles: http://www.squid-cache.org/Doc/FAQ/FAQ-6.html
@@ -110,6 +112,13 @@ How to use it?
 Are there known bugs or other problems?
 ---------------------------------------
 
+* the byte-histogram sometimes displays a 0-0-byte line. this is correct. the
+  requests added there are really logged as 0-byte-sized in the Logfile. Note
+  that empty byte-ranges as 1-9 (which is impossible because of
+  protocol-overhead) are skipped and not displayed in the report, so you can
+  end up with 0-0 followed by 10-99 in the report. (noted by Reagan Blundell
+  <reagan@muppet.whatever.net.au> through Debian-Bug-Tracking)
+
 * there were many requests to add something that enables Calamaris to track
   down who is using the Cache to get what. I added these with stomache-ache,
   because it breaks the privacy of the users. So please read the following
@@ -129,8 +138,8 @@ Are there known bugs or other problems?
   and new cachefiles. But you will loose the 'Cache-Hits'-value from old files
   in the Performance-Report.  It is set to '-' in the output.
 
-* If you reuse a cache-file, which is not created with 
-  '-d -1 -r -1 -t -1 -R -1' the number of 'others' is likely wrong everywhere. 
+* If you reuse a cache-file, which is not created with
+  '-d -1 -r -1 -t -1 -R -1' the number of 'others' is likely wrong everywhere.
   (reported by Clare Lahiff (clare@tarboosh.anu.edu.au))
 
   If i store the number of 'others' somewhere i still don't know which data is
@@ -147,6 +156,12 @@ Are there known bugs or other problems?
   because peaks occuring during log-rotate-time can't be detected.
 
   Calamaris will add a warning to the report if it recognizes unsorted input.
+
+* Squid with the Smartfilter-Patch produces broken Logfiles if an URL is in
+  it's database. I don't want to construct a workaround for the bugs in others
+  people spyware. Even if they fix that problem, i would not add a report to
+  give an overview about the usage of the Categories. (see first point of this
+  chapter.)
 
 * Squid doesn't log outgoing UDP-Requests, so i can't put them into the
   statistics without parsing squid.conf and the cache.log-file. (Javier Puche
@@ -189,9 +204,6 @@ But if you have an idea what is still missing in a software for parsing proxy
 logfiles, let me know. --> Calamaris@Cord.de. I'll will build it in, or add
 it to the wish-list below :-)
 
-* seperate on/off switching of incoming UDP/TCP-Requests (based on
-  UDP-Requests?) (suggested by John Line <webadm@info.cam.ac.uk>)
-
 * rewrite peak-measurement. The new calculation method is very time intensive
   and slows down Calamaris by 30 or more percent, but it is faster than the
   old way. However: i'm not really satisfied with it, so i put it out of the
@@ -203,8 +215,6 @@ it to the wish-list below :-)
 
 * try 'use integer'. This can result in a less memory-hungry, but faster
   version of Calamaris. (idea by Gerold Meerkoetter)
-
-* add a n-level requester report. (suggested by Jarkko Saloranta <jjs@kpo.fi>)
 
 * add a timerange-option to better filter out intersting events from the log.
   (suggested by Steffen Sledz <sledz@zone42.org>)
@@ -254,4 +264,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.33 2002-01-25 21:19:05 cord Exp $
+$Id: README,v 2.34 2002-05-17 20:33:24 cord Exp $
