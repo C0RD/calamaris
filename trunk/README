@@ -141,6 +141,10 @@ How to use it?
 
     -n	    no lookup. Switch the IP-number-lookup for the requesters off. 
 
+    -O	    order. Normally Calamaris sorts all reports by the number of the
+	    requests, with this switch you can change the sort order for all 
+	    reports to request-size.
+
     -u	    user. Switches the usage of eventually available ident-information
 	    for requester-reports on. WARNING: This breaks the privacy of your
 	    users!
@@ -218,9 +222,6 @@ But if you have an idea what is still missing in a software for parsing
 Proxy-Log-files, let me know. --> Calamaris@Cord.de. I'll will build it in, or
 add it to the wish-list below :-)
 
-* add switch for sorting by requests and sorting by bytes. (Gerd Michael
-  Hoffmann <Hoffmann@dvgw.de> asked for this)
-
 * add report for byte-peak (inspirated by Andreas Strotmann
   <A.Strotmann@Uni-Koeln.DE>) (I have no idea how to calculate that)
 
@@ -270,4 +271,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.8 1998-10-18 22:06:00 cord Exp $
+$Id: README,v 2.9 1998-10-20 09:37:56 cord Exp $

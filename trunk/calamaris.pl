@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 2.9 1998-10-18 21:37:17 cord Exp $
+# $Id: calamaris.pl,v 2.10 1998-10-20 09:37:57 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Log-files
 #
@@ -31,6 +31,7 @@
 #	Bernd Lienau (lienau@tli.de)
 #	Gary Lindstrom (gplindstrom@exodus.nnc.edu)
 #	Jost Krieger (Jost.Krieger@ruhr-uni-bochum.de)
+#	Gerd Michael Hoffmann <Hoffmann@dvgw.de>
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -60,13 +61,14 @@
 require 5;
 
 use vars qw($opt_a $opt_b $opt_c $opt_d $opt_h $opt_H $opt_i $opt_m $opt_n
-	    $opt_o $opt_p $opt_P $opt_r $opt_s $opt_t $opt_u $opt_w $opt_z);
+	    $opt_o $opt_O $opt_p $opt_P $opt_r $opt_s $opt_t $opt_u $opt_w
+	    $opt_z);
 use Getopt::Std;
 use Sys::Hostname;
 
-getopts('ab:cd:hH:i:mno:pP:r:st:uwz');
+getopts('ab:cd:hH:i:mno:OpP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 2.9 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 2.10 $, Copyright (C) 1997, 1998 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -98,9 +100,11 @@ Caching:
 
 Misc:
 -b n	    benchmark (prints a hash for each n lines)
--H name	    Host-name (a name for the Output, -H \'lookup\' issues a lookup for
-		      the current host)
+-H name	    Host-name (a name for the Output, -H \'lookup\' issues a lookup
+		       for the current host)
 -n	    no-lookup (don\'t look IP-Numbers up)
+-O	    order (changes the sort order in the reports to request size,
+		   default is sorting by number of requests)
 -u	    user (use ident information if available)
 -z	    zero (no input via stdin)
 
@@ -128,6 +132,9 @@ if ($opt_H) {
 } else {
   $hostname = '';
 }
+
+$sortorder = '';
+$sortorder = '_size' if ($opt_O);
 
 if ($opt_a) {
   $opt_s = 1;
@@ -961,7 +968,8 @@ if ($counter == 0) {
   outstart();
   outheader('method',' request','% ','  kByte','% ',' sec',' kB/sec');
   outseperator();
-  foreach $method (sort {$method{$b} <=> $method{$a}} keys(%method)) {
+  foreach $method (sort {${"method$sortorder"}{$b} <=>
+			 ${"method$sortorder"}{$a}} keys(%method)) {
     writecache(C, $method, $method{$method}, $method_size{$method},
 	       $method_time{$method});
     outline($method, $method{$method}, 100 * $method{$method} / $counter,
@@ -988,7 +996,8 @@ if ($udp == 0) {
     outline(HIT, $udp_hit, 100 * $udp_hit / $udp, $udp_hit_size / 1024, 100 *
 	    $udp_hit_size / $udp_size, $udp_hit_time / $udp_hit, 1000 *
 	    $udp_hit_size / (1024 * $udp_hit_time));
-    foreach $hitfail (sort {$udp_hit{$b} <=> $udp_hit{$a}} keys(%udp_hit)) {
+    foreach $hitfail (sort {${"udp_hit$sortorder"}{$b} <=>
+			    ${"udp_hit$sortorder"}{$a}} keys(%udp_hit)) {
       writecache(D, $hitfail, $udp_hit{$hitfail}, $udp_hit_size{$hitfail},
 		 $udp_hit_time{$hitfail});
       outline(' ' . $hitfail, $udp_hit{$hitfail}, 100 * $udp_hit{$hitfail} /
@@ -1004,7 +1013,8 @@ if ($udp == 0) {
     outline(MISS, $udp_miss, 100 * $udp_miss / $udp, $udp_miss_size / 1024,
 	    100 * $udp_miss_size / $udp_size, $udp_miss_time / $udp_miss,
 	    1000 * $udp_miss_size / (1024 * $udp_miss_time));
-    foreach $hitfail (sort {$udp_miss{$b} <=> $udp_miss{$a}} keys(%udp_miss)) {
+    foreach $hitfail (sort {${"udp_miss$sortorder"}{$b} <=>
+			    ${"udp_miss$sortorder"}{$a}} keys(%udp_miss)) {
       writecache(E, $hitfail, $udp_miss{$hitfail}, $udp_miss_size{$hitfail},
 		 $udp_miss_time{$hitfail});
       outline(' ' . $hitfail, $udp_miss{$hitfail}, 100 * $udp_miss{$hitfail} /
@@ -1033,7 +1043,8 @@ if ($tcp == 0) {
     outline(HIT, $tcp_hit, 100 * $tcp_hit / $tcp, $tcp_hit_size / 1024, 100 *
 	    $tcp_hit_size / $tcp_size, $tcp_hit_time / (1000 * $tcp_hit),
 	    1000 * $tcp_hit_size / (1024 * $tcp_hit_time));
-    foreach $hitfail (sort {$tcp_hit{$b} <=> $tcp_hit{$a}} keys(%tcp_hit)) {
+    foreach $hitfail (sort {${"tcp_hit$sortorder"}{$b} <=>
+			    ${"tcp_hit$sortorder"}{$a}} keys(%tcp_hit)) {
       writecache(F, $hitfail, $tcp_hit{$hitfail}, $tcp_hit_size{$hitfail},
 		 $tcp_hit_time{$hitfail});
       outline(' ' . $hitfail, $tcp_hit{$hitfail}, 100 * $tcp_hit{$hitfail} /
@@ -1050,7 +1061,8 @@ if ($tcp == 0) {
 	    100 * $tcp_miss_size / $tcp_size, $tcp_miss_time /
 	    (1000 * $tcp_miss), 1000 * $tcp_miss_size /
 	    (1024 * $tcp_miss_time));
-    foreach $hitfail (sort {$tcp_miss{$b} <=> $tcp_miss{$a}} keys(%tcp_miss)) {
+    foreach $hitfail (sort {${"tcp_miss$sortorder"}{$b} <=>
+			    ${"tcp_miss$sortorder"}{$a}} keys(%tcp_miss)) {
       writecache(G, $hitfail, $tcp_miss{$hitfail}, $tcp_miss_size{$hitfail},
 		 $tcp_miss_time{$hitfail});
       outline(' ' . $hitfail, $tcp_miss{$hitfail}, 100 * $tcp_miss{$hitfail} /
@@ -1067,7 +1079,8 @@ if ($tcp == 0) {
 	    $tcp_miss_none_size / 1024, 100 * $tcp_miss_none_size / $tcp_size,
 	    $tcp_miss_none_time / (1000 * $tcp_miss_none), 1000 *
 	    $tcp_miss_none_size / (1024 * $tcp_miss_none_time));
-    foreach $hitfail (sort {$tcp_miss_none{$b} <=> $tcp_miss_none{$a}}
+    foreach $hitfail (sort {${"tcp_miss_none$sortorder"}{$b} <=>
+			    ${"tcp_miss_none$sortorder"}{$a}}
 		      keys(%tcp_miss_none)) {
       writecache(H, $hitfail, $tcp_miss_none{$hitfail},
 		 $tcp_miss_none_size{$hitfail}, $tcp_miss_none_time{$hitfail});
@@ -1100,7 +1113,8 @@ if ($hier == 0) {
 	    $hier, $hier_direct_size / 1024, 100 * $hier_direct_size /
 	    $hier_size, $hier_direct_time / (1000 * $hier_direct), 1000 *
 	    $hier_direct_size / (1024 * $hier_direct_time));
-    foreach $hitfail (sort {$hier_direct{$b} <=> $hier_direct{$a}}
+    foreach $hitfail (sort {${"hier_direct$sortorder"}{$b} <=>
+			    ${"hier_direct$sortorder"}{$a}}
 		      keys(%hier_direct)) {
       writecache(I, $hitfail, $hier_direct{$hitfail},
 		 $hier_direct_size{$hitfail}, $hier_direct_time{$hitfail});
@@ -1120,7 +1134,8 @@ if ($hier == 0) {
 	    $hier_sibling_size / $hier_size, $hier_sibling_time /
 	    (1000 * $hier_sibling), 1000 * $hier_sibling_size /
 	    (1024 * $hier_sibling_time));
-    foreach $hitfail (sort {$hier_sibling{$b} <=> $hier_sibling{$a}}
+    foreach $hitfail (sort {${"hier_sibling$sortorder"}{$b} <=>
+			    ${"hier_sibling$sortorder"}{$a}}
 		      keys(%hier_sibling)) {
       writecache(J, $hitfail, $hier_sibling{$hitfail},
 		 $hier_sibling_size{$hitfail}, $hier_sibling_time{$hitfail});
@@ -1139,8 +1154,8 @@ if ($hier == 0) {
 	    $hier, $hier_parent_size / 1024, 100 * $hier_parent_size /
 	    $hier_size, $hier_parent_time / (1000 * $hier_parent), 1000 *
 	    $hier_parent_size / (1024 * $hier_parent_time));
-
-    foreach $hitfail (sort {$hier_parent{$b} <=> $hier_parent{$a}}
+    foreach $hitfail (sort {${"hier_parent$sortorder"}{$b} <=>
+			    ${"hier_parent$sortorder"}{$a}}
 		      keys(%hier_parent)) {
       writecache(K, $hitfail, $hier_parent{$hitfail},
 		 $hier_parent_size{$hitfail}, $hier_parent_time{$hitfail});
@@ -1169,7 +1184,8 @@ if ($tcp_miss == 0) {
 	  / 1024, 100 * $hier_direct_size / $hier_size, $hier_direct_time /
 	  (1000 * $hier_direct), 1000 * $hier_direct_size /
 	  (1024 * $hier_direct_time)) unless $hier_direct == 0;
-  foreach $neighbor (sort {$hier_neighbor{$b} <=> $hier_neighbor{$a}}
+  foreach $neighbor (sort {${"hier_neighbor$sortorder"}{$b} <=>
+			   ${"hier_neighbor$sortorder"}{$a}}
 		     keys(%hier_neighbor)) {
     writecache(L, $neighbor, $hier_neighbor{$neighbor},
 	       $hier_neighbor_size{$neighbor},
@@ -1180,8 +1196,9 @@ if ($tcp_miss == 0) {
 	    $hier_neighbor_time{$neighbor} / (1000 * $hier), 1000 *
 	    $hier_neighbor_size{$neighbor} / (1024 *
 	    $hier_neighbor_time{$neighbor}));
-    foreach $status (sort {$hier_neighbor_status{$neighbor}{$b} <=>
-			   $hier_neighbor_status{$neighbor}{$a}}
+    foreach $status (sort {${"hier_neighbor_status$sortorder"}{$neighbor}{$b}
+			   <=>
+			   ${"hier_neighbor_status$sortorder"}{$neighbor}{$a}}
 		     keys(%{$hier_neighbor_status{$neighbor}})) {
       writecache(M, $neighbor, $status,
 		 $hier_neighbor_status{$neighbor}{$status},
@@ -1218,7 +1235,8 @@ if ($opt_d) {
     $other_size = $tcp_size;
     $other_hit = $tcp_hit;
     $other_count = $opt_d;
-    foreach $urlhost (sort {$tcp_urlhost{$b} <=> $tcp_urlhost{$a}}
+    foreach $urlhost (sort {${"tcp_urlhost$sortorder"}{$b} <=>
+			    ${"tcp_urlhost$sortorder"}{$a}}
 		      keys(%tcp_urlhost)) {
       next if $urlhost eq '<other>';
       $other_urlhost--;
@@ -1252,7 +1270,8 @@ if ($opt_d) {
     $other_size = $tcp_size;
     $other_hit = $tcp_hit;
     $other_count = $opt_d;
-    foreach $urltld (sort {$tcp_urltld{$b} <=> $tcp_urltld{$a}}
+    foreach $urltld (sort {${"tcp_urltld$sortorder"}{$b} <=>
+			   ${"tcp_urltld$sortorder"}{$a}}
 		     keys(%tcp_urltld)) {
       next if $urltld eq '<other>';
       $other_tld--;
@@ -1287,7 +1306,8 @@ if ($opt_t) {
     outstart();
     outheader('protocol',' request','% ','  kByte','% ','hit-%');
     outseperator();
-    foreach $urlprot (sort {$tcp_urlprot{$b} <=> $tcp_urlprot{$a}}
+    foreach $urlprot (sort {${"tcp_urlprot$sortorder"}{$b} <=>
+			    ${"tcp_urlprot$sortorder"}{$a}}
 		      keys(%tcp_urlprot)) {
       writecache(P, $urlprot, $tcp_urlprot{$urlprot},
 		 $tcp_urlprot_size{$urlprot}, $tcp_hit_urlprot{$urlprot});
@@ -1313,7 +1333,8 @@ if ($opt_t) {
     $other_size = $tcp_size;
     $other_hit = $tcp_hit;
     $other_count = $opt_t;
-    foreach $content (sort {$tcp_content{$b} <=> $tcp_content{$a}}
+    foreach $content (sort {${"tcp_content$sortorder"}{$b} <=>
+			    ${"tcp_content$sortorder"}{$a}}
 		      keys(%tcp_content)) {
       next if $content eq '<other>';
       $other_content--;
@@ -1351,8 +1372,8 @@ if ($opt_t) {
     $other_size = $tcp_size;
     $other_hit = $tcp_hit;
     $other_count = $opt_t;
-    foreach $urlext (sort {$tcp_urlext{$b} <=> $tcp_urlext{$a}}
-		     keys(%tcp_urlext)) {
+    foreach $urlext (sort {${"tcp_urlext$sortorder"}{$b} <=>
+			   ${"tcp_urlext$sortorder"}{$a}} keys(%tcp_urlext)) {
       next if $urlext eq '<other>';
       $other_urlext--;
       $other -= $tcp_urlext{$urlext};
@@ -1387,7 +1408,8 @@ if ($opt_r) {
     outstart();
     outheader('host',' request','hit-%','  kByte','hit-%','msec',' kB/sec');
     outseperator();
-    foreach $requester (sort {$udp_requester{$b} <=> $udp_requester{$a}}
+    foreach $requester (sort {${"udp_requester$sortorder"}{$b} <=>
+			      ${"udp_requester$sortorder"}{$a}}
 			keys(%udp_requester)) {
       writecache(S, $requester, $udp_requester{$requester},
 		 $udp_requester_size{$requester},
@@ -1425,7 +1447,8 @@ if ($opt_r) {
     $other_hit = $tcp_hit;
     $other_hit_size = $tcp_hit_size;
     $other_count = $opt_r;
-    foreach $requester (sort {$tcp_requester{$b} <=> $tcp_requester{$a}}
+    foreach $requester (sort {${"tcp_requester$sortorder"}{$b} <=>
+			      ${"tcp_requester$sortorder"}{$a}}
 			keys(%tcp_requester)) {
       next if $requester eq '<other>';
       $other_requester--;
