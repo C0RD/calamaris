@@ -233,6 +233,9 @@ add it to the wish-list below :-)
   has an idea how to build an efficient AND fast method to work it out... let
   me know!
 
+* try 'use integer'. This can result in a less memory-hungry, but faster
+  version of Calamaris. (idea by Gerold Meerkoetter)
+
 * build graphics (hope i remember who suggested this first, the mail must be
   somewhere in my work-mailbox ;-) (This is a thing for Calamaris v3, if i
   ever going to write it. there are nice gd-libs in Perl ;-)
@@ -289,4 +292,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.14 1998-12-09 22:23:53 cord Exp $
+$Id: README,v 2.15 1999-01-22 21:06:57 cord Exp $
