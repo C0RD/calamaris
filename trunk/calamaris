@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.53 2002-11-23 17:35:11 cord Exp $
+# $Id: calamaris,v 2.54 2002-11-23 17:53:48 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
@@ -230,7 +230,7 @@ if ( $opt_N == -1 or $opt_N > 2 ) {
 	    'Distribution Histogram', "Performance in $P minute steps"
 	    );
 
-$VERSION='Calamaris $Revision: 2.53 $';
+$VERSION='Calamaris $Revision: 2.54 $';
 
 $COPYRIGHT = 'Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
@@ -1193,7 +1193,7 @@ Thank You.\n\n";
       $skipped++;
       next;
     }
-  ';
+  ' if $opt_I;
   $loop .= '
   $log_reqtime = .1 if $log_reqtime == 0;
   ( $log_hitfail, $log_code ) = split \'/\', $log_status;
@@ -1837,7 +1837,7 @@ if ( $opt_w or $opt_W ) {
 <html>
  <head>
   <title>${host_name}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.53 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.54 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
@@ -3084,7 +3084,7 @@ if ($opt_S) {
 if ( $opt_w or $opt_W ) {
   print '  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.53 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002
+   $Revision: 2.54 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
