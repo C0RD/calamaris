@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 2.4 1998-10-10 17:16:53 cord Exp $
+# $Id: calamaris.pl,v 2.5 1998-10-10 18:51:48 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Log-files
 #
@@ -30,6 +30,7 @@
 #	Roar Smith (Roar.Smith@Ericsson.Dk)
 #	Bernd Lienau (lienau@tli.de)
 #	Gary Lindstrom (gplindstrom@exodus.nnc.edu)
+#	Jost Krieger (Jost.Krieger@ruhr-uni-bochum.de)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -65,7 +66,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 2.4 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 2.5 $, Copyright (C) 1997, 1998 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -377,10 +378,10 @@ if ($opt_i) {
 	$tcp_requester_time{$y} += $cache[2];
 	$tcp_hit_requester{$y} += $cache[3];
 	$tcp_hit_requester_size{$y} += $cache[4];
-      } elsif ($x eq U and $#cache == 12) {
+      } elsif ($x eq U and $#cache == 13) {
 	$y = shift(@cache);
 	($perf_counter{$y}, $perf_size{$y}, $perf_time{$y},
-	 $perf_tcp_hit_size{$y}, $perf_tcp_hit_time{$perf_date},
+	 $perf_tcp_hit_size{$y}, $perf_tcp_hit_time{$y},
 	 $perf_tcp_miss_size{$y}, $perf_tcp_miss_time{$y},
 	 $perf_hier_direct_size{$y}, $perf_hier_direct_time{$y},
 	 $perf_hier_sibling_size{$y}, $perf_hier_sibling_time{$y},
@@ -1454,8 +1455,7 @@ if ($opt_P) {
   foreach $perf_date (sort keys(%perf_counter)) {
     writecache(U, $perf_date, $perf_counter{$perf_date},
 	       $perf_size{$perf_date}, $perf_time{$perf_date},
-	       $perf_tcp_hit_size{$perf_date},
-	       $perf_tcp_hit_time{$perf_date},
+	       $perf_tcp_hit_size{$perf_date}, $perf_tcp_hit_time{$perf_date},
 	       $perf_tcp_miss_size{$perf_date},
 	       $perf_tcp_miss_time{$perf_date},
 	       $perf_hier_direct_size{$perf_date},
