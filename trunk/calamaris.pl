@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.120 1998-09-21 21:29:50 cord Exp $
+# $Id: calamaris.pl,v 1.121 1998-09-22 21:43:35 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Logfiles.
 #
@@ -137,7 +137,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.120 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.121 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -1529,27 +1529,28 @@ if ($opt_P) {
 	       $perf_hier_sibling_time{$perf_date},
 	       $perf_hier_parent_size{$perf_date},
 	       $perf_hier_parent_time{$perf_date});
-    outline(substr(convertdate($perf_date),0,15), $perf_counter{$perf_date},
-	    $perf_size{$perf_date} / 1024, 1000 * $perf_size{$perf_date} /
-	    (1024 * $perf_time{$perf_date}), 1000 *
-	    $perf_tcp_hit_size{$perf_date} / (1024 *
-	    $perf_tcp_hit_time{$perf_date}), 1000 *
-	    $perf_tcp_miss_size{$perf_date} / (1024 *
-	    $perf_tcp_miss_time{$perf_date}), 1000 *
-	    $perf_hier_direct_size{$perf_date} / (1024 *
-	    $perf_hier_direct_time{$perf_date}), 1000 *
-	    $perf_hier_sibling_size{$perf_date} / (1024 *
-	    $perf_hier_sibling_time{$perf_date}), 1000 *
-	    $perf_hier_parent_size{$perf_date} / (1024 *
+    outline(substr(convertdate($perf_date),0,15),
+	    $perf_counter{$perf_date},
+	    $perf_size{$perf_date} / 1024,
+	    removezerotimes($perf_size{$perf_date}, $perf_time{$perf_date}),
+	    removezerotimes($perf_tcp_hit_size{$perf_date},
+	    $perf_tcp_hit_time{$perf_date}),
+	    removezerotimes($perf_tcp_miss_size{$perf_date},
+	    $perf_tcp_miss_time{$perf_date}),
+	    removezerotimes($perf_hier_direct_size{$perf_date},
+	    $perf_hier_direct_time{$perf_date}),
+	    removezerotimes($perf_hier_sibling_size{$perf_date},
+	    $perf_hier_sibling_time{$perf_date}),
+	    removezerotimes($perf_hier_parent_size{$perf_date},
 	    $perf_hier_parent_time{$perf_date}));
   }
   outseperator();
-  outline('overall', $counter, $size / 1024, 1000 * $size / (1024 * $time),
-	  1000 * $tcp_hit_size / (1024 * $tcp_hit_time), 1000 * $tcp_miss_size
-	  / (1024 * $tcp_miss_time), 1000 * $hier_direct_size / (1024 *
-	  $hier_direct_time), 1000 * $hier_sibling_size / (1024 *
-	  $hier_sibling_time), 1000 * $hier_parent_size / (1024 *
-	  $hier_parent_time));
+  outline('overall', $counter, $size / 1024, removezerotimes($size, $time),
+	  removezerotimes($tcp_hit_size, $tcp_hit_time),
+	  removezerotimes($tcp_miss_size, $tcp_miss_time),
+	  removezerotimes($hier_direct_size, $hier_direct_time),
+	  removezerotimes($hier_sibling_size, $hier_sibling_time),
+	  removezerotimes($hier_parent_size, $hier_parent_time));
   outstop();
 }
 close(CACHE);
@@ -1558,6 +1559,16 @@ if ($opt_w) {
   print("<address>$COPYRIGHT</address>\n</body></html>\n");
 } else {
   print("\n\n\n$COPYRIGHT\n");
+}
+
+sub removezerotimes {
+  my ($size) = shift (@_);
+  my ($time) = shift (@_);
+  if ($size == 0) {
+    return '-';
+  } else {
+    return 1000 * $size / (1024 * $time);
+  }
 }
 
 sub getfqdn {
@@ -1668,7 +1679,7 @@ sub outline {
 	  print("<td>$print");
 	}
       } elsif ($format[$no] eq '%' or $format[$no] eq 'kbs') {
-	if ($print eq '') {
+	if ($print eq '' or $print eq '-') {
 	  print('<td>');
 	} else {
 	  printf("<td align=\"right\">%.2f", $print);
@@ -1692,7 +1703,11 @@ sub outline {
 	  printf("%6.2f ", $print);
 	}
       } elsif ($format[$no] eq 'kbs') {
-	printf("%7.2f ", $print);
+	if ($print eq '-') {
+	  printf('    -   ');
+	} else {
+	  printf("%7.2f ", $print);
+	}
       } else {
 	$print = sprintf("%d", $print + .5) if $print =~ m#^[\d\.e\-\+]+$#o;
 	print(' ' x ($format[$no] - length($print)) .
