@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.119 1998-09-21 19:14:55 cord Exp $
+# $Id: calamaris.pl,v 1.120 1998-09-21 21:29:50 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Logfiles.
 #
@@ -124,8 +124,8 @@
 # somewhere in my work-mailbox ;-) (This is a thing for calamaris v3, if i
 # ever going to write it. there are nice gd-libs in perl ;-)
 
-# * add NetCache-Support. The NetCache-Support is rudimentary working, but is
-# only in some kind of alpha-state. see 'Bugs and Shortcomings' above.
+# * add real NetCache-Support. The NetCache-Support is rudimentary working,
+# but is only in some kind of alpha-state. see 'Bugs and Shortcomings' above.
 
 require 5;
 
@@ -137,7 +137,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.119 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.120 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -147,21 +147,25 @@ See source for details.
 $USAGE='Usage: cat log | ' . $0 . ' [switches]
 
 Reports:
--a	    all  (extracts all reports available)
--d n	    domain (show n Top-level and n second-level destinations)
+-a	    all  (extracts all reports available,
+		  -a equals -d 20 -p -P 60 -r 50 -s -t 20)
+-d n	    domain (show n Top-level and n second-level destinations,
+		    0 = unlimited)
 -p	    peak (measure peak requests)
 -P n	    Performance (show throughput data for every n minutes)
--r n	    requester (show n Requesters)
+-r n	    requester (show n Requesters, 0 = unlimited)
 -s	    status (show verbose status reports)
--t n	    type (show n content-type, n extensions and requested protocols)
+-t n	    type (show n content-type, n extensions and requested protocols,
+		  0 = unlimited)
 
 Output Format: (Default is plain text)
 -m	    mail  (mail format)
--w	    web   (HTML format)
+-w	    web   (HTML format, can be combined with -m)
 
 Caching:
--i file	    input-file (input-datafile for caching)
--o file	    output-file (output-datafile for caching, could be the same as -i)
+-i file	    input-file (input-datafile for caching, to add many files
+			seperate them with a \':\')
+-o file	    output-file (output-datafile for caching, can be the same as -i)
 
 Misc:
 -b n	    benchmark (prints a hash for each n lines)
