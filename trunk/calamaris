@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 2.12 1998-10-22 22:37:14 cord Exp $
+# $Id: calamaris,v 1.2 1998-11-16 21:42:47 cord Exp $
 #
-# DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Log-files
+# DESCRIPTION: calamaris - statistic for Squid and NetCache Native Log-files
 #
 # Copyright (C) 1997, 1998 Cord Beermann
 #
@@ -67,7 +67,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:OpP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 2.12 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.2 $, Copyright (C) 1997, 1998 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -81,7 +81,8 @@ Reports:
 		  -a equals -d 20 -p -P 60 -r -1 -s -t 20)
 -d n	    domain (show n Top-level and n second-level destinations,
 		    -1 = unlimited)
--p	    peak (measure peak requests)
+-p	    peak (measure peak requests) (this slows Calamaris significantly
+					  (>30%) down.)
 -P n	    Performance (show throughput data for every n minutes)
 -r n	    requester (show n Requesters, -1 = unlimited)
 -s	    status (show verbose status reports)
