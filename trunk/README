@@ -33,8 +33,8 @@ changes. --> Low-Traffic.
 Kevin Way (kevin@research-inc.com) has build rpms of Calamaris, which can be
 found at http://overtone.org/rpms/
 
-Philipp Frauenfelder (pfrauenf@debian.org) has started to build a Debian
-Package.
+Philipp Frauenfelder (pfrauenf@debian.org) has build a Debian Package, which
+can be found in the slink-tree.
 
 
 How to use it?
@@ -161,17 +161,17 @@ How to use it?
 Are there known bugs or other problems?
 ---------------------------------------
 
-* I fixed a bug regarding caching of Performance-Data. This brakes old
-  Calamaris-Cache-Files... I a workaround in, which allows to parse old and
-  new cachefiles. This sets 'Cache-Hits' in the Performance-Report to '-'.
+* I fixed a bug regarding caching of Performance-Data. This breaks old
+  Calamaris-Cache-Files... I put a workaround in, which allows to parse old
+  and new cachefiles. But you will loose the 'Cache-Hits'-value from old files
+  in the Performance-Report.  It is set to '-' in the output.
 
 * It is possible that you encounter problems if you use Squid V1.2.x/V2.x.
   Calamaris isn't well tested with the new release. (I don't have a production
   cache of it yet.) If you find problems, please report them to
   Calamaris-bug@Cord.de. I'll try to fix them ASAP.  I'm also very interested
-  how Calamaris works with CACHE_DIGEST and CARP-Support. So if you use it,
-  please send me a mail to Calamaris@Cord.de, even if it works without
-  problem. Thank You.
+  how Calamaris works with CARP-Support. So if you use it, please send me a
+  mail to Calamaris@Cord.de, even if it works without problem. Thank You.
 
 * If you parse NetCache Log-files with Calamaris, it seems that you can run
   into trouble. I've looked for information on the Log-file-format from the
@@ -220,10 +220,6 @@ add it to the wish-list below :-)
 
 * add switch for sorting by requests and sorting by bytes. (Gerd Michael
   Hoffmann <Hoffmann@dvgw.de> asked for this)
-
-* rewrite it so that the Main-loop is constructed first and than run via eval.
-  This could make Calamaris significantly faster. (suggested by Jost Krieger
-  <Jost.Krieger@ruhr-uni-bochum.de>)
 
 * add report for byte-peak (inspirated by Andreas Strotmann
   <A.Strotmann@Uni-Koeln.DE>) (I have no idea how to calculate that)
@@ -274,4 +270,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.7 1998-10-14 20:56:36 cord Exp $
+$Id: README,v 2.8 1998-10-18 22:06:00 cord Exp $
