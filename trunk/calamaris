@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.39 2000-10-12 17:14:15 cord Exp $
+# $Id: calamaris,v 2.40 2000-10-27 13:50:57 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
@@ -59,6 +59,7 @@
 #	Ram Cherukuri (ram@edgix.com)
 #	Steven Snyder (Steven_Snyder@3com.com)
 #	Marco Koch (MK@electricpaper.de)
+#	Stephen Welker (stephen.welker@nemostar.com.au)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -95,7 +96,7 @@ use Sys::Hostname;
 
 getopts('ab:cCd:f:hH:i:l:mno:Op:P:r:R:st:T:uU:vVwz');
 
-$VERSION='Calamaris $Revision: 2.39 $';
+$VERSION='Calamaris $Revision: 2.40 $';
 
 $COPYRIGHT='Copyright (C) 1997, 1998, 1999, 2000 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
@@ -134,7 +135,7 @@ Input Format:
 		its = Logfiles derived from Inktomi Traffic Server
 		elff = Extended Logfile Format (i.e Compaq Tasksmart, Novell
 			Internet Caching System)
-		nse = Netscape Extended-1/2 Logfile Format (alpha-state)
+		nse = Netscape Extended-1/2 Logfile Format
 
 Output Format: (Default is plain text)
 -m	mail	(mail format)
@@ -557,7 +558,7 @@ if ($opt_i) {
 }
 
 unless ($opt_z) {
-  while ($line = <>) {
+  while (defined ($line = <>)) {
     if (not defined $opt_f or $opt_f eq 'auto') {
       if ($line =~
 	  m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+$#)
@@ -782,7 +783,7 @@ Thank You.\n\n");
     $log_hier = "NONE/-";
   }
 } else {';
-  while ($line = <>) {
+  while (defined($line = <>)) {
     last unless $line =~ /^\s*#/;
   }
 } elsif ($opt_f eq 'nse') {
@@ -810,19 +811,21 @@ if ($line =~
       $tmpline1 .= '(\S+)';
       $tmpline2 .= '
   $log_ident = $' . ++$offset . ';';
-    } elsif ($_ eq '%Req->vars.remote-status%' or $_ eq '%Req->vars.r2p-cl%') {
+    } elsif ($_ eq '%Req->vars.remote-status%' or $_ eq '%Req->vars.r2p-cl%' or
+	     $_ eq '%Req->vars.cli-status%' or $_ eq '%Req->vars.svr-status%'
+	     or $_ eq '%Req->vars.cch-status%') {
       $tmpline1 .= '[\w\-\.]+';
     } elsif ($_ eq '"%Req->reqpb.proxy-request%"') {
-      $tmpline1 .= '\"(\w+)\s+(\S+)\s+\S+\"';
+      $tmpline1 .= '\"(\w+)\s+([^\"]+)\s+\S+\"';
       $tmpline2 .= '
   $log_method = $' . ++$offset . ';
   $log_url = $' . ++$offset . ';';
     } elsif ($_ eq '%Req->srvhdrs.clf-status%') {
-      $tmpline1 .= '(\d+)';
+      $tmpline1 .= '([\d\-]+)';
       $tmpline2 .= '
   $log_code = $' . ++$offset . ';';
     } elsif ($_ eq '%Req->vars.p2c-cl%') {
-      $tmpline1 .= '(\d+)';
+      $tmpline1 .= '([\d\-]+)';
       $tmpline2 .= '
   $log_size = $' . ++$offset . ';';
     } elsif ($_ eq '%Req->headers.content-length%' or 
@@ -838,6 +841,20 @@ if ($line =~
       $tmpline1 .= '(\d+)';
       $tmpline2 .= '
   $log_cached = $' . ++$offset . ';';
+    } elsif ($_ eq '%Req->vars.actual-route%') {
+      $tmpline1 .= '(\S+)';
+      $tmpline2 .= '
+  $log_hier = $' . ++$offset . ';
+  if ($log_hier =~ m#[\(\)]#) {
+    $log_hier =~ s#^(\w+)(\((\S+)\))?$#$1/$3#;
+    $log_status = \'TCP_MISS/-\';
+  } elsif ($log_hier =~ m#-#) {
+    $log_hier = $log_hier . \'/-\';
+    $log_status = \'TCP_HIT/-\';
+  } else {
+    $log_hier = $log_hier . \'/-\';
+    $log_status = \'TCP_MISS/-\';
+  }';
     } elsif ($_ eq '-') {
       $tmpline1 .= '-';
     } else {
@@ -861,11 +878,15 @@ Thank You.\n\n");
       exit(1);
     }
   }
-  foreach $pattern (qw(%Req->vars.pauth-user%)) {
-    unless (grep $pattern, @fields) {
+  foreach $pattern (qw(%Req->vars.pauth-user% %Req->vars.actual-route%)) {
+    unless (grep /$pattern/, @fields) {
       if ($pattern eq '%Req->vars.pauth-user%') {
 	$tmpline2 .= '
   $log_ident = "-";';
+      } elsif ($pattern eq '%Req->vars.actual-route%') {
+	$tmpline2 .= '
+  $log_hier = \'-/-\';
+  $log_status = \'-/-\';';
       }
     }
   }
@@ -878,10 +899,8 @@ Thank You.\n\n");
   }
   $log_date = timegm($log_sec, $log_min, $log_hour, $log_day, $monthcount,
 		     $log_year - 1900);
-  $log_status = "-/-";
-  $log_hier = "NONE/-";
 } else {';
-  while ($line = <>) {
+  while (defined($line = <>)) {
     last unless $line =~ /^\s*#/;
   }
 } else {
@@ -898,7 +917,7 @@ Thank You.\n\n");
   }
   $log_reqtime = .1 if $log_reqtime == 0;
   ($log_hitfail, $log_code) = split \'/\', $log_status;
-  $log_size = .0000000001 if $log_size == 0;
+  $log_size = .0000000001 if ($log_size eq \'-\' or $log_size == 0);
   $log_url =~ s/\?.*$/?/;
   @url = split m#[/\\\]#o, $log_url;
   ($urlprot, $urlhost, $urlext) = (@url)[0,2,$#url];
@@ -961,7 +980,8 @@ Thank You.\n\n");
   $log_content =~ tr/A-Z/a-z/;
   $log_content = ' unless $opt_f eq 'squid-old' or $opt_f eq 'elff' or 
     $opt_f eq 'nse';
-  $loop .= '$urlhost = $urltld = $urlext = $urlprot = \'<error>\' if
+  $loop .= '
+  $urlhost = $urltld = $urlext = $urlprot = \'<error>\' if
     ($log_code =~ m#^[45]#o);';
   $loop .= "
   print(STDERR '#') if (0 == (\$counter % $opt_b));" if $opt_b;
@@ -1378,7 +1398,7 @@ Thank You.\n\n");
 	       m#PARENT_MISS#o or $log_hier_method =~ m#PASSTHROUGH_PARENT#o
 	       or $log_hier_method =~ m#ROUNDROBIN_PARENT#o or
 	       $log_hier_method =~ m#SINGLE_PARENT#o or $log_hier_method =~
-	       m#PARENT#o) {
+	       m#PARENT#o or $log_hier_method =~ m#PROXY#o) {
 	$hier_parent++;
 	$hier_parent_size += $log_size;
 	$hier_parent_time += $log_reqtime;';
@@ -1412,7 +1432,8 @@ Thank You.\n\n");
 	$hier_neighbor_status_time{$log_hier_host}{$log_hier_method} +=
 	  $log_reqtime;' if ($opt_s);
   $loop .= '
-      } else { chomp($log_hier_method);
+      } else { 
+	chomp($log_hier_method);
 	unless (defined $errormsg) {
 	  print(STDERR "
 Please check the following error(s). If you\'re sure that the offending
@@ -1466,7 +1487,7 @@ if ($opt_w) {
 <html>
  <head>
   <title>${hostname}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.39 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.40 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
@@ -1692,7 +1713,7 @@ if ($udp == 0) {
   outstop();
 }
 
-if ($tcp == 0) {
+if ($tcp_hit + $tcp_miss == 0) {
   outtitle('Incoming TCP-requests by status: none', 5);
 } else {
   @format=(33,9,'%',8,'%',4,'kbs');
@@ -2395,7 +2416,7 @@ close(CACHE);
 if ($opt_w) {
   print('  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.39 $, Copyright &copy; 1997, 1998, 1999, 2000
+   $Revision: 2.40 $, Copyright &copy; 1997, 1998, 1999, 2000
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
@@ -2571,7 +2592,11 @@ sub outline {
 	if ($print eq '-') {
 	  print('    -   ');
 	} else {
-	  printf("%7.2f ", $print);
+	  if ($print >= 10000) {
+	    printf("%7.0f ", $print);
+	  } else {
+	    printf("%7.2f ", $print);
+	  }
 	}
       } else {
 	$print = sprintf("%d", $print + .5) if $print =~ m#^[\d\.e\-\+]+$#o;
