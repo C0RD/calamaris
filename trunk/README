@@ -112,10 +112,8 @@ How to use it?
 Are there known bugs or other problems?
 ---------------------------------------
 
-* Calamaris doesn't support IPv6-IPs yet. If you have a proxy which allows
-  IPv6-Clients, then send me a few lines of your logfiles, so i can understand
-  the system and add support. (report through Debian-BugTracking by Michael R.
-  Schwarzbach (spg@fs.tum.de))
+* Calamaris can't resolve IPv6-IPs to DNS-Names yet. If you can tell me how i
+  can do it in perl, let me know ;-)
 
 * the byte-histogram sometimes displays a 0-0-byte line. this is correct. the
   requests added there are really logged as 0-byte-sized in the Logfile. Note
@@ -272,4 +270,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.35 2002-06-05 17:46:21 cord Exp $
+$Id: README,v 2.36 2002-06-10 19:41:05 cord Exp $
