@@ -1,4 +1,4 @@
-.TH "CALAMARIS" "1" "$Date: 2004-09-22 20:37:29 $" "Handmade" "Calamaris Manual"
+.TH "CALAMARIS" "1" "$Date: 2004-12-23 20:16:09 $" "Handmade" "Calamaris Manual"
 
 .SH "NAME"
 .B calamaris
@@ -283,6 +283,14 @@ The name for the title or subject of the output.  If set to
 .I 'lookup'
 .B Calamaris
 looks up the host name of the system its been run on.
+
+.TP
+.I --image-type ($image_type)
+Sets the image type to gif, png, jpeg, gd or gd2. Only useful when
+.I
+--output-format graph
+is set. The available images types are dependend
+on your GD::Graph installation. Default is 'png'.
 
 .TP
 .I --logo|-l string ($logo)
@@ -596,7 +604,7 @@ maintainer of the Debian package.  Maintenance is now taken over by
 Cord Beermann.
 
 .SH "VERSION"
-Version of this manpage: $Id: calamaris.1,v 3.0.0.1 2004-09-22 20:37:29 cord Exp $
+Version of this manpage: $Id: calamaris.1,v 3.0.0.2 2004-12-23 20:16:09 cord Exp $
 
 It describes the usage of Calamaris V3.0 and later.
 
