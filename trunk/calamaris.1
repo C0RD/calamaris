@@ -1,4 +1,4 @@
-.TH CALAMARIS 1 "$Date: 2000-10-12 17:03:41 $" Handmade "Calamaris Manual"
+.TH CALAMARIS 1 "$Date: 2000-10-27 13:52:51 $" Handmade "Calamaris Manual"
 
 .SH NAME
 calamaris \- generate statistic out of log files from Proxy-Cache-Servers
@@ -136,6 +136,15 @@ expects Logfiles from
 .B Calamaris
 expects Logfiles in Extended Logfile Format (i.e. from
 .B Compaq Tasksmart
+or
+.B Novell Internet Caching System
+)
+
+.I 'nse'
+.B Calamaris
+expects Logfiles in Netscape Extended-1 or Netscape Extended-2
+Logfile Format (from 
+.B Netscape/ipoint Proxy-Server
 )
 
 .SS Output Format
@@ -179,6 +188,11 @@ to add old data to a new report.  Several files can be seperated with a ':'.
 .B Note:
 if you use more than one cache file, make sure they are chronologicaly
 ordered (oldest first).
+
+.B Note:
+if you reuse cache-files, which were not created with 
+.I -d -1 -r -1 -t -1 -R -1
+the number of 'others' is likely wrong everywhere.
 
 .TP
 .I -o file
@@ -247,7 +261,7 @@ lines.
 .TP
 .I -v
 verbose: print more information about what is Calamaris is doing
-and beleiving.
+and believing. 
 
 .TP
 .I -C
@@ -315,8 +329,7 @@ than the loss of productivity.
 -
 Squid has some nice acl-mechanisms. If you think that your users
 don't use the net properly, don't let them use it. (You can also
-open the net at specific times or tp specific sites, if you
-want.)
+open the net at specific times or tp specific sites, if you want.)
 
 .TP
 -
@@ -338,9 +351,9 @@ Cord Beermann.
 
 .SH VERSION
 
-Version of this manpage: $Id: calamaris.1,v 1.16 2000-10-12 17:03:41 cord Exp $
+Version of this manpage: $Id: calamaris.1,v 1.17 2000-10-27 13:52:51 cord Exp $
 
-It describes the usage of Calamaris V2.36 and later.
+It describes the usage of Calamaris V2.40 and later.
 
 Information about new releases, mailing lists, and other related issues
 can be found from the
