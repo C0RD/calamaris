@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.34 2000-09-02 20:36:19 cord Exp $
+# $Id: calamaris,v 2.35 2000-09-14 17:15:58 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
@@ -56,6 +56,7 @@
 #	Frank Roechter (frank@fhd.de)
 #	Antonio Casado Rodríguez (acasado@ualm.es)
 #	Pavol Adamec (pavol_adamec@tempest.sk)
+#	Ram Cherukuri (ram@edgix.com)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -92,7 +93,7 @@ use Sys::Hostname;
 
 getopts('ab:cCd:f:hH:i:l:mno:Op:P:r:R:st:T:uvVwz');
 
-$VERSION='Calamaris $Revision: 2.34 $';
+$VERSION='Calamaris $Revision: 2.35 $';
 
 $COPYRIGHT='Copyright (C) 1997, 1998, 1999, 2000 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
@@ -129,7 +130,8 @@ Input Format:
 			V1.1.alpha1-V1.1.beta25
 		nc = Squid-style Logfiles derived from NetCache V???
 		its = Logfiles derived from Inktomi Traffic Server
-		elff = Extended Logfile Format (i.e Compaq Tasksmart)
+		elff = Extended Logfile Format (i.e Compaq Tasksmart, Novell
+			Internet Caching System)
 		nse = Netscape Extended-1/2 Logfile Format (alpha-state)
 
 Output Format: (Default is plain text)
@@ -685,11 +687,11 @@ if ($line =~
       $tmpline1 .= '(\w+)';
       $tmpline2 .= '
   $log_method = $' . ++$offset . ';';
-    } elsif ($_ eq 'cs-uri') {
+    } elsif ($_ eq 'cs-uri-stem') {
       $tmpline1 .= '(\S+)';
       $tmpline2 .= '
   $log_url = $' . ++$offset . ';';
-    } elsif ($_ eq 'cs-uri-stem' or $_ eq 'cs-uri-query') {
+    } elsif ($_ eq 'cs-uri' or $_ eq 'cs-uri-query') {
       $tmpline1 .= '\S+';
     } elsif ($_ eq 'c-version') {
       $tmpline1 .= '\w+/[\d\.]+';
@@ -708,7 +710,7 @@ if ($line =~
       $tmpline2 .= '
   $log_reqtime = $' . ++$offset . ' * 1000;';
     } elsif ($_ eq 'cs(User-Agent)' or $_ eq 'cs(Cookie)' or
-	     $_ eq 'sc(Referer)') {
+	     $_ eq 'cs(Referer)' or $_ eq 'sc(Referer)') {
       $tmpline1 .= '\"[^\"]*\"';
     } elsif ($_ eq 'cached') {
       $tmpline1 .= '(\d+)';
@@ -731,7 +733,7 @@ Thank You.\n\n$_\n\n");
       exit(1);
     }
   }
-  foreach $pattern (qw(date time c-ip cs-method cs-uri sc-status sc-bytes
+  foreach $pattern (qw(date time c-ip cs-method cs-uri-stem sc-status sc-bytes
 		       time-taken cached x-fill-proxy-ip x-origin-ip))
   {
     unless (grep $pattern, @fields) {
@@ -1451,7 +1453,7 @@ if ($opt_w) {
 <html>
  <head>
   <title>${hostname}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.34 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.35 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
@@ -2380,7 +2382,7 @@ close(CACHE);
 if ($opt_w) {
   print('  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.34 $, Copyright &copy; 1997, 1998, 1999, 2000
+   $Revision: 2.35 $, Copyright &copy; 1997, 1998, 1999, 2000
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
