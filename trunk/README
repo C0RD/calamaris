@@ -58,6 +58,10 @@ How to use it?
   at /usr/bin/perl) you'll have to change the first line of Calamaris to point
   to your copy of Perl.
 
+* There is also a manpage for Calamaris. You should copy it to an appropriate
+  place like /usr/local/man/man1, so you have a more verbose documentation
+  handy if you need it.
+
 * Use it! 
 
   'cat access.log.1 access.log.0 | calamaris'
@@ -172,12 +176,12 @@ Are there known bugs or other problems?
   and new cachefiles. But you will loose the 'Cache-Hits'-value from old files
   in the Performance-Report.  It is set to '-' in the output.
 
-* It is possible that you encounter problems if you use Squid V1.2.x/V2.x.
-  Calamaris isn't well tested with the new release. (I don't have a production
-  cache of it yet.) If you find problems, please report them to
-  Calamaris-bug@Cord.de. I'll try to fix them ASAP.  I'm also very interested
-  how Calamaris works with CARP-Support. So if you use it, please send me a
-  mail to Calamaris@Cord.de, even if it works without problem. Thank You.
+* It is possible that you encounter some problems, if you use Squid
+  V1.2.x/V2.x with some of the new features enabled. If you find problems,
+  please report them to Calamaris-bug@Cord.de. I'll try to fix them ASAP.  I'm
+  especially interested how Calamaris works with CARP-Support. So if you use
+  it that way, please send me a mail to Calamaris@Cord.de, even if it works
+  without problem. Thank You.
 
 * If you parse NetCache logfiles with Calamaris, it seems that you can run
   into trouble. I've looked for information on the logfile-format from the
@@ -225,11 +229,14 @@ proxy logfiles, let me know. --> Calamaris@Cord.de. I'll will build it in, or
 add it to the wish-list below :-)
 
 * rewrite peak-measurement. The current calculation method is very time
-  intensive and slows down Calamaris by 30 or more percent. (Maybe I should
-  build a less accurate and more effective method? But how? any ideas?)
+  intensive and slows down Calamaris by 30 or more percent, but it is faster
+  than the old way. However: i'm not really satisfied with it. So if someone
+  has an idea how to build an efficient AND fast method to work it out... let
+  me know!
 
-* add report for byte-peak (inspirated by Andreas Strotmann
-  <A.Strotmann@Uni-Koeln.DE>) (I have no idea how to calculate that)
+* Move most of the stuff here to the manpage. Anybody know an _EDITOR_ which
+  can parse and edit the manpageformat? (I asked for an _EDITOR_ not for an OS
+  like emacs ;-)
 
 * build graphics (hope i remember who suggested this first, the mail must be
   somewhere in my work-mailbox ;-) (This is a thing for Calamaris v3, if i
@@ -237,6 +244,13 @@ add it to the wish-list below :-)
 
 * add real NetCache-Support. The NetCache-Support is rudimentary working, but
   is only in some kind of alpha-state. see above.
+
+* add parsing of 'Common Logfileformat'. I don't think that this makes sense,
+  because Common Log is missing some very important data i.e. the Requesttime.
+  (So I won't build something like that in.) If you're still stuck with that
+  format, i recommend the 'analog'-software by Steven Turner. Other way round:
+  change logging to 'native' and convert it to 'common'. There is software for
+  that available, i.e. my shrimp.pl.
 
 * make Calamaris faster. see above. If someone wants to rewrite Calamaris in a
   faster language: Feel Free! (But respect the GNU-License) It would be nice
@@ -277,4 +291,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.12 1998-12-05 13:07:10 cord Exp $
+$Id: README,v 2.13 1998-12-06 16:36:23 cord Exp $
