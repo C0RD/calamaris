@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.50 2002-06-10 19:46:55 cord Exp $
+# $Id: calamaris,v 2.51 2002-08-02 20:15:23 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
@@ -74,6 +74,7 @@
 #	Sergey Zarubin (serge-home@yandex.ru)
 #	Helge Oldach (calamaris@oldach.net)
 #	Michael R. Schwarzbach (spg@fs.tum.de)
+#	Radu - Eosif Mihailescu (rmihailescu@lumina.ro)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -206,7 +207,7 @@ if ( $opt_N == -1 or $opt_N > 2 ) {
 	    'Distribution Histogram', "Performance in $P minute steps"
 	    );
 
-$VERSION='Calamaris $Revision: 2.50 $';
+$VERSION='Calamaris $Revision: 2.51 $';
 
 $COPYRIGHT = 'Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
@@ -383,46 +384,6 @@ if ($opt_i) {
 	$hier_parent += $cache[37];
 	$hier_parent_size += $cache[38];
 	$hier_parent_time += $cache[39];
-### This section is for backward compatibility
-      } elsif ( $x eq 'B' and $#cache == 17 ) {
-	unless ( $peak_udp_sec == 0 ) {
-	  warn("multiple cache files.\n") if $opt_v;
-	  $peak_warn = 'Peak values are possibly wrong!';
-	}
-	if ( $peak_udp_sec < $cache[0] ) {
-	  $peak_udp_sec = $cache[0];
-	  $peak_udp_sec_time = $cache[1];
-	}
-	if ( $peak_udp_min < $cache[2] ) {
-	  $peak_udp_min = $cache[2];
-	  $peak_udp_min_time = $cache[3];
-	}
-	$peak_udp_hour{ $cache[5] } = 0
-	  unless defined $peak_udp_hour{ $cache[5] };
-	$peak_udp_hour{ $cache[5] } += $cache[4];
-	if ( $peak_tcp_sec < $cache[6] ) {
-	  $peak_tcp_sec = $cache[6];
-	  $peak_tcp_sec_time = $cache[7];
-	}
-	if ( $peak_tcp_min < $cache[8] ) {
-	  $peak_tcp_min = $cache[8];
-	  $peak_tcp_min_time = $cache[9];
-	}
-	$peak_tcp_hour{ $cache[11] } = 0
-	  unless defined $peak_tcp_hour{ $cache[11] };
-	$peak_tcp_hour{ $cache[11] } += $cache[10];
-	if ( $peak_all_sec < $cache[12] ) {
-	  $peak_all_sec = $cache[12];
-	  $peak_all_sec_time = $cache[13];
-	}
-	if ( $peak_all_min < $cache[14] ) {
-	  $peak_all_min = $cache[14];
-	  $peak_all_min_time = $cache[15];
-	}
-	$peak_all_hour{ $cache[17] } = 0
-	  unless defined $peak_all_hour{ $cache[17] };
-	$peak_all_hour{ $cache[17] } += $cache[16];
-### End of section, remove it in a later release.
       } elsif ( $x eq 'B' and $#cache == 23 ) {
 	unless ( $peak_udp_sec == 0 ) {
 	  warn("multiple cache files.\n") if $opt_v;
@@ -618,23 +579,6 @@ if ($opt_i) {
 	 $perf_hier_sibling_size{$y}, $perf_hier_sibling_time{$y},
 	 $perf_hier_parent_size{$y}, $perf_hier_parent_time{$y} )
 	  = @cache;
-# This is for a stupid bug I brought in... it should save older Cache-Files,
-# and put them in so that we can work with them.. I'll remove it in a
-# later release...
-      } elsif ( $x eq 'U' and $#cache == 12 ) {
-	$y = shift (@cache);
-	( $perf_counter{$y}, $perf_size{$y}, $perf_time{$y},
-	 $perf_tcp_hit_size{$y}, $perf_tcp_miss_size{$y},
-	 $perf_tcp_miss_time{$y}, $perf_hier_direct_size{$y},
-	 $perf_hier_direct_time{$y}, $perf_hier_sibling_size{$y},
-	 $perf_hier_sibling_time{$y}, $perf_hier_parent_size{$y},
-	 $perf_hier_parent_time{$y} )
-	  = @cache;
-	# stupid, yes...
-	# I set this to 0/.000001 so removezerotime prints a - in the report.
-	$perf_tcp_hit_size{$y} = 0;
-	$perf_tcp_hit_time{$y} = .000001;
-# End of stupid bug-workaround
       } elsif ( $x eq 'V' and $#cache == 6 ) {
 	$y = shift (@cache);
 	$z = shift (@cache);
@@ -648,6 +592,21 @@ if ($opt_i) {
 	$udp_requester_urlhost_time{$y}{$z} += $cache[2];
 	$udp_hit_requester_urlhost{$y}{$z} += $cache[3];
 	$udp_hit_requester_urlhost_size{$y}{$z} += $cache[4];
+# Start of Bug-fix - remove this in 08/2003
+      } elsif ( $x eq 'V' and $#cache == 5 ) {
+	$y = '<other>' unless ($y);
+	$z = shift (@cache);
+	$udp_requester_urlhost{$y}{$z} = $udp_requester_urlhost_size{$y}{$z} =
+	  $udp_requester_urlhost_time{$y}{$z} =
+	  $udp_hit_requester_urlhost{$y}{$z} =
+	  $udp_hit_requester_urlhost_size{$y}{$z} = 0
+	  unless defined $udp_requester_urlhost{$y}{$z};
+	$udp_requester_urlhost{$y}{$z} += $cache[0];
+	$udp_requester_urlhost_size{$y}{$z} += $cache[1];
+	$udp_requester_urlhost_time{$y}{$z} += $cache[2];
+	$udp_hit_requester_urlhost{$y}{$z} += $cache[3];
+	$udp_hit_requester_urlhost_size{$y}{$z} += $cache[4];
+# End of Bug-fix
       } elsif ( $x eq 'W' and $#cache == 6 ) {
 	$y = shift (@cache);
 	$z = shift (@cache);
@@ -661,6 +620,21 @@ if ($opt_i) {
 	$tcp_requester_urlhost_time{$y}{$z} += $cache[2];
 	$tcp_hit_requester_urlhost{$y}{$z} += $cache[3];
 	$tcp_hit_requester_urlhost_size{$y}{$z} += $cache[4];
+# Start of Bugfix - remove in 08/2003
+      } elsif ( $x eq 'W' and $#cache == 5 ) {
+	$y = '<other>' unless ($y);
+	$z = shift (@cache);
+	$tcp_requester_urlhost{$y}{$z} = $tcp_requester_urlhost_size{$y}{$z} =
+	  $tcp_requester_urlhost_time{$y}{$z} =
+	  $tcp_hit_requester_urlhost{$y}{$z} =
+	  $tcp_hit_requester_urlhost_size{$y}{$z} = 0
+	  unless defined $tcp_requester_urlhost{$y}{$z};
+	$tcp_requester_urlhost{$y}{$z} += $cache[0];
+	$tcp_requester_urlhost_size{$y}{$z} += $cache[1];
+	$tcp_requester_urlhost_time{$y}{$z} += $cache[2];
+	$tcp_hit_requester_urlhost{$y}{$z} += $cache[3];
+	$tcp_hit_requester_urlhost_size{$y}{$z} += $cache[4];
+# End of Bugfix
       } elsif ( $x eq 'X' and $#cache == 5 ) {
 	$y = shift (@cache);
 	$tcp_distribution{$y} = $tcp_distribution_size{$y} =
@@ -1776,7 +1750,7 @@ if ( $opt_w or $opt_W ) {
 <html>
  <head>
   <title>${host_name}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.50 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.51 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
@@ -1827,14 +1801,6 @@ if ( $opt_w or $opt_W ) {
   $out_head .= "\n${host_name}Proxy-Report ($date_start - $date_stop)\n";
 }
 
-@format = ( 19, 8 );
-outstart(0);
-outline( 0, 'lines parsed:', $counter );
-outline( 0, 'invalid lines:', $invalid );
-outline( 0, 'unique hosts/users:', scalar keys %tcp_requester ) if $opt_r;
-outline( 0, 'parse time (sec):', $time_run );
-outstop(0);
-
 if ( ( $invalid / $counter ) > .05 and $counter > 1000 ) {
   @format = (60);
   outstart('E');
@@ -1855,6 +1821,14 @@ if ( defined($peak_warn) ) {
     unless ($opt_v);
   outstop('E');
 }
+
+@format = ( 19, 8 );
+outstart(0);
+outline( 0, 'lines parsed:', $counter );
+outline( 0, 'invalid lines:', $invalid );
+outline( 0, 'unique hosts/users:', scalar keys %tcp_requester ) if $opt_r;
+outline( 0, 'parse time (sec):', $time_run );
+outstop(0);
 
 if ( not defined $opt_p ) {
 } elsif ( $opt_p eq 'old' ) {
@@ -2673,8 +2647,8 @@ if ($opt_r) {
 	}
 	if ($other2) {
 	  writecache(
-		     'V', '<other>', $other2, $other2_size, $other2_time,
-		     $other2_hit, $other2_hit_size
+		     'V', $requester, '<other>', $other2, $other2_size,
+		     $other2_time, $other2_hit, $other2_hit_size
 		     );
 	  outline(
 		  13, ' other: ' . $other2_requester_urlhost .
@@ -2816,8 +2790,8 @@ if ($opt_r) {
 	}
 	if ($other2) {
 	  writecache(
-		     'W', '<other>', $other2, $other2_size, $other2_time,
-		     $other2_hit, $other2_hit_size
+		     'W', $requester, '<other>', $other2, $other2_size,
+		     $other2_time, $other2_hit, $other2_hit_size
 		     );
 	  outline(
 		  14, ' other: ' . $other2_requester_urlhost .
@@ -2987,7 +2961,7 @@ if ($opt_S) {
     print $out_body{$index};
   }
 } else {
-  foreach ( 0, 'E', 1 .. 16 ) {
+  foreach ( 'E', 0 .. 16 ) {
     print $out_body{$_} if defined( $out_body{$_} );
   }
 }
@@ -2995,7 +2969,7 @@ if ($opt_S) {
 if ( $opt_w or $opt_W ) {
   print '  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.50 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002
+   $Revision: 2.51 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
@@ -3093,9 +3067,14 @@ sub outref {
 sub outstart {
   my $index = shift (@_);
   if ( $opt_w or $opt_W ) {
-    $out_body{$index} .= "  <hr>
+    if ( $index eq 'E' ) {
+      $out_body{$index} .= "  <hr>
+  <table border=\"0\">\n";
+    } else {
+      $out_body{$index} .= "  <hr>
   <h2><a name=\"$index\">$reports[$index]</a></h2>
   <table border=\"1\">\n";
+    }
   } else {
     $out_body{$index} .= "\n# $reports[$index]\n";
   }
