@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 2.11 1998-10-22 19:36:52 cord Exp $
+# $Id: calamaris.pl,v 2.12 1998-10-22 22:37:14 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Log-files
 #
@@ -67,7 +67,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:OpP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 2.11 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 2.12 $, Copyright (C) 1997, 1998 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -448,15 +448,15 @@ while (<>) {
   @urlext = split \'\.\', $urlext;
   $urlext = (@urlext)[$#urlext];
   $urlext = \'<none>\' if $#urlext <= 0;
-  if ($urlhost =~ /^(([0-9][0-9]{0,2}\.){3})[0-9][0-9]{0,2}$/o) {
+  if ($urlhost =~ m#^(([0-9][0-9]{0,2}\.){3})[0-9][0-9]{0,2}$#o) {
     $urlhost = $1 . \'*\';
     $urltld = \'<unresolved>\';
-  } elsif ($urlhost =~ /^(.*\.([^\.]+\.)?)?([^\.]+\.([^\.]+))\.?$/o) {
+  } elsif ($urlhost =~ m#^(.*\.([^\.]+\.)?)?([^\.]+\.([^\.]+))\.?$#o) {
     @list = split \'\.\', $urlhost;
     $urltld = $urlhost = \'.\' . pop @list;
     $urlhost = \'.\' . pop(@list) . $urlhost;
     $urlhost = \'.\' . pop(@list) . $urlhost if ($urltld =~
-						 /\.(a[rtu]|br|c[no]|hk|i[dlm]|jp|kr|l[by]|m[oxy]|nz|p[elnry]|ru|sg|t[hrw]|u[aks]|ve|yu|za)$/o
+						 m#^\.(a[rtu]|br|c[no]|hk|i[dlm]|jp|kr|l[by]|m[oxy]|nz|p[elnry]|ru|sg|t[hrw]|u[aks]|ve|yu|za)$#o
 						 and $#list >= 0);
     $urlhost = \'*\' . $urlhost;
     $urltld = \'*\' . $urltld;
@@ -672,7 +672,7 @@ while (<>) {
     $tcp_urlext_size{$urlext} += $log_size;';
   }
   $loop .= '
-    if ($log_hitfail =~ /^TCP\w+HIT/o) {
+    if ($log_hitfail =~ m#^TCP_\w*HIT#o) {
       $tcp_hit++;
       $tcp_hit_size += $log_size;
       $tcp_hit_time += $log_reqtime;';
@@ -751,7 +751,8 @@ while (<>) {
       $hier++;
       $hier_size += $log_size;
       $hier_time += $log_reqtime;
-      if ($log_hier_method =~ m#DIRECT#o or $log_hier_method =~ m#SOURCE_FASTEST#o) {
+      if ($log_hier_method =~ m#DIRECT#o or $log_hier_method =~
+	  m#SOURCE_FASTEST#o) {
 	$hier_direct++;
 	$hier_direct_size += $log_size;
 	$hier_direct_time += $log_reqtime;';
@@ -1557,7 +1558,7 @@ sub getfqdn {
   my ($host) = @_;
   if ($opt_n) {
     return $host;
-  } elsif ($host =~ /^([^@]+@)?(([0-9][0-9]{0,2}\.){3}[0-9][0-9]{0,2}$)/) {
+  } elsif ($host =~ m#^([^@]+@)?(([0-9][0-9]{0,2}\.){3}[0-9][0-9]{0,2}$)#o) {
     $hostcache{$2} = addtonam($2) unless defined $hostcache{$2};
     return $1 . $hostcache{$2} if defined $1;
     return $hostcache{$2};
@@ -1626,8 +1627,8 @@ sub outheader {
   foreach (@_) {
     $p = $_;
     if ($opt_w) {
-      $p =~ s/ +/ /go;
-      $p =~ s/(^ | $)//go;
+      $p =~ s# +# #go;
+      $p =~ s#(^ | $)##go;
       print("<th>$p");
     } elsif ($format[$no] eq '%') {
       print(' ' x (6 - length($p)), substr($p,0,6), ' ');
@@ -1650,12 +1651,12 @@ sub outline {
   foreach (@_) {
     $print = $_;
     if ($opt_w) {
-      $print =~ s/ +/ /go;
-      $print =~ s/ $//go;
-      $print =~ s/</\&lt\;/go;
-      $print =~ s/>/\&gt\;/go;
+      $print =~ s# +# #go;
+      $print =~ s# $##go;
+      $print =~ s#<#\&lt\;#go;
+      $print =~ s#>#\&gt\;#go;
       if ($no == 0) {
-	unless ($print =~ s/^ //go) {
+	unless ($print =~ s#^ ##go) {
 	  print("<td><strong>$print</strong>");
 	} else {
 	  print("<td>$print");
