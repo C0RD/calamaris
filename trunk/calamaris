@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.15 1998-12-05 13:18:48 cord Exp $
+# $Id: calamaris,v 2.16 1998-12-05 14:12:17 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic for Squid and NetCache Native Log-files
 #
@@ -68,7 +68,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:OpP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 2.15 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 2.16 $, Copyright (C) 1997, 1998 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -461,7 +461,7 @@ while (<>) {
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
    $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) = split;
   if (not defined $foo or not defined $log_content or $foo ne m#^-?$#o or
-      $log_content eq \'\') {
+      $log_content eq \'\' or $log_reqtime lt 0) {
     chomp;
     warn (\'invalid line: "\' . $_ . "\"\n");
     $invalid++;
