@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.23 1999-04-02 15:17:01 cord Exp $
+# $Id: calamaris,v 2.24 1999-05-01 19:01:16 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic for Squid and NetCache Native Log-files
 #
@@ -36,6 +36,8 @@
 #	Iain Lea (iain@bricbrac.de)
 #	Emmanuel Adeline (emmanuel.adeline@mail.dotcom.fr)
 #	John Line (webadm@info.cam.ac.uk)
+#	Christos Cheretakis (xalkina@otenet.gr)
+#	Ryan Donnelly (rmd@doit.wisc.edu)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -72,7 +74,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:f:hH:i:l:mno:Op:P:r:st:uwz');
 
-$COPYRIGHT='Calamaris $Revision: 2.23 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
+$COPYRIGHT='Calamaris $Revision: 2.24 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
 welcome to redistribute it under certain conditions.  See source for details.
 Calamaris-Homepage: http://Calamaris.Cord.de/';
@@ -835,7 +837,7 @@ if (not defined $opt_f or $opt_f eq 'squid') {
       $tcp_hit_urlext{$urlext}++;
       $tcp_hit_urlprot{$urlprot}++;' if ($opt_t);
   $loop .= '
-    } elsif ($log_hier_method =~ m#NONE#o or $log_hitfail =~ m#^ERR_#o) {
+    } elsif ($log_hier_method =~ m#NONE|^\-$#o or $log_hitfail =~ m#^ERR_#o) {
       $tcp_miss_none++;
       $tcp_miss_none_size += $log_size;
       $tcp_miss_none_time += $log_reqtime;';
@@ -868,7 +870,7 @@ if (not defined $opt_f or $opt_f eq 'squid') {
       $tcp_miss_requester_size{$requester} += $log_size;' if ($opt_r);
   $loop .= '
     }
-    if ($log_hier_method !~ m#NONE#o) {
+    if ($log_hier_method !~ m#NONE|^\-$#o) {
       $hier++;
       $hier_size += $log_size;
       $hier_time += $log_reqtime;
@@ -962,11 +964,19 @@ if (not defined $opt_f or $opt_f eq 'squid') {
 	$hier_neighbor_status_time{$log_hier_host}{$log_hier_method} +=
 	  $log_reqtime;' if ($opt_s);
   $loop .= '
-      } else {
-        chomp($log_hier_method);
-	warn("unknown log_hier_method: \"$log_hier_method\" found in line $counter of input:
-	      $_
-	      Please report this error to Calamaris-bug\@Cord.de\n");
+      } else { chomp($log_hier_method); 
+	unless (defined $errormsg) {
+	  warn("
+Please check the following error(s). If you\'re sure that the offending line(s)
+are NOT corrupt and the error also occurs with the recent version of Calamaris
+(see the README for pointers and known bugs) then report them. Don\'t send me
+thousands of similar errors.  use Calamaris-bug\@Cord.de. Thank You.
+") unless $errormsg;
+	  $errormsg = 1;
+	}
+	warn("
+unknown log_hier_method: \"$log_hier_method\" found in line $counter of input:
+ $_");
       }
     }
   }
@@ -1002,16 +1012,24 @@ print("MIME-Version: 1.0\n", "Content-Type: text/html; charset=us-ascii\n",
 print("Subject: ${hostname}Proxy Report ($date_start - $date_stop)\n\n") if
   ($opt_m);
 if ($opt_w) {
-  print("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"
-\"http://www.w3.org/TR/REC-html40/loose.dtd\">
-<html><head><title>${hostname}Proxy Report ($date_start - $date_stop)</title>
-<META NAME=\"GENERATOR\" CONTENT=\"Calamaris/" . '$Revision: 2.23 $' . "\"></head>
-<body bgcolor=\"#FFFFFF\">
-<table border=\"0\">
-<tr>");
-  print("<td>$opt_l</td>") if ($opt_l);
-  print("<td><h1><a name=\"0\">${hostname}Proxy Report</a></h1>
-<p>$date_start - $date_stop</p></td></tr></table><hr><ul>");
+  print("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" \"http://www.w3.org/TR/REC-html40/loose.dtd\">
+<html>
+ <head>
+  <title>${hostname}Proxy Report ($date_start - $date_stop)</title>
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.24 $' . "\">
+ </head>
+ <body bgcolor=\"#FFFFFF\">
+  <table border=\"0\">
+   <tr>\n");
+  print("    <td>$opt_l</td>\n") if ($opt_l);
+  print("    <td>
+     <h1><a name=\"0\">${hostname}Proxy Report</a></h1>
+     <p>$date_start - $date_stop</p>
+    </td>
+   </tr>
+  </table>
+  <hr>
+  <ul>\n");
   outref('Summary', 1);
   outref('Incoming request peak per protocol', 2) if ($opt_p);
   outref('Incoming requests by method', 3);
@@ -1033,7 +1051,7 @@ if ($opt_w) {
     outref('Incoming TCP-requests by host', 14);
   }
   outref("Performance in $opt_P minute steps", 15) if ($opt_P);
-  print("</ul>\n");
+  print("  </ul>\n");
 } else {
   print("\n${hostname}Proxy-Report ($date_start - $date_stop)\n");
 }
@@ -1728,12 +1746,17 @@ if ($opt_P) {
 close(CACHE);
 
 if ($opt_w) {
-  print("<hr><address><A HREF=\"http://Calamaris.Cord.de/\">Calamaris</A> " .
-    '$Revision: 2.23 $' . ", Copyright &copy; 1997, 1998, 1999 <A
-    HREF=\"http://Cord.de/\">Cord Beermann</A>.<br>Calamaris comes with
-    ABSOLUTELY NO WARRANTY. It is free software, and you are welcome to
-    redistribute it under certain conditions.  See source for
-    details.</address>\n</body></html>\n");
+  print('  <hr>
+  <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
+   $Revision: 2.24 $, Copyright &copy; 1997, 1998, 1999
+   <a href="http://Cord.de/">Cord Beermann</a>.
+  </address>
+  <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
+   are welcome to redistribute it under certain conditions.  See source for
+   details.
+  </p>
+ </body>
+</html>', "\n");
 } else {
   print("\n\n");
   print("-- \n") if ($opt_m);
@@ -1797,8 +1820,8 @@ sub outtitle {
   my $print = shift(@_);
   my $name = shift(@_);
   if ($opt_w) {
-    print("<hr>\n");
-    print("<h2><a name=\"$name\">$print</a></h2>\n");
+    print("  <hr>\n");
+    print("  <h2><a name=\"$name\">$print</a></h2>\n");
   } else {
     print("\n# $print\n");
   }
@@ -1807,23 +1830,24 @@ sub outtitle {
 sub outref {
   my $print = shift(@_);
   my $name = shift(@_);
-  print("<li><a href=\"#$name\">$print</a>\n");
+  print("   <li><a href=\"#$name\">$print</a>\n");
 }
 
 sub outstart {
-  print("<table border=\"1\">\n") if ($opt_w);
+  print("  <table border=\"1\">\n") if ($opt_w);
 }
 
 sub outheader {
   my $print;
   my $no = 0;
-  print('<tr>') if ($opt_w);
+  print("   <tr>\n") if ($opt_w);
   foreach (@_) {
     $p = $_;
     if ($opt_w) {
       $p =~ s# +# #go;
       $p =~ s#(^ | $)##go;
-      print("<th>$p");
+      $p = '&nbsp;' if ($p eq '');
+      print("    <th>$p</th>\n");
     } elsif ($format[$no] eq '%') {
       print(' ' x (6 - length($p)), substr($p,0,6), ' ');
     } elsif ($format[$no] eq 'kbs') {
@@ -1834,14 +1858,14 @@ sub outheader {
     }
     $no++;
   }
-  print('</th>') if ($opt_w);
+  print('   </tr>') if ($opt_w);
   print("\n");
 }
 
 sub outline {
   my $print;
   my $no = 0;
-  print('<tr>') if ($opt_w);
+  print("   <tr>\n") if ($opt_w);
   foreach (@_) {
     $print = $_;
     if ($opt_w) {
@@ -1851,20 +1875,20 @@ sub outline {
       $print =~ s#>#\&gt\;#go;
       if ($no == 0) {
 	unless ($print =~ s#^ ##go) {
-	  print("<td><strong>$print</strong>");
+	  print("    <th align=\"left\">$print</th>\n");
 	} else {
-	  print("<td>&nbsp;&nbsp;$print");
+	  print("    <td>&nbsp;&nbsp;$print</td>\n");
 	}
       } elsif ($format[$no] eq '%' or $format[$no] eq 'kbs') {
 	if ($print eq '' or $print eq '-') {
-	  print('<td>&nbsp;');
+	  print("    <td>&nbsp;</td>\n");
 	} else {
-	  printf("<td align=\"right\">%.2f", $print);
+	  printf("    <td align=\"right\">%.2f</td>\n", $print);
 	}
       } elsif ($no == 1 or $print =~ m#^[\d\.e\-\+]+$#o) {
-	printf("<td align=\"right\">%d", $print);
+	printf("    <td align=\"right\">%d</td>\n", $print);
       } else {
-	print("<td align=\"right\">$print");
+	print("    <td align=\"right\">", $print ? $print : "&nbsp;", "</td>\n");
       }
     } else {
       if ($no == 0) {
@@ -1893,16 +1917,16 @@ sub outline {
     }
     $no++;
   }
-  print('</tr>') if ($opt_w);
+  print('   </tr>') if ($opt_w);
   print("\n");
 }
 
 sub outseperator {
   my $print;
-  print('<tr>') if ($opt_w);
+  print("   <tr>\n") if ($opt_w);
   foreach $print (@format) {
     if ($opt_w) {
-      print('<td>');
+      print("    <td></td>\n");
     } elsif ($print eq '%') {
       print('-' x 6, ' ');
     } elsif ($print eq 'kbs') {
@@ -1911,14 +1935,14 @@ sub outseperator {
       print('-' x $print, ' ');
     }
   }
-  print('</tr>') if ($opt_w);
+  print('   </tr>') if ($opt_w);
   print("\n");
 }
 
 sub outstop {
   if ($opt_w) {
-    print("</table>\n");
-    print("<p><a href=\"#0\">Back to Top</a>\n");
+    print("  </table>\n");
+    print("  <p><a href=\"#0\">Back to Top</a></p>\n");
   }
 }
 
