@@ -14,8 +14,8 @@ and i decided to build a new improved version of it.  Calamaris V2 is a nearly
 complete rewrite, with changed and more reports.
 
 
-Which software can produce Calamaris-parseable Logfiles?
---------------------------------------------------------
+Which software can produce Calamaris-parseable Log-files?
+---------------------------------------------------------
 
 * Squid V1.1.alpha1-V2.x (http://www.squid-cache.org/)
 * NetCache V??? (http://www.netapp.com/products/netcache/)
@@ -24,9 +24,9 @@ Which software can produce Calamaris-parseable Logfiles?
 * Oops! proxy server V??? (http://zipper.paco.net/~igor/oops.eng/)
 * Compaq Tasksmart (http://www.compaq.com/tasksmart/)
 * Novell Internet Caching System (http://www.novell.com/products/ics/)
-* Netscape/iplanet Web Proxy Server
+* Netscape/iPlanet/SunONE Web Proxy Server
   (http://www.iplanet.com/downloads/download/detail_14_13.html)
-* Squid with the Smartfilter-patch
+* Squid with the SmartFilter-patch
 
 Where to get Calamaris?
 -----------------------
@@ -65,30 +65,30 @@ How to use it?
   (especially for security of your computer) that you use a recent version
   (>=5.005_03) of it.
 
-* You'll also need one of the noted logfiles:
+* You'll also need one of the noted log-files:
 
-  + Squid V1.1.alpha1-V1.1.beta25 Native logfiles
-  + Squid V1.1.beta26-V2.x Native logfiles
-  + Squid V1.1.beta26-V2.x Native logfiles with log_mime_hdrs enabled
-  + NetCache V??? Squid-style Logfiles
-  + NetCache V5.x Default Logfile-Format (Extended Logfile-Format)
-  + Inktomi Traffic Server V??? Logfiles
-  + OOPS V??? Native logfiles
-  + Extended Logfile-Format
-  + NetApp Default Logfile-Format (some kind of Extended Logfile-Format)
-  + NetApps understanding of Squid Native logfiles
-  + Squid with SmartFilter-Patch Logfiles
+  + Squid V1.1.alpha1-V1.1.beta25 Native log-files
+  + Squid V1.1.beta26-V2.x Native log-files
+  + Squid V1.1.beta26-V2.x Native log-files with log_mime_hdrs enabled
+  + NetCache V??? Squid-style Log-files
+  + NetCache V5.x Default Log-file-Format (Extended Log-file-Format)
+  + Inktomi Traffic Server V??? Log-files
+  + OOPS V??? Native log-files
+  + Extended Log-file-Format
+  + NetApp Default Log-file-Format (some kind of Extended Log-file-Format)
+  + NetApps understanding of Squid Native log-files
+  + Squid with SmartFilter-Patch Log-files
 
-  If Calamaris can't parse the input, check your logfile format.
-  + Squid-Logfiles: http://www.squid-cache.org/Doc/FAQ/FAQ-6.html
-  + Extended Logfile-Format: http://www.w3.org/TR/WD-logfile
+  If Calamaris can't parse the input, check your log-file format.
+  + Squid-Log-files: http://www.squid-cache.org/Doc/FAQ/FAQ-6.html
+  + Extended Log-file-Format: http://www.w3.org/TR/WD-logfile
 
 * Put Calamaris itself into a warm, dry place on your computer (i.e. into the
   Squid-bin-directory, or /usr/local/bin/). Maybe (if your Perl isn't located
   at /usr/bin/perl) you'll have to change the first line of Calamaris to point
   to your copy of Perl.
 
-* There is also a manpage for Calamaris. You should copy it to an appropriate
+* There is also a man-page for Calamaris. You should copy it to an appropriate
   place like /usr/local/man/man1, where your man(1) can find it.
 
 * Use it!
@@ -103,7 +103,7 @@ How to use it?
     return wrong values.
 
   You can alter Calamaris' behaviour with switches. Start Calamaris with '-h'
-  or check the manpage.
+  or check the man-page.
 
   You should also take a look at the EXAMPLES-File, for
   'Real-Life'-usage-examples of Calamaris.
@@ -123,7 +123,7 @@ Are there known bugs or other problems?
   <reagan@muppet.whatever.net.au> through Debian-Bug-Tracking)
 
 * there were many requests to add something that enables Calamaris to track
-  down who is using the Cache to get what. I added these with stomache-ache,
+  down who is using the Cache to get what. I added these with stomach-ache,
   because it breaks the privacy of the users. So please read the following
   and think about it, before using Calamaris to be the 'Big Brother':
 
@@ -131,10 +131,22 @@ Are there known bugs or other problems?
     the loss of productivity.
   - Squid has some nice acl-mechanisms. If you think that your users don't
     use the net properly, don't let them use it. (You can also open the net
-    at specific times or tp specific sites, if you want.)
+    at specific times or to specific sites, if you want.)
 
   If you still want to use Calamaris that way, let your vict^Wusers know
   that they'll be monitored. (in Germany you have to let them know!)
+
+  After some discussion in a newsgroup i was 'accused' to not announce the
+  spy-features of Calamaris. THIS IS INTENTIONAL. This is MY program, it can
+  spy on users, because there are many people who want to have that feature,
+  but what i write on the feature-sheet is MY decision. Don't annoy me, you
+  might damage my motivation to maintain this FREE (as in speech) piece of
+  software.
+
+* I fixed a bug regarding caching of Performance-Data. This breaks old
+  Calamaris-Cache-Files... I put a workaround in, which allows to parse old
+  and new cache-files. But you will loose the 'Cache-Hits'-value from old
+  files in the Performance-Report.  It is set to '-' in the output.
 
 * If you reuse a cache-file, which is not created with
   '-d -1 -r -1 -t -1 -R -1' the number of 'others' is likely wrong everywhere.
@@ -142,39 +154,40 @@ Are there known bugs or other problems?
 
   If i store the number of 'others' somewhere i still don't know which data is
   ment there, and in the next run (if i sum up) the number of others is to
-  high (if the number of occurances is below the treshold) or the summed up
-  data misses the occurences of the last run (if the number of occurances is
-  above the treshold). i think i can't fix this...
+  high (if the number of occurrences is below the threshold) or the summed up
+  data misses the occurrences of the last run (if the number of occurances is
+  above the threshold). i think i can't fix this...
 
 * If you want to parse more than one logfile (i.e. from the 'logfilerotate')
   or want to use more than one input-cache-file you have to put them in
   chronological sorted order (oldest first), else you get wrong peak values.
 
   However: If you use the caching function the peak-values can be wrong,
-  because peaks occuring during log-rotate-time can't be detected.
+  because peaks occurring during log-rotate-time can't be detected.
 
-  Calamaris will add a warning to the report if it recognizes unsorted input.
+  Calamaris will add a warning to the report if it recognises unsorted input.
 
-* Squid with the Smartfilter-Patch produces broken Logfiles if an URL is in
+* Squid with the SmartFilter-Patch produces broken Log-files if an URL is in
   it's database. I don't want to construct a workaround for the bugs in others
-  people spyware. Even if they fix that problem, i would not add a report to
+  people spy-ware. Even if they fix that problem, i would not add a report to
   give an overview about the usage of the Categories. (see first point of this
-  chapter.)
+  chapter.) A workaround for these broken Log-files is:
+  awk '{print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11}' access.log |calamaris
 
 * Squid doesn't log outgoing UDP-Requests, so i can't put them into the
   statistics without parsing squid.conf and the cache.log-file. (Javier Puche
   (Javier.Puche@rediris.es) asked for this), but i don't think that i should
   put this into Calamaris...
 
-* Squid and NetCache also support some kind of 'Common Logfileformat'.  I
+* Squid and NetCache also support some kind of 'Common Logfile-format'.  I
   won't support that, because Common Log is missing some very important data
-  i.e. the requesttime and the hierarchie-information. If you're still stuck
+  i.e. the request-time and the hierarchie-information. If you're still stuck
   with that format, i recommend the 'analog'-software by Steven Turner. Other
   way round:  change logging to 'native' and convert it to 'common'. There is
   software for that available, i.e. my shrimp.pl. This also applies for the
-  Common-style Logfiles which NetCache produces.
+  Common-style Log-files which NetCache produces.
 
-* If you use Calamaris at unix-epoch-date 2147483648 or later (~19.Jan 2038)
+* If you use Calamaris at UNIX-epoch-date 2147483648 or later (~19.Jan 2038)
   you might get wrong dates on 32bit-systems.  (I just added this to delight
   the people who really read this ;-) and to make a statement on this... on
   Y2K they found many systems which wasn't expected to run in that year. If
@@ -185,7 +198,7 @@ Are there known bugs or other problems?
 * It is written in Perl. Yea, Perl is a great language for something like this
   (also it is the only one I'm able to write something like this in ;-).
   Calamaris was first intended as demo for what i expect from a statistical
-  software. (OK, it is fun to write it, and it is even more fun to recognize
+  software. (OK, it is fun to write it, and it is even more fun to recognise
   that many people use the script). For my Caches with about 150MB logfile per
   week it is OK, but for those people on a heavy loaded Parent-cache it is
   possibly to slow.  How does it perform with the perlcc coming in Perl5.6 or
@@ -199,7 +212,7 @@ I think that Calamaris v2 is now finished. (except for bugs, that maybe were
 not found yet.)
 
 But if you have an idea what is still missing in a software for parsing proxy
-logfiles, let me know. --> Calamaris@Cord.de. I'll will build it in, or add
+log-files, let me know. --> Calamaris@Cord.de. I'll will build it in, or add
 it to the wish-list below :-)
 
 * Output-Option are subject to change in the next releases. I want to
@@ -217,7 +230,7 @@ it to the wish-list below :-)
 * try 'use integer'. This can result in a less memory-hungry, but faster
   version of Calamaris. (idea by Gerold Meerkoetter)
 
-* add a timerange-option to better filter out intersting events from the log.
+* add a time-range-option to better filter out interesting events from the log.
   (suggested by Steffen Sledz <sledz@zone42.org>)
 
 * build graphics (hope i remember who suggested this first, the mail must be
@@ -265,4 +278,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.37 2002-08-02 20:06:20 cord Exp $
+$Id: README,v 2.38 2002-08-28 16:54:56 cord Exp $
