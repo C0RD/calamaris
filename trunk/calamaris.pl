@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.111 1998-05-10 21:39:31 cord Exp $
+# $Id: calamaris.pl,v 1.112 1998-07-09 19:04:32 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - get statistic out of the Squid Native Log.
 #
@@ -22,6 +22,7 @@
 #	Marco Paganini (paganini@paganini.net)
 #	Michael Riedel (mr@fto.de)
 #	Kris Boulez (kris@belbone.be)
+#	Mark Visser (mark@snt.utwente.nl)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -88,12 +89,7 @@
 # i added switches, so everybody can switch on or off the reports wanted. But
 # this is also a speed disadvantage because of the many checks if set or not...
 
-# todo
-
-# * check bugs from Thoralf Freitag <Thoralf.Freitag@isst.fhg.de>
-
-# * add switch for limiting output.
-
+# todos
 # * add report for byte-peak (Andreas Strotmann <A.Strotmann@Uni-Koeln.DE>)
 
 require 5;
@@ -106,7 +102,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pr:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.111 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.112 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -161,7 +157,7 @@ if ($opt_H) {
     $hostname = ' ' . $opt_H . ' ';
   }
 } else {
-  $hostname = ' ';
+  $hostname = '';
 }
 
 # initialize variables
@@ -286,7 +282,6 @@ unless ($opt_z) {
     ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
      $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) =
       split;
-
     if (not defined $foo or not defined $log_content or $foo ne '' or
 	$log_content eq '' ) {
       chomp;
@@ -311,7 +306,6 @@ unless ($opt_z) {
       $urlhost = $urlprot;
       $urlprot = '<none>';
     }
-
     $urlhost =~ s#^.*@##o;
     $urlhost =~ s#[:\?].*$##o;
     @urlext = split(m#\.#o,$urlext);
@@ -759,7 +753,7 @@ if ($opt_w) {
   printf("%sSquid-Report (%s - %s)\n", $hostname, $date_start, $date_stop);
 }
 
-@format=(17,8);
+@format=(19,8);
 if ($hostname) {
   outtitle('Summary for' . $hostname, 1);
 } else {
@@ -768,6 +762,7 @@ if ($hostname) {
 outstart();
 outline('lines parsed:', $counter);
 outline('invalid lines:', $invalid);
+outline('unique hosts/users:', scalar keys %tcp_requester);
 outline('parse time (sec):', $time_run);
 outstop();
 
