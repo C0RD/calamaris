@@ -210,6 +210,10 @@ add it to the wish-list below :-)
 * add switch for sorting by requests and sorting by bytes. (Gerd Michael
   Hoffmann <Hoffmann@dvgw.de> asked for this)
 
+* rewrite it so that the Main-loop is constructed first and than run via eval.
+  This could make Calamaris significantly faster. (suggested by Jost Krieger
+  <Jost.Krieger@ruhr-uni-bochum.de>)
+
 * add report for byte-peak (inspirated by Andreas Strotmann
   <A.Strotmann@Uni-Koeln.DE>) (I have no idea how to calculate that)
 
@@ -244,8 +248,8 @@ Thank You!
 ----------
 
 * The developers and contributors of Squid.
-* The contributors, feature requesters and bug-reporters of Calamaris.
 * The developers and contributors of Perl.
+* The contributors, feature requesters and bug-reporters of Calamaris.
 * Gerold 'Nimm Perl' Meerkoetter.
 
 
@@ -259,4 +263,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.2 1998-10-07 17:40:52 cord Exp $
+$Id: README,v 2.3 1998-10-10 13:35:37 cord Exp $
