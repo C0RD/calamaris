@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.105 1998-04-07 19:26:44 cord Exp $
+# $Id: calamaris.pl,v 1.106 1998-04-07 20:06:41 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - get statistic out of the Squid Native Log.
 #
@@ -98,7 +98,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pr:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.105 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.106 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -295,12 +295,17 @@ unless ($opt_z) {
     @url = split(m#[/\\]#o,$log_url);
     ($urlprot, $urlhost, $urlext) = (@url)[0,2,$#url];
     $urlext = '.<none>' if $#url <= 2;
+    if ($#url <= -1) {
+      $urlext = '.<error>';
+      $urlprot = $urlhost = '<error>';
+    }
     $urlext = '.<dynamic>' if ($urlext =~ m#[\?\;\&\$\,\!\@\=\|]#o or
 			       $log_method eq POST);
     unless (defined $urlhost) {
       $urlhost = $urlprot;
       $urlprot = '<none>';
     }
+
     $urlhost =~ s#^.*@##o;
     $urlhost =~ s#[:\?].*$##o;
     @urlext = split(m#\.#o,$urlext);
@@ -753,7 +758,7 @@ if ($hostname) {
   outtitle('Summary', 1);
 }
 outstart();
-outline('outlines parsed:', $counter);
+outline('lines parsed:', $counter);
 outline('invalid outlines:', $invalid);
 outline('parse time (sec):', $time_run);
 outstop();
