@@ -1,15 +1,16 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.125 1998-10-03 12:33:28 cord Exp $
+# $Id: calamaris.pl,v 2.1 1998-10-05 18:50:29 cord Exp $
 #
-# DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Logfiles.
+# DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Log-files.
 #
 # Copyright (C) 1997, 1998 Cord Beermann
 #
-# URL: http://www.cord.de/~cord/tools/squid/calamaris/
-# Announcement-Mailinglist: send Mail to calamaris-announce-request@cord.de
+# URL: http://www.Cord.de/~cord/tools/squid/calamaris/
+# Announcement-Mailing-list: send Mail with 'subscribe' in the Mail-Body to
+#			    Calamaris-announce-request@Cord.de
 #
-# AUTHOR: Cord Beermann (cord@Wunder-Nett.org)
+# AUTHOR: Cord Beermann (Cord@Wunder-Nett.org)
 #
 # Thanks to these contributors, bug reporters, and feature requesters:
 #	John Heaton (John@MCC.ac.uk)
@@ -35,7 +36,7 @@
 # Software Foundation; either version 2 of the License, or (at your option)
 # any later version.
 
-# (If you modify and want to publish it under the name 'calamaris', please
+# (If you modify and want to publish it under the name 'Calamaris', please
 # ask me. I don't want to confuse the 'audience' with many different versions
 # of the same name and/or Version number.)
 
@@ -65,8 +66,8 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.125 $, Copyright (C) 1997, 1998 Cord Beermann.
-calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
+$COPYRIGHT='calamaris $Revision: 2.1 $, Copyright (C) 1997, 1998 Cord Beermann.
+Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
 
@@ -76,15 +77,15 @@ $USAGE='Usage: cat log | ' . $0 . ' [switches]
 
 Reports:
 -a	    all  (extracts all reports available,
-		  -a equals -d 20 -p -P 60 -r 50 -s -t 20)
+		  -a equals -d 20 -p -P 60 -r -1 -s -t 20)
 -d n	    domain (show n Top-level and n second-level destinations,
-		    0 = unlimited)
+		    -1 = unlimited)
 -p	    peak (measure peak requests)
 -P n	    Performance (show throughput data for every n minutes)
--r n	    requester (show n Requesters, 0 = unlimited)
+-r n	    requester (show n Requesters, -1 = unlimited)
 -s	    status (show verbose status reports)
 -t n	    type (show n content-type, n extensions and requested protocols,
-		  0 = unlimited)
+		  -1 = unlimited)
 
 Output Format: (Default is plain text)
 -m	    mail  (mail format)
@@ -92,14 +93,14 @@ Output Format: (Default is plain text)
 
 Caching:
 -i file	    input-file (input-datafile for caching, to add many files
-			seperate them with a \':\')
+			separate them with a \':\')
 -o file	    output-file (output-datafile for caching, can be the same as -i)
 
 Misc:
 -b n	    benchmark (prints a hash for each n lines)
--H name	    Hostname (a name for the Output, -H \'lookup\' issues a lookup for
+-H name	    Host-name (a name for the Output, -H \'lookup\' issues a lookup for
 		      the current host)
--n	    nolookup (don\'t look IP-Numbers up)
+-n	    no-lookup (don\'t look IP-Numbers up)
 -u	    user (use ident information if available)
 -z	    zero (no input via stdin)
 
@@ -133,7 +134,7 @@ if ($opt_a) {
   $opt_p = 1;
   $opt_P = 60 unless $opt_P;
   $opt_d = 20 unless $opt_d;
-  $opt_r = 50 unless $opt_r;
+  $opt_r = -1 unless $opt_r;
   $opt_t = 20 unless $opt_t;
 }
 
@@ -729,7 +730,7 @@ unless ($opt_z) {
 	  $tcp_miss_neighbor_miss_time{$log_hier_host} += $log_reqtime;
 	} else {
 	  warn("unknown log_hier_method: \"$log_hier_method\"
-	    Please report this to calamaris-bug\@cord.de\n");
+	    Please report this to Calamaris-bug\@Cord.de\n");
 	}
       }
       if ($log_hier_method ne 'NONE') {
@@ -828,7 +829,7 @@ unless ($opt_z) {
 	  }
 	} else {
 	  warn("unknown log_hier_method: \"$log_hier_method\"
-	    Please report this to calamaris-bug\@cord.de\n");
+	    Please report this to Calamaris-bug\@Cord.de\n");
 	}
       }
     }
@@ -836,7 +837,7 @@ unless ($opt_z) {
   $time_run = time - $time_run;
 }
 
-### Yea! File read. Now for something completly different ;-)
+### Yea! File read. Now for something completely different ;-)
 
 if ($counter == 0) {
   print("no requests found\n");
