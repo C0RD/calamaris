@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.103 1998-04-05 22:50:10 cord Exp $
+# $Id: calamaris.pl,v 1.104 1998-04-07 18:31:27 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - get statistic out of the Squid Native Log.
 #
@@ -98,7 +98,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pr:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.103 $, Copyright (C) 1997, 1998 Cord Beermann
+$COPYRIGHT='calamaris $Revision: 1.104 $, Copyright (C) 1997, 1998 Cord Beermann
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -145,6 +145,8 @@ if ($opt_b and $opt_b < 1) {
 } else {
   $|=1;
 }
+
+#print "#$opt_H#\n";
 
 if ($opt_H) {
   if ($opt_H eq '1' or $opt_H eq 'lookup') {
@@ -716,10 +718,10 @@ printf("Subject: %sSquid-Report (%s - %s)\n\n", $hostname, $date_start,
        $date_stop) if ($opt_m);
 if ($opt_w) {
     print("<html><head><title>Squid-Report</title></head><body>\n");
-    printf("<h1>%sSquid-Report (%s - %s)</h1>\n", hostname, $date_start,
+    printf("<h1>%sSquid-Report (%s - %s)</h1>\n", $hostname, $date_start,
 	   $date_stop);
 } else {
-    printf("%sSquid-Report (%s - %s)\n", hostname, $date_start, $date_stop);
+    printf("%sSquid-Report (%s - %s)\n", $hostname, $date_start, $date_stop);
 }
 
 @format=(17,8);
