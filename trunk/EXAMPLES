@@ -100,7 +100,7 @@ Thomas Wahyudi (thomas@home.unpar.ac.id) method:
 dailyreport="/www/htdocs/Squid/report/daily/"
 weeklyreport="/www/htdocs/Squid/report/weekly/"
 programpath="/cache/squid/bin/calamaris"
-squidlog="/cache/squid/logs/access.log.0"
+squidlog="/cache/squid/logs"
 
 hef1=`/bin/date | /usr/bin/awk '{print $2}'`
 hef2=`/bin/date | /usr/bin/awk '{print $3}'`
@@ -193,4 +193,4 @@ Everyone who really uses Squidmaster@Cord.de while testing has to send me a
 Version of the EXAMPLES
 -----------------------
 
-$Id: EXAMPLES,v 2.6 2000-05-24 21:18:22 cord Exp $
+$Id: EXAMPLES,v 2.7 2000-05-25 17:44:09 cord Exp $
