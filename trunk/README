@@ -13,10 +13,9 @@ Original-Announcement) Since then it is used by people all around the world,
 and i decided to build a new improved version of it.  Calamaris V2 is a nearly
 complete rewrite, with changed and more reports.
 
-It works with native logfiles from Squid V1.1.x and later.
-
-There is also the possibility to parse logfiles from NetCache. (but see 'Bugs
-and Shortcomings' on this.)
+It works with Native logfiles from Squid V1.1.x and later and with
+Squid-style-Logfiles from NetCache. (NetCache-Users should check the
+'Bugs&Shortcomings' below)
 
 
 Where to get it?
@@ -84,6 +83,12 @@ How to use it?
 Are there known bugs or other problems?
 ---------------------------------------
 
+* NetCache-Logfile-parsing is working now. However: I don't have that loads of
+  NetCache Logfiles ready to make a real test. So if you encounter problems
+  with it, please send me the lines Calamaris complains about. (PLEASE: Don't
+  send me loads of lines. It is enough to send me a few lines of the offending
+  lines. If I need more i'll ask for it. Thank You.)
+
 * I fixed a bug regarding caching of Performance-Data. This breaks old
   Calamaris-Cache-Files... I put a workaround in, which allows to parse old
   and new cachefiles. But you will loose the 'Cache-Hits'-value from old files
@@ -95,17 +100,6 @@ Are there known bugs or other problems?
   especially interested how Calamaris works with Squids CARP-Support. So if
   you use it that way, please send a mail to Calamaris@Cord.de, even if it
   works without problem. Thank You.
-
-* If you parse NetCache logfiles with Calamaris, it seems that you can run
-  into trouble. I've looked for information on the logfile-format from the
-  vendor, but it seems that they don't give info to people who don't want to
-  tell them their name and address.  
-
-  HELP REQUEST: If someone can provide me info about NetCache Logfiles or send
-  me a few(! I've only a 28k8 Dialup) lines of a NetCache Logfiles, along with
-  the NetCache version number.  I'll try to put it into Calamaris. (I've seen
-  that NetCache produces broken logfiles with different counts of fields, is
-  that a buggy version?)
 
 * If you want to parse more than one logfile (i.e. from the 'logfilerotate')
   or want to use more than one input-cache-file you have to put them in
@@ -160,15 +154,16 @@ add it to the wish-list below :-)
   somewhere in my work-mailbox ;-) (This is a thing for Calamaris v3, if i
   ever going to write it. there are nice gd-libs in Perl ;-)
 
-* add real NetCache-Support. The NetCache-Support is rudimentary working, but
-  is only in some kind of alpha-state. see above.
+* work on NetCache-Support. The NetCache-Support is working, but is (because
+  of the lack of tests, only in some kind of beta-state. See above.
 
 * add parsing of 'Common Logfileformat'. I don't think that this makes sense,
-  because Common Log is missing some very important data i.e. the Requesttime.
-  (So I won't build something like that in.) If you're still stuck with that
-  format, i recommend the 'analog'-software by Steven Turner. Other way round:
-  change logging to 'native' and convert it to 'common'. There is software for
-  that available, i.e. my shrimp.pl.
+  because Common Log is missing some very important data i.e. the Requesttime
+  and the Hierarchie-Information.  (So I won't build something like that in.)
+  If you're still stuck with that format, i recommend the 'analog'-software by
+  Steven Turner. Other way round:  change logging to 'native' and convert it
+  to 'common'. There is software for that available, i.e. my shrimp.pl. This
+  also applies for the Common-style Logfiles which NetCache produces.
 
 * make Calamaris faster. see above. If someone wants to rewrite Calamaris in a
   faster language: Feel Free! (But respect the GNU-License) It would be nice
@@ -212,4 +207,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.17 1999-02-04 22:18:32 cord Exp $
+$Id: README,v 2.18 1999-02-06 21:08:23 cord Exp $

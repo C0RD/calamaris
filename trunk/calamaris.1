@@ -1,7 +1,11 @@
-.TH CALAMARIS 1 "$Date: 1999-02-04 22:30:37 $" Handmade "Calamaris Manual"
+.TH CALAMARIS 1 "$Date: 1999-02-06 21:08:26 $" Handmade "Calamaris Manual"
 
 .SH NAME
-calamaris \- generate statistic out of log files from Squid or relatives
+calamaris \- generate statistic out of log files from 
+.B Squid 
+,
+.B NetCache
+and relatives
 
 .SH SYNOPSIS
 cat log |
@@ -12,6 +16,8 @@ cat log |
 .B Calamaris
 is used to produce statistical output from
 .B Squid
+,
+.B NetCache
 or related Proxies log files.  The resulting output can be in
 .I ascii
 or
@@ -40,10 +46,9 @@ data is derived from the URL.  The output is limited by n.  (-1 is unlimited)
 
 .TP
 .I "-p" type
-peak report: Measures the peaks of the 
-.B Squid
-usage in requests per second, per minute and per hour.  It reports peaks for
-TCP, UDP and ALL requests. If set to
+peak report: Measures the peaks of the Proxy usage in requests per second, 
+per minute and per hour.  It reports peaks for TCP, UDP and ALL requests. If 
+set to
 .I 'old'
 these values were calculated with the old slow method, if set to
 .I 'new'
@@ -72,14 +77,16 @@ output is limited by n.  (-1 is unlimited)
 .SS Input Format
 .TP
 .I "-f" type
-format: sets the type of input logfiles. The Default is Native-Logfile derived
-from Squid V1.1.beta26-V2.x. if set to 
-.I 'old' 
+format: sets the type of input logfiles. 
+.I 'squid'
+Native-Logfile derived from Squid V1.1.beta26-V2.x. This is the Default.
+If set to 
+.I 'squid-old' 
 .B Calamaris 
-expects Native-Logfile derived from Squid V1.1.alpha1-V1.1.beta25, if set to 
-.I 'nc1' or
-.I 'nc2'
-it expects Logfiles from Netcache. (Please read the README on this.)
+expects Native-Logfile derived from Squid V1.1.alpha1-V1.1.beta25. 
+If set to 
+.I 'nc'
+it expects Logfiles from NetCache. (Please see the README on this.)
 
 .SS Output Format
 Standard output format is plain
@@ -225,7 +232,7 @@ Cord Beermann.
 
 .SH VERSION
 
-Version of this manpage: $Id: calamaris.1,v 1.7 1999-02-04 22:30:37 cord Exp $
+Version of this manpage: $Id: calamaris.1,v 1.8 1999-02-06 21:08:26 cord Exp $
 
 It describes the usage of Calamaris V2.19 and later.
 

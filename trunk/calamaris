@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.19 1999-02-04 22:39:47 cord Exp $
+# $Id: calamaris,v 2.20 1999-02-06 21:08:24 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic for Squid and NetCache Native Log-files
 #
@@ -69,7 +69,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:f:hH:i:mno:Op:P:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 2.19 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 2.20 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -95,10 +95,10 @@ Reports:
 
 Input Format:
 -f type	format 	(sets the type of input logfiles)
-	(Default is Native-Logfile derived from Squid V1.1.beta26-V2.x)
-	old = Native-Logfile derived from Squid V1.1.alpha1-V1.1.beta25
-	nc1 = Netcache-Logfiles of V???
-	nc2 = Netcache-Logfiles of V???
+	squid = Native-Logfile derived from Squid V1.1.beta26-V2.x 
+	(This is the Default)
+	squid-old = Native-Logfile derived from Squid V1.1.alpha1-V1.1.beta25
+	nc = Squid-style Logfiles derived from NetCache V???
 
 Output Format: (Default is plain text)
 -m	mail	(mail format)
@@ -168,6 +168,7 @@ $counter = $hier = $hier_direct = $hier_direct_size = $hier_direct_time =
   $udp = $udp_hit = $udp_hit_size = $udp_hit_time = $udp_miss = $udp_miss_size
   = $udp_miss_time = $udp_size = $udp_time = 0;
 $time_begin = 9999999999;
+@months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
 
 ### Read Cache.
 if ($opt_i) {
@@ -468,13 +469,13 @@ unless ($opt_z) {
   print("print a hash for each $opt_b lines:\n") if ($opt_b);
   $loop = '
 while (<>) {';
-if (not defined $opt_f or $opt_f eq '') {
+if (not defined $opt_f or $opt_f eq 'squid') {
   $loop .= '
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
    $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) = split;
   if (not defined $foo or not defined $log_content or $foo ne \'\' or
       $log_content eq \'\' or $log_reqtime lt 0) {';
-} elsif ($opt_f eq 'old') {
+} elsif ($opt_f eq 'squid-old') {
   $loop .= '
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
    $log_method, $log_url, $log_ident, $log_hier, $foo) = split;
@@ -482,25 +483,14 @@ if (not defined $opt_f or $opt_f eq '') {
       	  $log_hier eq \'\' or $log_reqtime lt 0) {
     $log_content = \'-\';
   } else {';
-} elsif ($opt_f eq 'nc1') {
+} elsif ($opt_f eq 'nc') {
   $loop .= '
-  if (m#^([^ ]+) - - \[([^\[\]]+)\] \"([^ \"]+) ([^ \"]+)\" ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)$#) {
-    $log_requester = $1;
-    $log_date = $2;
-    $log_method = $3;
-    $log_url = $4;
-    $log_status = $5;
-    $log_size = $6;
-    $log_reqtime = $7;
-    $log_hier = $8;
-    $log_ident = $log_content = \'-\';
-  } else {';
-} elsif ($opt_f eq 'nc2') {
-  $loop .= '
+  s/\; /\;/o;
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
-   $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) = split;
-  if (not defined $foo or not defined $log_content or $foo ne \'-\' or
-      $log_content eq \'\' or $log_reqtime lt 0) {';
+   $log_method, $log_url, $log_ident, $log_hier, $log_content, $log_abort, 
+   $foo) = split;
+  if (not defined $foo or not defined $log_abort or $foo ne \'\' or
+      $log_abort eq \'\' or $log_reqtime lt 0) {';
 } else {
   warn("$0: unknown value at -f -option: \"$opt_f\"\n");
   die($USAGE);
@@ -961,6 +951,7 @@ if (not defined $opt_f or $opt_f eq '') {
 	  $log_reqtime;' if ($opt_s);
   $loop .= '
       } else {
+        chomp($log_hier_method);
 	warn("unknown log_hier_method: \"$log_hier_method\" found in line $counter of input:
 	      $_
 	      Please report this error to Calamaris-bug\@Cord.de\n");
@@ -999,7 +990,7 @@ print("MIME-Version: 1.0\n", "Content-Type: text/html; charset=us-ascii\n",
 printf("Subject: %sProxy-Report (%s - %s)\n\n", $hostname, $date_start,
        $date_stop) if ($opt_m);
 if ($opt_w) {
-  print("<html><head><title>Proxy-Report</title><META NAME=\"GENERATOR\" CONTENT=\"Calamaris/\$Id: calamaris,v 2.19 1999-02-04 22:39:47 cord Exp $\"></head><body>\n");
+  print("<html><head><title>Proxy-Report</title><META NAME=\"GENERATOR\" CONTENT=\"Calamaris/\$Id: calamaris,v 2.20 1999-02-06 21:08:24 cord Exp $\"></head><body>\n");
   printf("<h1><a name=\"0\">%sProxy-Report (%s - %s)</a></h1>\n", $hostname,
 	 $date_start, $date_stop);
   print("<hr><ul>\n");
@@ -1757,8 +1748,7 @@ sub convertdate {
   my $date = shift(@_);
   if ($date) {
     my ($sec,$min,$hour,$mday,$mon,$year) = (localtime($date))[0,1,2,3,4,5,6];
-    my $month = ('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct',
-		 'Nov','Dec')[$mon];
+    my $month = $months[$mon];
     my $retdate = sprintf("%02d.%s %02d %02d:%02d:%02d\n", $mday, $month,
 			  $year, $hour, $min, $sec);
     chomp($retdate);
