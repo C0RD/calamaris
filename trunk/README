@@ -13,9 +13,17 @@ Original-Announcement) Since then it is used by people all around the world,
 and i decided to build a new improved version of it.  Calamaris V2 is a nearly
 complete rewrite, with changed and more reports.
 
-It works with Native logfiles from Squid V1.1.x and later and with
-Squid-style-Logfiles from NetCache. (NetCache-Users should check the
-'Bugs&Shortcomings' below)
+
+Which formats are supported?
+----------------------------
+* Squid V1.1.alpha1-V1.1.beta25 Native logfiles (squid-old)
+* Squid V1.1.beta26-V2.x Native logfiles (squid)
+* Squid V1.1.beta26-V2.x Native logfiles with log_mime_hdrs enabled
+  (squid-mime)
+* NetCache V??? Squid-style Logfiles (nc) (see Bugs&Shortcomings' below)
+* Inktomi Traffic Server V??? Logfiles (its)
+* OOPS V??? Native logfiles (squid)
+* Compaq Tasksmart (cts)
 
 
 Where to get it?
@@ -82,10 +90,10 @@ How to use it?
 Are there known bugs or other problems?
 ---------------------------------------
 
-* I added input-file guessing to Calamaris. This is probably buggy, so i 
-  didn't made it to the default behaviour, but i will do in one of the next 
-  releases. So please try guessing, and note me if something goes wrong. 
-  (Calamaris will tell you ;-)
+* I added input-file guessing to Calamaris. This is probably buggy, but as
+  nobody reported a problem yet, i switched it to the default. To get the old
+  default back you have to add '-f squid' on the invocation line. However: if
+  all works correct you should not notice any difference to the old behaviour.
 
 * CONNECT-requests weren't handled correctly? anybody send me some
   logfile-lines which were interpreted wrong?
@@ -147,14 +155,9 @@ What will happen next?
 I think that Calamaris v2 is now finished. (except for bugs, that maybe were
 not found yet.)
 
-But if you have an idea what is still missing in a software for parsing
-proxy logfiles, let me know. --> Calamaris@Cord.de. I'll will build it in, or
-add it to the wish-list below :-)
-
-* add support for 'Compaq Cache' which is logging in W3C Extended
-  Logfile format. (I'm not sure yet if this is possible, but i'm
-  trying.) (Antonio Casado Rodriguez (acasado@ualm.es) sent me
-  some logfiles.)
+But if you have an idea what is still missing in a software for parsing proxy
+logfiles, let me know. --> Calamaris@Cord.de. I'll will build it in, or add
+it to the wish-list below :-)
 
 * seperate on/off switching of incoming UDP/TCP-Requests (based on
   UDP-Requests?) (suggested by John Line <webadm@info.cam.ac.uk>)
@@ -162,8 +165,8 @@ add it to the wish-list below :-)
 * rewrite peak-measurement. The new calculation method is very time intensive
   and slows down Calamaris by 30 or more percent, but it is faster than the
   old way. However: i'm not really satisfied with it, so i put it out of the
-  -a -option. You'll have to add a '-p (old|new)' -option to get
-  old or new peak-statistic. 
+  -a -option. You'll have to add a '-p (old|new)' -option to get old or new
+  peak-statistic. 
 
   HELP REQUEST: If someone has an idea how to build an efficient AND fast
   method to work it out... let me know!
@@ -233,4 +236,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.24 2000-05-24 21:34:19 cord Exp $
+$Id: README,v 2.25 2000-06-22 10:00:27 cord Exp $
