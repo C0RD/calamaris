@@ -1,0 +1,42 @@
+What will happen next?
+----------------------
+
+I think that Calamaris v3 is nearly finished. (except for bugs, that maybe were
+not found yet.)
+
+But if you have an idea what is still missing in a software for parsing proxy
+log-files, let me know. --> <Calamaris@Cord.de>. I'll will build it in, or add
+it to the wish-list below :-)
+
+* adding a Makefile or some other installation-routine, so fixing lib-paths
+  isn't nessecary anymore. (Help wanted)
+
+* I suggest that the '-P' option has a <number of lines> option, like all
+  other analyses. So the time step would be something like = <analysis time> /
+  <number of lines>. (Ahmad Kamal <eng_ak@link.net>) Comment: As I cumulate
+  the Performance-Data in the Mainloop, when i don't know which timerange i
+  get, i don't have <analysis time> at the time i'd need it, so i don't think
+  that i can implement this without a major rewrite.
+
+* rewrite peak-measurement. The new calculation method is very time intensive
+  and slows down Calamaris by 30 or more percent, but it is faster than the
+  old way. However: i'm not really satisfied with it, so i put it out of the
+  -a -option. You'll have to add a '-p (old|new)' -option to get old or new
+  peak-statistic.
+
+  HELP REQUEST: If someone has an idea how to build an efficient AND fast
+  method to work it out... let me know!
+
+* try 'use integer'. This can result in a less memory-hungry, but faster
+  version of Calamaris. (idea by Gerold Meerkoetter)
+
+* make Calamaris faster. see above. If someone wants to rewrite Calamaris in a
+  faster language: Feel Free! (But respect the GNU-License) It would be nice
+  if you drop me a line about it, I'll mention it in the README. And please
+  please please don't use the name 'Calamaris' for it without asking me!
+
+
+Version of the TODO
+-------------------
+
+$Id: TODO,v 3.0 2004-09-15 20:56:00 cord Exp $
