@@ -1,13 +1,13 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.123 1998-09-24 18:07:43 cord Exp $
+# $Id: calamaris.pl,v 1.124 1998-09-30 17:35:01 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Logfiles.
 #
 # Copyright (C) 1997, 1998 Cord Beermann
 #
-# URL: http://www.cord.de/~cord/tools/squid/
-# Announcement-Mailinglist: send Mail to calamaris-request@cord.de
+# URL: http://www.cord.de/~cord/tools/squid/calamaris/
+# Announcement-Mailinglist: send Mail to calamaris-announce-request@cord.de
 #
 # AUTHOR: Cord Beermann (cord@Wunder-Nett.org)
 #
@@ -64,7 +64,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.123 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.124 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
