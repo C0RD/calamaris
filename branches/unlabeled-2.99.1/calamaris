@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.99.1.2 2004-09-22 20:34:29 cord Exp $
+# $Id: calamaris,v 2.99.1.3 2004-12-23 20:05:27 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
@@ -129,6 +129,7 @@ GetOptions( "all-useful-reports|a" => \$opt_a, "benchmark|b=i" => \$opt_b,
 	   "errorcode-distribution-report" => \$opt_errorcode_distribution,
 	   "help|h" => \$opt_h, "hostname|H=s" => \$opt_H,
 	   "input-format|f=s" => \$opt_f,
+	   "image-type=s" => \$opt_image_type,
 	   "ipfilter-exclude=s" => \$opt_ipfilter_exclude,
 	   "ipfilter-include=s" => \$opt_ipfilter_include,
 	   "logo|l=s" => \$opt_l, "meta|M=s" => \$opt_M,
@@ -1334,7 +1335,7 @@ if ( $outtype_html or $outtype_htmlembed ) {
 	\"http://www.w3.org/TR/REC-html40/loose.dtd\">
 <html>\n <head>
   <title>${host_name}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.99.1.2 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.99.1.3 $' . "\">
 " . ( $opt_M ? '  ' . $opt_M . "\n" : '' ) . " </head>
  <body bgcolor=\"#FFFFFF\">" if ($outtype_html);
   $out_head .= "\n  <table border=\"0\">"
@@ -1508,7 +1509,7 @@ if ( not defined $opt_p ) {
   outstop($report_index);
 } elsif ( $opt_p eq 'new' ) {
   @format = ( 3, 4, 18, 5, 18, 7, 18 );
-  $report_index = 1;
+  $report_index = 2;
   $peak_udp_hour_time = ( sort { $peak_udp_hour{$b} <=> $peak_udp_hour{$a} }
 			 keys(%peak_udp_hour) )[0]
     or $peak_udp_hour_time = $peak_udp_hour{0} = 0;
@@ -2723,7 +2724,8 @@ if ($opt_r) {
 		 $tcp_hit_requester{$requester},
 		 $tcp_hit_requester_size{$requester}
 		 );
-      outline( $report_index, $requester, $tcp_requester{$requester},
+      outline( $report_index, uri_unescape($requester),
+	      $tcp_requester{$requester},
 	      $tcp ? 100 * $tcp_requester{$requester} / $tcp : 0,
 	      100 * $tcp_hit_requester{$requester} /
 		$tcp_requester{$requester},
@@ -3391,7 +3393,7 @@ if ( $outtype_html or $outtype_htmlembed ) {
   print $fh '
   <hr>
   <address>
-   <a href="http://Calamaris.Cord.de/">Calamaris</a> $Revision: 2.99.1.2 $,
+   <a href="http://Calamaris.Cord.de/">Calamaris</a> $Revision: 2.99.1.3 $,
    Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
@@ -3554,7 +3556,7 @@ sub outheader {
 sub outimg {
   my $index = shift;
   $out_body{$index} .= "\n  <tr>\n   <td colspan=\"" . scalar(@format) . "\">
-    <img src=\"${index}.png\" alt=\"Graphic: $reports[$index]\">\n   </td>
+    <img src=\"${index}.${opt_image_type}\" alt=\"Graphic: $reports[$index]\">\n   </td>
   </tr>";
 }
 
@@ -3584,6 +3586,22 @@ sub outgraph {
   }
 
   my $graph = calamaris::calBars3d->new($width, int($width/3*2));
+
+  # check image-type
+  if (! $verified) {
+    @img_format = $graph->export_format;
+    foreach ( @img_format ) {
+      $format{$_} = 1;
+    }
+    if ( ! defined($format{$opt_image_type}) ) {
+      # Image type not supported
+      print STDERR "$0: $opt_image_type is not supported by GD::Graph!\n
+Please use one of the supported image types: @img_format \n\n";
+      exit(1);
+    }
+    $verified = 1; # don't do it on every 'sub outgraph' call
+  }
+
 
   # 1 axis graph
   my @data = ([@$xaxis_ref[$min_x..$max_x]], [@$yaxis1_ref[$min_x..$max_x]]);
@@ -3632,10 +3650,10 @@ sub outgraph {
   $graph->set_text_clr("$text_color");
   $graph->set_legend(@$legend_ref);
   $graph->set( dclrs => [$column2_color, $column1_color] );
-  open(IMG, ">$path/${index}.png")
-    or die ("$0: can't open $path/${index}.png for writing: $!\n");
+  open(IMG, ">$path/${index}.${opt_image_type}")
+    or die ("$0: can't open $path/${index}.${opt_image_type} for writing: $!\n");
   binmode IMG;
-  print IMG $graph->plot(\@data)->png;
+  print IMG $graph->plot(\@data)->$opt_image_type;
   close(IMG);
 }
 
@@ -3964,8 +3982,10 @@ sub readconfig {
   $text_color    = '#222266';
   $bg_color      = '#ffffcc';
   $x_scale = 30;
+  $image_type = 'png';
   $width = 600;
   $test = 0;
+  $verified = 0;
   @graph_legend = ('Requests', 'Byte', 'Request Hit Rate', 'Byte Hit Rate');
   # HTML SECTION
 
@@ -3990,6 +4010,7 @@ sub readconfig {
   $opt_H = $hostname unless $opt_H;
   $opt_c = $type_report_ignore_case unless $opt_c;
   $opt_f = $input_format unless $opt_f;
+  $opt_image_type = $image_type unless $opt_image_type;
   $opt_ipfilter_exclude = $ipfilter_exclude unless $opt_ipfilter_exclude;
   $opt_ipfilter_include = $ipfilter_include unless $opt_ipfilter_include;
   $opt_l = $logo unless $opt_l;
@@ -4176,7 +4197,7 @@ sub readconfig {
 	      'UDP Response code distribution',
 	      'TCP Response code distribution' );
 
-  $VERSION='Calamaris $Revision: 2.99.1.2 $';
+  $VERSION='Calamaris $Revision: 2.99.1.3 $';
 
   $COPYRIGHT =
 'Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004 Cord Beermann,
@@ -4285,6 +4306,10 @@ Output: (Default is plain formatted text)
 --hostname|-H name
 	a name for the Output, -H \'lookup\' issues a lookup for the
 	current host
+--image-type
+	Sets the image type to gif, png, jpeg, gd or gd2. Only usefull when
+	--output-format graph is set. The supported images types are dependend
+	on your GD::Graph installation.
 --logo|-l string
 	add this string to the head of the report. works only in combination
 	with --output-format html
@@ -4832,4 +4857,21 @@ sub gcd {
     }
   }
   return $a/$gcd, $b/$gcd;
+}
+
+sub uri_unescape {
+  # Note from RFC1630:  "Sequences which start with a percent sign
+  # but are not followed by two hexadecimal characters are reserved
+  # for future extension"
+  my $str = shift;
+  if (@_ && wantarray) {
+    # not executed for the common case of a single argument
+    my @str = ($str, @_);  # need to copy
+    foreach (@str) {
+      s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg
+    }
+    return @str;
+  }
+  $str =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;
+  $str;
 }
