@@ -207,6 +207,9 @@ But if you have an idea what is still missing in a software for parsing
 Proxy-Log-files, let me know. --> Calamaris@Cord.de. I'll will build it in, or
 add it to the wish-list below :-)
 
+* add switch for sorting by requests and sorting by bytes. (Gerd Michael
+  Hoffmann <Hoffmann@dvgw.de> asked for this)
+
 * add report for byte-peak (inspirated by Andreas Strotmann
   <A.Strotmann@Uni-Koeln.DE>) (I have no idea how to calculate that)
 
@@ -256,4 +259,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.1 1998-10-05 18:50:28 cord Exp $
+$Id: README,v 2.2 1998-10-07 17:40:52 cord Exp $
