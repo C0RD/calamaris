@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.26 1999-06-05 12:31:42 cord Exp $
+# $Id: calamaris,v 2.27 1999-06-08 19:48:01 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic for Squid and NetCache Native Log-files
 #
@@ -78,7 +78,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:f:hH:i:l:mno:Op:P:r:st:uwz');
 
-$COPYRIGHT='Calamaris $Revision: 2.26 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
+$COPYRIGHT='Calamaris $Revision: 2.27 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
 welcome to redistribute it under certain conditions.  See source for details.
 Calamaris-Homepage: http://Calamaris.Cord.de/';
@@ -492,13 +492,11 @@ if (not defined $opt_f or $opt_f eq 'squid') {
       $log_content eq \'\' or $log_reqtime lt 0) {';
 } elsif ($opt_f eq 'squid-mime') {
   $loop .= '
+  s/ \[[^\[\]]*\]//g;
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
-   $log_method, $log_url, $log_ident, $log_hier, $log_mime_req,
-   $log_mime_resp, $foo) = split;
-  unless (not defined $foo or not defined $log_mime_resp or not defined
-	  $log_mime_req or $foo ne \'\' or $log_mime_resp eq \'\' or
-	  $log_reqtime lt 0) {
-  } else {';
+   $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) = split;
+  if (not defined $foo or not defined $log_content or $foo ne \'\' or
+      $log_content eq \'\' or $log_reqtime lt 0) {';
 } elsif ($opt_f eq 'squid-old') {
   $loop .= '
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
@@ -1031,7 +1029,7 @@ if ($opt_w) {
 <html>
  <head>
   <title>${hostname}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.26 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.27 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
@@ -1764,7 +1762,7 @@ close(CACHE);
 if ($opt_w) {
   print('  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.26 $, Copyright &copy; 1997, 1998, 1999
+   $Revision: 2.27 $, Copyright &copy; 1997, 1998, 1999
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
