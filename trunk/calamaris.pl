@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.99 1997-12-28 21:51:42 cord Exp $
+# $Id: calamaris.pl,v 1.100 1998-01-11 21:25:48 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - get statistic out of the Squid Native Log.
 #
-# Copyright (C) 1997 Cord Beermann
+# Copyright (C) 1997, 1998 Cord Beermann
 #
 # URL: http://home.pages.de/~cord/tools/squid/
 #
@@ -20,6 +20,7 @@
 #	Shamil R. Yahin (SSHY@cclib.nsu.ru):
 #	Thoralf Freitag (Thoralf.Freitag@isst.fhg.de)
 #	Marco Paganini (paganini@paganini.net)
+#	Michael Riedel (mr@fto.de)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -56,10 +57,8 @@
 
 # Bugs and shortcomings
 
-# * after long sleep, rewrite, test, and debug, i want to keep my promise and
-# i release this as first beta-version of calamaris V2.x just in '97
-
-# * A Readme and so on has still to be written.
+# * A Readme and so on has still to be written. (Maybe i should put this
+# section into a seperate file?)
 
 # * if you want to parse more than one Logfile (i.e. from the logfilerotate)
 # you have to put them in chronological sorted order (oldest first) into
@@ -67,13 +66,12 @@
 # fix? Don't think so...)
 
 # * If you use the caching function the peak-values can be wrong if the peak
-# lies around the time the log-files were rotated.
+# is around the time the log-files were rotated.
 
 # * Squid doesn't log outgoing UDP-Requests, so i can't put them into the
 # statistics without parsing squid.conf. (Javier Puche
 # (Javier.Puche@rediris.es) asked for this), but i don't think that i should
-# put this into calamaris... (Check last point of 'Bugs and
-# shortcomings'-section.)
+# put this into calamaris... (Check last point of 'Bugs and shortcomings')
 
 # * To make calamaris shorter and (hopefully) faster i changed all the long
 # variables names to shorter ones. (Example: $tcp_miss_neighbor_hit_size is
@@ -98,15 +96,17 @@
 # this is also a disadvantage because of the many checks if set or not ...
 
 
-use vars qw($opt_a $opt_b $opt_c $opt_d $opt_f $opt_h $opt_m $opt_n $opt_p
-	    $opt_r $opt_s $opt_t $opt_u $opt_w $opt_z);
+require 5;
+
+use vars qw($opt_a $opt_b $opt_c $opt_d $opt_f $opt_h $opt_m $opt_n $opt_o
+	    $opt_p $opt_r $opt_s $opt_t $opt_u $opt_w $opt_z);
 
 use Getopt::Std;
 use Sys::Hostname;
 
-getopts('ab:cd:f:hmnprs:t:uwz');
+getopts('ab:cd:f:hmno:prs:t:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.99 $, Copyright (C) 1997 Cord Beermann
+$COPYRIGHT='calamaris $Revision: 1.100 $, Copyright (C) 1997, 1998 Cord Beermann
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -129,7 +129,9 @@ Output Format: (Default is plain text)
 
 Misc:
 -b n	    benchmark (prints a hash for each n lines)
--f name	    file (datafile for caching)
+-f file	    file (datafile for caching)
+-o string   output (a name for the Output, -o \'lookup\' issues a lookup for
+		    the current computer)
 -n	    nolookup (don\'t look IP-Numbers up)
 -u	    user (use ident information if available)
 -z	    zero (no input via stdin)
@@ -147,6 +149,16 @@ if ($opt_b and $opt_b < 1) {
     die($USAGE);
 } else {
     $|=1;
+}
+
+if ($opt_o) {
+    if ($opt_o eq '1' or $opt_o eq 'lookup') {
+	$hostname = hostname() . ' ';
+    } else {
+	$hostname = $opt_o . ' ';
+    }
+} else {
+    $hostname = '';
 }
 
 # initialize variables
@@ -288,7 +300,7 @@ while (<>) {
 	$uh = '.' . pop(@list) . $uh;
 
 	if ($ut =~
-	    /\.(ar|au|br|co|hk|id|il|jp|kr|mx|nz|pe|pl|sg|th|tr|tw|uk|us|yu|za)$/o
+	    /\.(ar|at|au|br|cn|co|hk|id|il|im|jp|kr|ly|mo|mx|my|nz|pe|pl|pn|pr|py|ru|sg|th|tr|tw|ua|uk|us|ve|yu|za)$/o
 	    and $#list >= 0) {
 	    $uh = '*.' . pop(@list) . $uh;
 	} else {
@@ -636,19 +648,23 @@ writec(B, $p_u_s, $p_u_s_tm, $p_u_m, $p_u_m_tm, $p_u_h, $p_u_h_tm, $p_t_s,
 	$d_p_a_h = convertdate($p_a_h_tm);
     }
 
-printf("Subject: %s Squid-Report (%s - %s)\n\n", hostname() , $d_start,
+printf("Subject: %sSquid-Report (%s - %s)\n\n", $hostname , $d_start,
        $d_stop) if ($opt_m);
 
 if ($opt_w) {
     print("<html><head><title>Squid-Report</title></head><body>\n");
-    printf("<h1>%s Squid-Report (%s - %s)</h1>\n", hostname() , $d_start,
+    printf("<h1>%sSquid-Report (%s - %s)</h1>\n", $hostname , $d_start,
 	   $d_stop);
 } else {
-    printf("%s Squid-Report (%s - %s)\n", hostname() , $d_start, $d_stop);
+    printf("%sSquid-Report (%s - %s)\n", $hostname , $d_start, $d_stop);
 }
 
 @f=(17,8);
-reptit('Summary for ' . hostname());
+if ($hostname) {
+    reptit('Summary for ' . $hostname);
+} else {
+    reptit('Summary');
+}
 repsta();
 replin('lines parsed:', $c);
 replin('invalid lines:', $i);
