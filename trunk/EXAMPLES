@@ -203,7 +203,18 @@ cat access.log.7 access.log.6 access.log.5 access.log.4 access.log.3 \
 -----------------------------------------------------------------------
 
 
+Alain Williams <addw@phcomp.co.uk> suggested to make the above long line with
+all access.log-Files easier (and shorter):
+-----------------------------------------------------------------------
+
+        ( zcat $( ls -tr access.log.*.gz )
+          cat access.log
+        ) | calamaris -a -F html > /var/www/html/calamaris.html
+
+
+
 Gottfried Hamm <ghamm@ghks.de> idea of using calamaris for reporting:
+(thanks to Hanno 'Rince' Wagner <wagner@rince.de> for bugfixing.)
 -----------------------------------------------------------------------
 squid.conf
 ==========
@@ -219,7 +230,7 @@ crontab
 
 /usr/local/squid/bin/squidrep
 =============================
-#/bin/sh
+#!/bin/sh
 
 # SquidReport by Gottfried Hamm <ghamm@ghks.de>
 # Created       07.01.2000
@@ -232,15 +243,15 @@ DATE=`date +"%Y%m%d"`
 
 ## Rotate the logs
 #
-BINDIR/squid -k rotate
-sleep 5m
+$BINDIR/squid -k rotate
+sleep 300
 
 ## Daily report via mail to webmaster
 #
 cd $LOGDIR
 cat access.log.0 | \
 $BINDIR/calamaris -aH 'Daily' -F mail | \
-mail -s "Daily Proxy-Report `date`" webmaster@ghks.de
+mailx -s "Daily Proxy-Report `date`" squidmaster@cord.de
 
 ## Weekly report will be stored as web page
 #
@@ -363,4 +374,4 @@ Everyone who really uses <Squidmaster@Cord.de> while testing has to send me a
 Version of the EXAMPLES
 -----------------------
 
-$Id: EXAMPLES,v 2.11 2003-02-08 22:57:24 cord Exp $
+$Id: EXAMPLES,v 2.12 2004-03-02 20:17:24 cord Exp $
