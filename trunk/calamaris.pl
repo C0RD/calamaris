@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 2.3 1998-10-10 13:39:06 cord Exp $
+# $Id: calamaris.pl,v 2.4 1998-10-10 17:16:53 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Log-files
 #
@@ -65,7 +65,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 2.3 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 2.4 $, Copyright (C) 1997, 1998 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -1198,6 +1198,7 @@ if ($opt_d) {
     $other_count = $opt_d;
     foreach $urlhost (sort {$tcp_urlhost{$b} <=> $tcp_urlhost{$a}}
 		      keys(%tcp_urlhost)) {
+      next if $urlhost eq '<other>';
       $other_urlhost--;
       $other -= $tcp_urlhost{$urlhost};
       $other_size -= $tcp_urlhost_size{$urlhost};
@@ -1231,6 +1232,7 @@ if ($opt_d) {
     $other_count = $opt_d;
     foreach $urltld (sort {$tcp_urltld{$b} <=> $tcp_urltld{$a}}
 		     keys(%tcp_urltld)) {
+      next if $urltld eq '<other>';
       $other_tld--;
       $other -= $tcp_urltld{$urltld};
       $other_size -= $tcp_urltld_size{$urltld};
@@ -1291,6 +1293,7 @@ if ($opt_t) {
     $other_count = $opt_t;
     foreach $content (sort {$tcp_content{$b} <=> $tcp_content{$a}}
 		      keys(%tcp_content)) {
+      next if $content eq '<other>';
       $other_content--;
       $other -= $tcp_content{$content};
       $other_size -= $tcp_content_size{$content};
@@ -1328,6 +1331,7 @@ if ($opt_t) {
     $other_count = $opt_t;
     foreach $urlext (sort {$tcp_urlext{$b} <=> $tcp_urlext{$a}}
 		     keys(%tcp_urlext)) {
+      next if $urlext eq '<other>';
       $other_urlext--;
       $other -= $tcp_urlext{$urlext};
       $other_size -= $tcp_urlext_size{$urlext};
@@ -1401,6 +1405,7 @@ if ($opt_r) {
     $other_count = $opt_r;
     foreach $requester (sort {$tcp_requester{$b} <=> $tcp_requester{$a}}
 			keys(%tcp_requester)) {
+      next if $requester eq '<other>';
       $other_requester--;
       $other -= $tcp_requester{$requester};
       $other_size -= $tcp_requester_size{$requester};
