@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.31 2000-05-24 21:31:15 cord Exp $
+# $Id: calamaris,v 2.32 2000-06-22 10:06:50 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic for Squid and NetCache Native Log-files
 #
-# Copyright (C) 1997, 1998, 1999 Cord Beermann
+# Copyright (C) 1997, 1998, 1999, 2000 Cord Beermann
 #
 # URL: http://Calamaris.Cord.de/
 # Announcement-Mailing-list: send Mail with 'subscribe' in the Mail-Body to
@@ -52,6 +52,9 @@
 #	Steve Snyder (swsnyder@home.com)
 #	Michael Smith (good_guy93@hotmail.com)
 #	Warren Brown (wbrown@inktomi.com)
+#	Andy Nik (nik@che.nsk.su)
+#	Frank Roechter (frank@fhd.de)
+#	Antonio Casado Rodríguez (acasado@ualm.es)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -88,7 +91,7 @@ use Sys::Hostname;
 
 getopts('ab:cCd:f:hH:i:l:mno:Op:P:r:st:TuvVwz');
 
-$VERSION='Calamaris $Revision: 2.31 $';
+$VERSION='Calamaris $Revision: 2.32 $';
 
 $COPYRIGHT='Copyright (C) 1997, 1998, 1999, 2000 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
@@ -115,16 +118,15 @@ Reports:
 Input Format:
 -f type	format 	(sets the type of input logfiles)
 		auto = tries to guess the input format
-		(This will be the Default in a later release.)
-		squid = Native-Logfile derived from Squid V1.1.beta26-V2.x
 		(This is the Default)
+		squid = Native-Logfile derived from Squid V1.1.beta26-V2.x
 		squid-mime = Native-Logfile with log_mime_hdrs enabled derived
 			from Squid V1.1.beta26-V2.x
 		squid-old = Native-Logfile derived from Squid
 			V1.1.alpha1-V1.1.beta25
 		nc = Squid-style Logfiles derived from NetCache V???
 		its = Logfiles derived from Inktomi Traffic Server
-
+		cts = Logfiles derived from Compaq Tasksmart
 
 Output Format: (Default is plain text)
 -m	mail	(mail format)
@@ -505,34 +507,39 @@ if ($opt_i) {
 }
 
 unless ($opt_z) {
-  $line = <>;
-  if (defined $opt_f and $opt_f eq 'auto') {
-
+  while ($line = <>) {
+    last unless $line =~ /^\#/;
+  }
+  if (not defined $opt_f or $opt_f eq 'auto') {
     if ($line =~
 	m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+$#)
     {
       $opt_f = 'squid';
-      print(STDERR "guessing... Squid Native Log V1.1.beta26-V2.x-format\n\twithout log_mime_hdrs enabled.\n") if ($opt_v);
+      print(STDERR "guessing... using '-f squid'\n") if ($opt_v);
     } elsif ($line =~
-	m#^\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+$#)
+	     m#^\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+$#)
     {
       $opt_f = 'its';
-      print(STDERR "guessing... Inktomi Traffic Server Native Log.\n") if ($opt_v);
+      print(STDERR "guessing... using '-f its'\n") if ($opt_v);
     } elsif ($line =~
 	     m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+\s+\[.*\]\s+\[.*\]$#)
     {
       $opt_f = 'squid-mime';
-      print(STDERR "guessing... Squid Native Log V1.1.beta26-V2.x with log_mime_hdrs enabled.\n") if ($opt_v);
+      print(STDERR "guessing... using '-f squid-mime'\n") if ($opt_v);
     } elsif ($line =~
 	     m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+$#)
     {
       $opt_f = 'squid-old';
-      print(STDERR "guessing... Squid Native Log V1.1.alpha1-V1.1.beta25\n") if ($opt_v);
-
+      print(STDERR "guessing... using '-f squid-old'\n") if ($opt_v);
     } elsif ($line =~
-	     m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+(\S|; c)+\s+\S+$#) {
+	     m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+(\S|; c)+\s+\S+$#)
+    {
       $opt_f = 'nc';
-      print(STDERR "guessing... NetCache Native Log\n") if ($opt_v);
+      print(STDERR "guessing... using '-f nc'\n") if ($opt_v);
+    } elsif ($line =~
+	     m#^\d+-\d+-\d+\s+\d+:\d+:\d+\s+[\w\-\.]+\s+\S+\s+[\w\-\.]+\s+[\w\-\.]+\s+\w+\s+\S+\s+\S+\s+\S+\s+\w+/[\d\.]+\s+\d+\s+\d+\s+\d+\s+[\d\.]+\s+\"[^\"]*\"\s+\"[^\"]*\"\s+\"[^\"]*\"\s+\d+\s+[\w\-\.]+\s+[\w\-\.]+.?$#) {
+      $opt_f = 'cts';
+      print(STDERR "guessing... using '-f cts'\n") if ($opt_v);
     } elsif ($line =~
 	     m#^[\w\-\.]+\s+\S+\s+\S+\s+\[.+\]\s+\"\w+\s+\S+\s+\S+\"\s+\d+\s+\d+\s+\S+(\s+\[.*\]\s+\[.*\])?$#)
     {
@@ -541,18 +548,18 @@ switched 'emulate_httpd_log' to on. I can't parse that format. Please read
 the README on this.\n\n");
       exit(1);
     } else {
-      print(STDERR "$0: I don't know this input format. Please check the 
-input. If you\'re sure that the following line is NOT corrupt and the error
-also occurs with the recent version of Calamaris (see the README for pointers
-and known bugs) then report it with the following line to
-Calamaris-bug\@Cord.de. Thank You.\n\n$line\n\n");
+      print(STDERR "$0: I don't know this input format. Please check the input.
+If you\'re sure that the following line is NOT corrupt and the error also
+occurs with the recent version of Calamaris (see the README for pointers and
+known bugs) then report it with the following line to Calamaris-bug\@Cord.de.
+Thank You.\n\n$line\n\n");
       exit(1);
     }
   }
   print(STDERR "print a hash-sign for each $opt_b lines:\n") if ($opt_b);
   $loop = '
 for (; $line; $line = <>) {';
-  if (not defined $opt_f or $opt_f eq 'squid') {
+  if ($opt_f eq 'squid') {
   $loop .= '
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
    $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) =
@@ -580,7 +587,6 @@ for (; $line; $line = <>) {';
   $loop .= '
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
    $log_method, $log_url, $log_ident, $log_hier, $foo) = split(/\s+/, $line);
-  $log_content = \'-\';
   unless (not defined $foo or not defined $log_hier or $foo ne \'\' or
       	  $log_hier eq \'\' or $log_reqtime lt 0 or
 	  $log_date !~ m#^\d+\.\d{3}$#) {';
@@ -593,13 +599,41 @@ for (; $line; $line = <>) {';
   if (not defined $foo or not defined $log_abort or $foo ne \'\' or
       $log_abort eq \'\' or $log_reqtime lt 0 or
       $log_date !~ m#^\d+\.\d{3}$#) {';
+} elsif ($opt_f eq 'cts') {
+  $loop .= '
+  use Time::Local;
+  if ($line =~ 
+      m#^(\d+)-(\d+)-(\d+)\s+(\d+):(\d+):(\d+)\s+([\w\-\.]+)\s+(\S+)\s+[\w\-\.]+\s+[\w\-\.]+\s+(\w+)\s+(\S+)\s+\S+\s+\S+\s+\w+/[\d\.]+\s+(\d+)\s+(\d+)\s+\d+\s+([\d\.]+)\s+\"[^\"]*\"\s+\"[^\"]*\"\s+\"[^\"]*\"\s+(\d+)\s+([\w\-\.]+)\s+([\w\-\.]+).?$#)
+  {
+    $log_date = timegm($6, $5, $4, $3, $2-1, $1-1900);
+    $log_requester = $7;
+    $log_ident = $8;
+    $log_reqtime = $13 * 1000;
+    $log_status = "$14/$11";
+    $log_size = $12;
+    $log_method = $9;
+    $log_url = $10;
+    if ($16 ne \'-\') {
+      $log_hier = "DIRECT/$16";
+    } elsif ($15 ne \'-\') {
+      if ($14 eq \'0\') {
+	$log_hier = "PARENT/$15";
+      } else {
+	$log_hier = "SIBLING/$15";
+      }
+    } else {
+      $log_hier = "NONE/-";
+    }
+  } else {';
 } else {
   print(STDERR "$0: unknown value at -f -option: \"$opt_f\"\n");
   die($USAGE);
 }
   $loop .= '
-    chomp;
-    warn (\'invalid line: "\' . $line . "\"\n");
+    chomp($line);';
+  $loop .= '
+    warn (\'invalid line: "\' . $line . "\"\n");' if $opt_v;
+  $loop .= '
     $invalid++;
     next;
   }
@@ -617,8 +651,10 @@ for (; $line; $line = <>) {';
   $urlext = \'.<dynamic>\' if ($urlext =~ m#[\?;&\$,!@=|]#o or
 			       $log_method eq POST);
   unless (defined $urlhost) {
-    $urlhost = $urlprot;
-    $log_content = $urlprot = \'<secure>\';
+    $urlhost = $urlprot;';
+  $loop .= '$log_content = ' unless $opt_f eq 'squid-old' or $opt_f eq 'cts';
+  $loop .= '
+    $urlprot = \'<secure>\';
     $urlext = \'.<secure>\'
   }
   $urlhost =~ s#^.*@##o;
@@ -658,10 +694,12 @@ for (; $line; $line = <>) {';
   $requester = $log_ident . \'@\' . $requester if $log_ident ne \'-\';' if
     $opt_u;
   $loop .= '
-  ($log_hier_method, $log_hier_host) = (split \'/\', $log_hier)[0,1];
+  ($log_hier_method, $log_hier_host) = (split \'/\', $log_hier)[0,1];';
+  $loop .= '
   $log_content = \'<unknown>\' if $log_content eq \'-\';
   $log_content =~ tr/A-Z/a-z/;
-  $log_content = $urlhost = $urltld = $urlext = $urlprot = \'<error>\' if
+  $log_content = ' unless $opt_f eq 'squid-old' or $opt_f eq 'cts';
+  $loop .= '$urlhost = $urltld = $urlext = $urlprot = \'<error>\' if
     ($log_code =~ m#^[45]#o);';
   $loop .= "
   print(STDERR '#') if (0 == (\$counter % $opt_b));" if $opt_b;
@@ -905,13 +943,20 @@ for (; $line; $line = <>) {';
       $tcp_hit_content{$log_content} = 0 unless defined
       $tcp_content{$log_content};
     $tcp_content{$log_content}++;
-    $tcp_content_size{$log_content} += $log_size;
+    $tcp_content_size{$log_content} += $log_size;' unless $opt_f eq 'squid-old' or $opt_f eq 'cts';
+  $loop .= '
     $tcp_urlext{$urlext} = $tcp_urlext_size{$urlext} =
       $tcp_hit_urlext{$urlext} = 0 unless defined $tcp_urlext{$urlext};
     $tcp_urlext{$urlext}++;
     $tcp_urlext_size{$urlext} += $log_size;' if ($opt_t);
+  if ($opt_f eq 'cts') {
+    $loop .= '
+    if ($log_hitfail eq \'1\') {';
+  } else {
+    $loop .= '
+    if ($log_hitfail =~ m#^TCP_\w*HIT#o) {';
+  }
   $loop .= '
-    if ($log_hitfail =~ m#^TCP_\w*HIT#o) {
       $tcp_hit++;
       $tcp_hit_size += $log_size;
       $tcp_hit_time += $log_reqtime;';
@@ -923,7 +968,7 @@ for (; $line; $line = <>) {';
 	$tcp_hit_time{$log_hitfail} = 0 unless defined $tcp_hit{$log_hitfail};
       $tcp_hit{$log_hitfail}++;
       $tcp_hit_size{$log_hitfail} += $log_size;
-      $tcp_hit_time{$log_hitfail} += $log_reqtime;' if ($opt_s);
+      $tcp_hit_time{$log_hitfail} += $log_reqtime;' if ($opt_s) and $opt_f ne 'cts';
   $loop .= '
       $tcp_hit_requester{$requester}++;
       $tcp_hit_requester_size{$requester} += $log_size;' if ($opt_r);
@@ -931,21 +976,22 @@ for (; $line; $line = <>) {';
       $tcp_hit_urlhost{$urlhost}++;
       $tcp_hit_urltld{$urltld}++;' if ($opt_d);
   $loop .= '
-      $tcp_hit_content{$log_content}++;
+      $tcp_hit_content{$log_content}++;' unless $opt_f eq 'squid-old' or $opt_f eq 'cts';
+  $loop .= '
       $tcp_hit_urlext{$urlext}++;
       $tcp_hit_urlprot{$urlprot}++;' if ($opt_t);
   $loop .= '
-    } elsif ($log_hier_method =~ m#EMPTY|NONE|^\-$#o or $log_hitfail =~ m#^ERR_#o) {
+    } elsif ($log_hier_method =~ m#EMPTY|NONE|NULL|^\-$#o or $log_hitfail =~ m#^ERR_#o) {
       $tcp_miss_none++;
       $tcp_miss_none_size += $log_size;
-      $tcp_miss_none_time += $log_reqtime;';
+      $tcp_miss_none_time += $log_reqtime;' if $opt_f ne 'cts';
   $loop .= '
       $tcp_miss_none{$log_hitfail} = $tcp_miss_none_size{$log_hitfail} =
 	$tcp_miss_none_time{$log_hitfail} = 0 unless defined
 	$tcp_miss_none{$log_hitfail};
       $tcp_miss_none{$log_hitfail}++;
       $tcp_miss_none_size{$log_hitfail} += $log_size;
-      $tcp_miss_none_time{$log_hitfail} += $log_reqtime;' if ($opt_s);
+      $tcp_miss_none_time{$log_hitfail} += $log_reqtime;' if ($opt_s) and $opt_f ne 'cts';
   $loop .= '
     } else {
       $tcp_miss++;
@@ -960,7 +1006,7 @@ for (; $line; $line = <>) {';
 	$tcp_miss{$log_hitfail};
       $tcp_miss{$log_hitfail}++;
       $tcp_miss_size{$log_hitfail} += $log_size;
-      $tcp_miss_time{$log_hitfail} += $log_reqtime;' if ($opt_s);
+      $tcp_miss_time{$log_hitfail} += $log_reqtime;' if ($opt_s) and $opt_f ne 'cts';
   $loop .= '
       $tcp_miss_requester{$requester} = $tcp_miss_requester_size{$requester} =
 	0 unless defined $tcp_miss_requester{$requester};
@@ -968,7 +1014,7 @@ for (; $line; $line = <>) {';
       $tcp_miss_requester_size{$requester} += $log_size;' if ($opt_r);
   $loop .= '
     }
-    if ($log_hier_method !~ m#EMPTY|NONE|^\-$#o) {
+    if ($log_hier_method !~ m#EMPTY|NONE|NULL|^\-$#o) {
       $hier++;
       $hier_size += $log_size;
       $hier_time += $log_reqtime;
@@ -986,12 +1032,13 @@ for (; $line; $line = <>) {';
 	  $hier_direct{$log_hier_method};
 	$hier_direct{$log_hier_method}++;
 	$hier_direct_size{$log_hier_method} += $log_size;
-	$hier_direct_time{$log_hier_method} += $log_reqtime;' if ($opt_s);
+	$hier_direct_time{$log_hier_method} += $log_reqtime;' if ($opt_s) and $opt_f ne 'cts';
   $loop .= '
-      } elsif ($log_hier_method =~ m#CARP#o or $log_hier_method =~
+      } elsif ($log_hier_method =~ m#CARP#o or $log_hier_method =~ 
 	       m#CACHE_DIGEST_\w*HIT#o or $log_hier_method =~
 	       m#NEIGHBOR_\w*HIT#o or $log_hier_method =~ m#PARENT_\w*HIT#o or
-	       $log_hier_method =~ m#SIBLING_\w*HIT#o) {
+	       $log_hier_method =~ m#SIBLING_\w*HIT#o or $log_hier_method =~
+	       m#SIBLING#o) {
 	$hier_sibling++;
 	$hier_sibling_size += $log_size;
 	$hier_sibling_time += $log_reqtime;';
@@ -1004,7 +1051,7 @@ for (; $line; $line = <>) {';
 	  $hier_sibling{$log_hier_method};
 	$hier_sibling{$log_hier_method}++;
 	$hier_sibling_size{$log_hier_method} += $log_size;
-	$hier_sibling_time{$log_hier_method} += $log_reqtime;' if ($opt_s);
+	$hier_sibling_time{$log_hier_method} += $log_reqtime;' if ($opt_s) and $opt_f ne 'cts';
   $loop .= '
 	$hier_neighbor{$log_hier_host} = $hier_neighbor_size{$log_hier_host} =
 	  $hier_neighbor_time{$log_hier_host} = 0 unless defined
@@ -1029,7 +1076,8 @@ for (; $line; $line = <>) {';
 	       $log_hier_method =~ m#FIRST_UP_PARENT#o or $log_hier_method =~
 	       m#PARENT_MISS#o or $log_hier_method =~ m#PASSTHROUGH_PARENT#o
 	       or $log_hier_method =~ m#ROUNDROBIN_PARENT#o or
-	       $log_hier_method =~ m#SINGLE_PARENT#o) {
+	       $log_hier_method =~ m#SINGLE_PARENT#o or $log_hier_method =~
+	       m#PARENT#o) {
 	$hier_parent++;
 	$hier_parent_size += $log_size;
 	$hier_parent_time += $log_reqtime;';
@@ -1042,7 +1090,7 @@ for (; $line; $line = <>) {';
 	  $hier_parent{$log_hier_method};
 	$hier_parent{$log_hier_method}++;
 	$hier_parent_size{$log_hier_method} += $log_size;
-	$hier_parent_time{$log_hier_method} += $log_reqtime;' if ($opt_s);
+	$hier_parent_time{$log_hier_method} += $log_reqtime;' if ($opt_s) and $opt_f ne 'cts';
   $loop .= '
 	$hier_neighbor{$log_hier_host} = $hier_neighbor_size{$log_hier_host} =
 	  $hier_neighbor_time{$log_hier_host} = 0 unless defined
@@ -1060,7 +1108,7 @@ for (; $line; $line = <>) {';
 	$hier_neighbor_status_size{$log_hier_host}{$log_hier_method} +=
 	  $log_size;
 	$hier_neighbor_status_time{$log_hier_host}{$log_hier_method} +=
-	  $log_reqtime;' if ($opt_s);
+	  $log_reqtime;' if ($opt_s); # and $opt_f ne 'cts';
   $loop .= '
       } else { chomp($log_hier_method);
 	unless (defined $errormsg) {
@@ -1114,7 +1162,7 @@ if ($opt_w) {
 <html>
  <head>
   <title>${hostname}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.31 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.32 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
@@ -1506,7 +1554,7 @@ if ($tcp_miss == 0) {
   @format=(33,9,'%',8,'%',4,'kbs');
   outtitle('Outgoing requests by destination', 7);
   outstart();
-  outheader('neighbor type',' request','% ',' Byte','% ',' sec', ' kB/sec');
+  outheader('neighbor type',' request','% ','  Byte','% ',' sec', ' kB/sec');
   outseperator();
   outline(DIRECT, $hier_direct, 100 * $hier_direct / $hier,
 	  kilomegagigatera($hier_direct_size, $format[3]),
@@ -1658,46 +1706,48 @@ if ($opt_t) {
 	    100 * $tcp_hit / $tcp);
     outstop();
   }
-  if ($tcp == 0) {
-    outtitle('Requested content-type: none', 11);
-  } else {
-    outtitle('Requested content-type', 11);
-    outstart();
-    outheader('content-type',' request','% ','  Byte','% ','hit-%');
-    outseperator();
-    @counter = keys %tcp_content;
-    $other_content = $#counter + 1;
-    $other = $tcp;
-    $other_size = $tcp_size;
-    $other_hit = $tcp_hit;
-    $other_count = $opt_t;
-    foreach $content (sort {${"tcp_content$sortorder"}{$b} <=>
-			    ${"tcp_content$sortorder"}{$a}}
-		      keys(%tcp_content)) {
-      next if $content eq '<other>';
-      $other_content--;
-      $other -= $tcp_content{$content};
-      $other_size -= $tcp_content_size{$content};
-      $other_hit -= $tcp_hit_content{$content};
-      writecache(Q, $content, $tcp_content{$content},
-		 $tcp_content_size{$content}, $tcp_hit_content{$content});
-      outline($content, $tcp_content{$content},
-	      100 * $tcp_content{$content} / $tcp,
-	      kilomegagigatera($tcp_content_size{$content}, $format[3]),
-	      100 * $tcp_content_size{$content} / $tcp_size,
-	      100 * $tcp_hit_content{$content} / $tcp_content{$content});
-      last if (--$other_count == 0 and $other != 1);
+  unless ($opt_f eq 'squid-old' or $opt_f eq 'cts') {
+    if ($tcp == 0) {
+      outtitle('Requested content-type: none', 11);
+    } else {
+      outtitle('Requested content-type', 11);
+      outstart();
+      outheader('content-type',' request','% ','  Byte','% ','hit-%');
+      outseperator();
+      @counter = keys %tcp_content;
+      $other_content = $#counter + 1;
+      $other = $tcp;
+      $other_size = $tcp_size;
+      $other_hit = $tcp_hit;
+      $other_count = $opt_t;
+      foreach $content (sort {${"tcp_content$sortorder"}{$b} <=>
+			      ${"tcp_content$sortorder"}{$a}}
+		        keys(%tcp_content)) {
+        next if $content eq '<other>';
+        $other_content--;
+        $other -= $tcp_content{$content};
+        $other_size -= $tcp_content_size{$content};
+        $other_hit -= $tcp_hit_content{$content};
+        writecache(Q, $content, $tcp_content{$content},
+		   $tcp_content_size{$content}, $tcp_hit_content{$content});
+	outline($content, $tcp_content{$content},
+		100 * $tcp_content{$content} / $tcp,
+		kilomegagigatera($tcp_content_size{$content}, $format[3]),
+		100 * $tcp_content_size{$content} / $tcp_size,
+		100 * $tcp_hit_content{$content} / $tcp_content{$content});
+	last if (--$other_count == 0 and $other != 1);
+      }
+      if ($other) {
+	writecache(Q, '<other>', $other, $other_size, $other_hit);
+	outline('other: '. $other_content . ' content-types', $other,
+		100 * $other / $tcp, kilomegagigatera($other_size, $format[3]),
+		100 * $other_size / $tcp_size, 100 * $other_hit / $other);
+      }
+      outseperator();
+      outline(Sum, $tcp, 100, kilomegagigatera($tcp_size, $format[3]), 100,
+	      100 * $tcp_hit / $tcp);
+      outstop();
     }
-    if ($other) {
-      writecache(Q, '<other>', $other, $other_size, $other_hit);
-      outline('other: '. $other_content . ' content-types', $other,
-	      100 * $other / $tcp, kilomegagigatera($other_size, $format[3]),
-	      100 * $other_size / $tcp_size, 100 * $other_hit / $other);
-    }
-    outseperator();
-    outline(Sum, $tcp, 100, kilomegagigatera($tcp_size, $format[3]), 100,
-	    100 * $tcp_hit / $tcp);
-    outstop();
   }
   if ($tcp == 0) {
     outtitle('Requested extensions: none', 12);
@@ -1889,7 +1939,7 @@ close(CACHE);
 if ($opt_w) {
   print('  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.31 $, Copyright &copy; 1997, 1998, 1999, 2000
+   $Revision: 2.32 $, Copyright &copy; 1997, 1998, 1999, 2000
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
