@@ -136,11 +136,6 @@ Are there known bugs or other problems?
   If you still want to use Calamaris that way, let your vict^Wusers know
   that they'll be monitored. (in Germany you have to let them know!)
 
-* I fixed a bug regarding caching of Performance-Data. This breaks old
-  Calamaris-Cache-Files... I put a workaround in, which allows to parse old
-  and new cachefiles. But you will loose the 'Cache-Hits'-value from old files
-  in the Performance-Report.  It is set to '-' in the output.
-
 * If you reuse a cache-file, which is not created with
   '-d -1 -r -1 -t -1 -R -1' the number of 'others' is likely wrong everywhere.
   (reported by Clare Lahiff (clare@tarboosh.anu.edu.au))
@@ -270,4 +265,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.36 2002-06-10 19:41:05 cord Exp $
+$Id: README,v 2.37 2002-08-02 20:06:20 cord Exp $
