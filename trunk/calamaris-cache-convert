@@ -1,0 +1,125 @@
+#!/usr/bin/perl -w
+#
+# $Id: calamaris-cache-convert,v 0.1 2004-09-15 20:59:39 cord Exp $
+#
+# DESCRIPTION: calamaris-cache-convert - 
+#  convert old Calamaris-Caches to new ones.
+#
+# Copyright (C) 2004 Cord Beermann
+#
+# URL: http://Calamaris.Cord.de/
+# Announcement-Mailing-list: send Mail with 'subscribe' in the Mail-Body to
+#                            Calamaris-announce-request@Cord.de
+#
+# AUTHOR: Cord Beermann <Cord@Wunder-Nett.org>
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 2 of the License, or (at your option)
+# any later version.
+
+# (If you modify and want to publish it under the name 'Calamaris', please ask
+# me. I don't want to confuse the 'audience' with many different versions of
+# the same name and/or Version number. (This is not part of the license, it
+# is only a favour i asked of you.))
+
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.
+
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+# Place - Suite 330, Boston, MA 02111-1307, USA.
+
+
+# A Perl script is "correct" if it gets the job done before your boss fires
+# you.
+#   -- 'Programming Perl Second Edition'
+
+use Switch;
+
+$count = $error_count = 0;
+
+unless ($#ARGV == 1) {
+  print "Usage: $0 old-file new-file\n";
+  exit 255;
+}
+
+open( OLD, "$ARGV[0]" ) or die ("$0: can't open $ARGV[0] for reading: $!\n");
+open( NEW, "> $ARGV[1]" ) or die ("$0: can't open $ARGV[1] for writing: $!\n");
+
+while (<OLD>) {
+  chomp;
+  next if m#^$#;
+  $count++;
+  @cache = split 'µ';
+  switch ($cache[0]) {
+    case 'A' { $cache[0] = 0; }
+    case 'B' {
+      $cache[0] = 1 if $#cache == 18;
+      $cache[0] = 2 if $#cache == 24;
+    }
+    case 'C' { $cache[0] = 3; }
+    case 'D' { $cache[0] = 4.1; }
+    case 'E' { $cache[0] = 4.2; }
+    case 'F' { $cache[0] = 5.1; }
+    case 'G' { $cache[0] = 5.2; }
+    case 'H' { $cache[0] = 5.3; }
+    case 'I' { $cache[0] = 6.1; }
+    case 'J' { $cache[0] = 6.2; }
+    case 'K' { $cache[0] = 6.3; }
+    case 'L' { $cache[0] = 7.1; }
+    case 'M' { $cache[0] = 7.2; }
+    case 'N' {
+      $cache[0] = 8;
+      push(@cache, 0, 0);
+      $error{8} = 'Missing data in Request-destinations by 2ndlevel-domain - empty data inserted';
+    }
+    case 'O' {
+      $cache[0] = 9;
+      push(@cache, 0, 0);
+      $error{9} = 'Missing data in Request-destinations by toplevel-domain - empty data inserted';
+    }
+    case 'P' {
+      $cache[0] = 10;
+      push(@cache, 0, 0);
+      $error{10} = 'Missing data in TCP-Request-protocol - empty data inserted';
+    }
+    case 'Q' {
+      $cache[0] = 11;
+      push(@cache, 0, 0);
+      $error{11} = 'Missing data in Requested content-type - empty data inserted';
+    }
+    case 'R' {
+      $cache[0] = 12;
+      push(@cache, 0, 0, 0, 0, 0, 0, 0);
+      $error{12} = 'Missing data in Requested extensions - empty data inserted';
+    }
+    case 'S' { $cache[0] = 13.1; }
+    case 'V' { $cache[0] = 13.2; }
+    case 'T' { $cache[0] = 14.1; }
+    case 'W' { $cache[0] = 14.2; }
+    case 'X' { $cache[0] = 15; }
+    case 'U' {
+      $cache[0] = 16;
+      push(@cache, 0, 0);
+      $error{16} = 'Missing data in Performance in n minute steps - empty data inserted';
+    }
+    else {
+      $error_count++;
+      $error{99} = "$error_count lines couldn't be converted.";
+      print "$cache[0] $cache[1]\n";
+    }
+  }
+  print NEW join('µ', @cache) . "\n";
+}
+
+close (NEW);
+close (OLD);
+
+foreach $error (sort keys %error) {
+  print "$error{$error}\n";
+}
+
+print "$count lines successfully converted.\n";
