@@ -35,7 +35,7 @@ Kevin Way (kevin@research-inc.com) has build rpms of Calamaris, which can be
 found at http://overtone.org/rpms/
 
 Philipp Frauenfelder (pfrauenf@debian.org) has build a Debian Package, which
-can be found in the slink-tree.
+can be found in the slink (Debian 2.1) tree.
 
 
 How to use it?
@@ -59,8 +59,7 @@ How to use it?
   to your copy of Perl.
 
 * There is also a manpage for Calamaris. You should copy it to an appropriate
-  place like /usr/local/man/man1, so you have a more verbose documentation
-  handy if you need it.
+  place like /usr/local/man/man1, where your man(1) can find it.
 
 * Use it! 
 
@@ -132,7 +131,7 @@ How to use it?
 	    can be the same as a input-file. It will be overwritten with the
 	    new data. The cached data is altered by the report-switches above.
 
-	    NOTE: It is not recommended to change the switches between runs,
+	    NOTE: It is not recommended to change the switches between runs
 	      if you use cache-files, else you can get some strange
 	      measurements.
 
@@ -179,9 +178,9 @@ Are there known bugs or other problems?
 * It is possible that you encounter some problems, if you use Squid
   V1.2.x/V2.x with some of the new features enabled. If you find problems,
   please report them to Calamaris-bug@Cord.de. I'll try to fix them ASAP.  I'm
-  especially interested how Calamaris works with CARP-Support. So if you use
-  it that way, please send me a mail to Calamaris@Cord.de, even if it works
-  without problem. Thank You.
+  especially interested how Calamaris works with Squids CARP-Support. So if
+  you use it that way, please send a mail to Calamaris@Cord.de, even if it
+  works without problem. Thank You.
 
 * If you parse NetCache logfiles with Calamaris, it seems that you can run
   into trouble. I've looked for information on the logfile-format from the
@@ -234,10 +233,6 @@ add it to the wish-list below :-)
   has an idea how to build an efficient AND fast method to work it out... let
   me know!
 
-* Move most of the stuff here to the manpage. Anybody know an _EDITOR_ which
-  can parse and edit the manpageformat? (I asked for an _EDITOR_ not for an OS
-  like emacs ;-)
-
 * build graphics (hope i remember who suggested this first, the mail must be
   somewhere in my work-mailbox ;-) (This is a thing for Calamaris v3, if i
   ever going to write it. there are nice gd-libs in Perl ;-)
@@ -261,9 +256,10 @@ add it to the wish-list below :-)
 Is there anything else?
 -----------------------
 
-Ernst Heiri builds a spin-off of my Calamaris V1, which can be found *where?*
+Ernst Heiri has build a spin-off of my Calamaris V1, which can be found
+*where?*
 
-There is also now a C++-port of Ernst Heiri's Calamaris available which is
+There is also a C++-port of Ernst Heiri's Calamaris available. It is
 (according to the author Jens-S. Voeckler (voeckler@rvs.uni-hannover.de)) five
 times faster than the Perl-variant.  check
 http://statistics.www-cache.dfn.de/Projects/seafood/ for this.
@@ -271,6 +267,8 @@ http://statistics.www-cache.dfn.de/Projects/seafood/ for this.
 more Squid-logfile-Analysers can be found via the Squid-Home-page at
 http://squid.nlanr.net/
 
+A description of the Squid-Logfiles can be found at
+http://squid.nlanr.net/Squid/FAQ/FAQ-6.html.
 
 Thank You!
 ----------
@@ -291,4 +289,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.13 1998-12-06 16:36:23 cord Exp $
+$Id: README,v 2.14 1998-12-09 22:23:53 cord Exp $
