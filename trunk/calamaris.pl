@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 2.1 1998-10-05 18:50:29 cord Exp $
+# $Id: calamaris.pl,v 2.2 1998-10-07 17:41:44 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Log-files.
 #
@@ -66,7 +66,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 2.1 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 2.2 $, Copyright (C) 1997, 1998 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -754,7 +754,8 @@ unless ($opt_z) {
 	    $hier_direct_size{$log_hier_method} += $log_size;
 	    $hier_direct_time{$log_hier_method} += $log_reqtime;
 	  }
-	} elsif ($log_hier_method =~ /(PARENT|SIBLING|NEIGHBOR)\w+HIT/o) {
+	} elsif ($log_hier_method =~
+		 /(CACHE_DIGEST|PARENT|SIBLING|NEIGHBOR)\w+HIT/o) {
 	  $hier_sibling++;
 	  $hier_sibling_size += $log_size;
 	  $hier_sibling_time += $log_reqtime;
@@ -791,7 +792,7 @@ unless ($opt_z) {
 	      $log_reqtime;
 	  }
 	} elsif ($log_hier_method =~
-		 /(PARENT_MISS|(DEFAULT|FIRST_UP|SINGLE|PASSTHROUGH|ROUNDROBIN)_PARENT)/o) {
+		 /(CARP|PARENT_MISS|(CLOSEST|DEFAULT|FIRST_UP|SINGLE|PASSTHROUGH|ROUNDROBIN)_PARENT)/o) {
 	  $hier_parent++;
 	  $hier_parent_size += $log_size;
 	  $hier_parent_time += $log_reqtime;
