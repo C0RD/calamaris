@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.124 1998-09-30 17:35:01 cord Exp $
+# $Id: calamaris.pl,v 1.125 1998-10-03 12:33:28 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Logfiles.
 #
@@ -22,12 +22,13 @@
 #	Thoralf Freitag (Thoralf.Freitag@isst.fhg.de)
 #	Marco Paganini (paganini@paganini.net)
 #	Michael Riedel (mr@fto.de)
-#	Kris Boulez (kris@belbone.be)
+#	Kris Boulez (krbou@pgsgent.be)
 #	Mark Visser (mark@snt.utwente.nl)
 #	Gary Palmer (gjp@erols.com)
 #	Stefan Watermann (stefan@metronet.de)
 #	Roar Smith (Roar.Smith@Ericsson.Dk)
 #	Bernd Lienau (lienau@tli.de)
+#	Gary Lindstrom (gplindstrom@exodus.nnc.edu)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -64,7 +65,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.124 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.125 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -703,7 +704,7 @@ unless ($opt_z) {
 	  $tcp_miss_direct++;
 	  $tcp_miss_direct_size += $log_size;
 	  $tcp_miss_direct_time += $log_reqtime;
-	} elsif ($log_hier_method =~ /(PARENT|SIBLING|NEIGHBOR)\w+HIT/o) {
+	} elsif ($log_hier_method =~ /(CACHE_DIGEST|PARENT|SIBLING|NEIGHBOR)\w+HIT/o) {
 	  $tcp_miss_neighbor_hit++;
 	  $tcp_miss_neighbor_hit_time += $log_reqtime;
 	  $tcp_miss_neighbor_hit_size += $log_size;
@@ -715,7 +716,7 @@ unless ($opt_z) {
 	  $tcp_miss_neighbor_hit_size{$log_hier_host} += $log_size;
 	  $tcp_miss_neighbor_hit_time{$log_hier_host} += $log_reqtime;
 	} elsif ($log_hier_method =~
-		 /(PARENT_MISS|(CLOSEST|DEFAULT|FIRST_UP|SINGLE|PASSTHROUGH|ROUNDROBIN)_PARENT)/o) {
+		 /(CARP|PARENT_MISS|(CLOSEST|DEFAULT|FIRST_UP|SINGLE|PASSTHROUGH|ROUNDROBIN)_PARENT)/o) {
 	  $tcp_miss_neighbor_miss++;
 	  $tcp_miss_neighbor_miss_size += $log_size;
 	  $tcp_miss_neighbor_miss_time += $log_reqtime;
