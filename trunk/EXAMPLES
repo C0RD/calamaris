@@ -1,11 +1,11 @@
 I want to give the 'audience' some examples for using Calamaris.
 
 So if you build some Scripts, crontabs or else around Calamaris, please
-mail and describe them to Calamaris@Cord.de.
+mail and describe them to <Calamaris@Cord.de>.
 
 I'll probably add them to this file. Thank You.
 
-Philipp Frauenfelder (pfrauenf@debian.org) added this to run Calamaris
+Philipp Frauenfelder <pfrauenf@debian.org> added this to run Calamaris
 automagically in Debian:
 -----------------------------------------------------------------------
 /etc/cron.daily/calamaris
@@ -175,7 +175,7 @@ weekly:root:/var/www/calamaris/weekly.html:both:'Squid weekly'
 -----------------------------------------------------------------------
 
 
-Matthew King (nerd@zip.com.au) squidreport.cron:
+Matthew King <nerd@zip.com.au> squidreport.cron:
 -----------------------------------------------------------------------
 #!/bin/sh
 
@@ -203,7 +203,7 @@ cat access.log.7 access.log.6 access.log.5 access.log.4 access.log.3 \
 -----------------------------------------------------------------------
 
 
-Gottfried Hamm (ghamm@ghks.de) idea of using calamaris for reporting:
+Gottfried Hamm <ghamm@ghks.de> idea of using calamaris for reporting:
 -----------------------------------------------------------------------
 squid.conf
 ==========
@@ -254,7 +254,7 @@ exit 0
 -----------------------------------------------------------------------
 
 
-Thomas Wahyudi (thomas@home.unpar.ac.id) method:
+Thomas Wahyudi <thomas@home.unpar.ac.id> method:
 -----------------------------------------------------------------------
 #!/bin/sh
 # SquidReport Script by Matthew King
@@ -331,7 +331,7 @@ fi
 -----------------------------------------------------------------------
 
 
-My (cord@Wunder-Nett.org) method:
+My <cord@Wunder-Nett.org> method:
 -----------------------------------------------------------------------
 
 squid.conf:
@@ -354,7 +354,7 @@ crontab:
 		mail Squidmaster@Cord.de
 -----------------------------------------------------
 
-Everyone who really uses Squidmaster@Cord.de while testing has to send me a
+Everyone who really uses <Squidmaster@Cord.de> while testing has to send me a
 	postcard!
 -----------------------------------------------------------------------
 
@@ -363,4 +363,4 @@ Everyone who really uses Squidmaster@Cord.de while testing has to send me a
 Version of the EXAMPLES
 -----------------------
 
-$Id: EXAMPLES,v 2.9 2002-05-17 20:30:13 cord Exp $
+$Id: EXAMPLES,v 2.10 2003-01-19 16:50:03 cord Exp $
