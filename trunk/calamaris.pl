@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 2.2 1998-10-07 17:41:44 cord Exp $
+# $Id: calamaris.pl,v 2.3 1998-10-10 13:39:06 cord Exp $
 #
-# DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Log-files.
+# DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Log-files
 #
 # Copyright (C) 1997, 1998 Cord Beermann
 #
@@ -60,13 +60,12 @@ require 5;
 
 use vars qw($opt_a $opt_b $opt_c $opt_d $opt_h $opt_H $opt_i $opt_m $opt_n
 	    $opt_o $opt_p $opt_P $opt_r $opt_s $opt_t $opt_u $opt_w $opt_z);
-
 use Getopt::Std;
 use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 2.2 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 2.3 $, Copyright (C) 1997, 1998 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -381,11 +380,11 @@ if ($opt_i) {
       } elsif ($x eq U and $#cache == 12) {
 	$y = shift(@cache);
 	($perf_counter{$y}, $perf_size{$y}, $perf_time{$y},
-	 $perf_tcp_hit_size{$y}, $perf_tcp_miss_size{$y},
-	 $perf_tcp_miss_time{$y}, $perf_hier_direct_size{$y},
-	 $perf_hier_direct_time{$y}, $perf_hier_sibling_size{$y},
-	 $perf_hier_sibling_time{$y}, $perf_hier_parent_size{$y},
-	 $perf_hier_parent_time{$y}) = @cache;
+	 $perf_tcp_hit_size{$y}, $perf_tcp_hit_time{$perf_date},
+	 $perf_tcp_miss_size{$y}, $perf_tcp_miss_time{$y},
+	 $perf_hier_direct_size{$y}, $perf_hier_direct_time{$y},
+	 $perf_hier_sibling_size{$y}, $perf_hier_sibling_time{$y},
+	 $perf_hier_parent_size{$y}, $perf_hier_parent_time{$y}) = @cache;
       } else {
 	warn("can't parse cache-line: \"$x @cache\"\n");
       }
@@ -893,7 +892,7 @@ if ($opt_w) {
     outref('Incoming UDP-requests by host', 13);
     outref('Incoming TCP-requests by host', 14);
   }
-  outref('Performance in $opt_P minute steps', 15) if ($opt_P);
+  outref("Performance in $opt_P minute steps", 15) if ($opt_P);
   print("</ul><hr>\n");
 } else {
   printf("%sProxy-Report (%s - %s)\n", $hostname, $date_start, $date_stop);
@@ -1451,6 +1450,7 @@ if ($opt_P) {
     writecache(U, $perf_date, $perf_counter{$perf_date},
 	       $perf_size{$perf_date}, $perf_time{$perf_date},
 	       $perf_tcp_hit_size{$perf_date},
+	       $perf_tcp_hit_time{$perf_date},
 	       $perf_tcp_miss_size{$perf_date},
 	       $perf_tcp_miss_time{$perf_date},
 	       $perf_hier_direct_size{$perf_date},
