@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.116 1998-08-12 21:04:00 cord Exp $
+# $Id: calamaris.pl,v 1.117 1998-08-12 21:48:48 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Logfiles.
 #
@@ -25,6 +25,7 @@
 #	Mark Visser (mark@snt.utwente.nl)
 #	Gary Palmer (gjp@erols.com)
 #	Stefan Watermann (stefan@metronet.de)
+#	Roar Smith (Roar.Smith@Ericsson.Dk)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -68,6 +69,13 @@
 # * A Readme and so on has still to be written. (Maybe i should put this
 # section into a seperate file?)
 
+# * If you parse NetCache Logfiles with this, it seems that you can run into
+# trouble. I've looked for information on the Logfile-format from the vendor,
+# but they don't offer any info to people who don't want to tell them their
+# Name and Adress. So, if someone can provide me with that info, i'll try to
+# put it into calamaris, if not... (i've seen that NetCache produces broken
+# Logfiles with different counts of fields, is that a buggy version?)
+
 # * I've seen problems with vars.pm which seems to get in the
 # perl-distribution later... if someone point me out which version it was, i'm
 # going to change the 'require 5' for that.
@@ -94,9 +102,10 @@
 # simply to slow. So if someone wants to rewrite calamaris in a faster
 # language: Feel Free! (But respect the GNU-License) (and it would be nice if
 # you drop me a line about it)
+#
 # There is now a C++-port of an early modified calamaris available which is
 # (according to the author Jens-S. Voeckler (voeckler@rvs.uni-hannover.de))
-# about four times faster.
+# much faster (but it is based on a spin-off of calamaris v1.x).
 
 # * Hmmm, while looking through those many different reports i generate, i
 # think that i generate more than anybody ever wants to now about squid :-) So
@@ -123,7 +132,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pr:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.116 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.117 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -595,7 +604,7 @@ unless ($opt_z) {
 	  $tcp_miss_neighbor_hit_size{$log_hier_host} += $log_size;
 	  $tcp_miss_neighbor_hit_time{$log_hier_host} += $log_reqtime;
 	} elsif ($log_hier_method =~
-		 /(PARENT_MISS|(DEFAULT|FIRST_UP|SINGLE|PASSTHROUGH|ROUNDROBIN)_PARENT)/o) {
+		 /(PARENT_MISS|(CLOSEST|DEFAULT|FIRST_UP|SINGLE|PASSTHROUGH|ROUNDROBIN)_PARENT)/o) {
 	  $tcp_miss_neighbor_miss++;
 	  $tcp_miss_neighbor_miss_size += $log_size;
 	  $tcp_miss_neighbor_miss_time += $log_reqtime;
