@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.38 2000-10-12 17:03:13 cord Exp $
+# $Id: calamaris,v 2.39 2000-10-12 17:14:15 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
@@ -95,7 +95,7 @@ use Sys::Hostname;
 
 getopts('ab:cCd:f:hH:i:l:mno:Op:P:r:R:st:T:uU:vVwz');
 
-$VERSION='Calamaris $Revision: 2.38 $';
+$VERSION='Calamaris $Revision: 2.39 $';
 
 $COPYRIGHT='Copyright (C) 1997, 1998, 1999, 2000 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
@@ -185,9 +185,13 @@ if ($opt_b and $opt_b < 1) {
   $|=1;
 }
 
-if ($opt_U and not $opt_U =~ m#^[KMGT]$#) {
-  print(STDERR "$0: wrong value at -U -option: \"$opt_U\"\n\n$USAGE\n\n");
-  exit 1;
+if ($opt_U) {
+  unless ($opt_U =~ m#^[KMGT]$#) {
+    print(STDERR "$0: wrong value at -U -option: \"$opt_U\"\n\n$USAGE\n\n");
+    exit 1;
+  }
+} else {
+  $opt_U = '';
 }
 
 if ($opt_H) {
@@ -1462,7 +1466,7 @@ if ($opt_w) {
 <html>
  <head>
   <title>${hostname}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.38 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.39 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
@@ -2391,7 +2395,7 @@ close(CACHE);
 if ($opt_w) {
   print('  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.38 $, Copyright &copy; 1997, 1998, 1999, 2000
+   $Revision: 2.39 $, Copyright &copy; 1997, 1998, 1999, 2000
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
