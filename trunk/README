@@ -116,8 +116,9 @@ Are there known bugs or other problems?
 ---------------------------------------
 
 * RedHat 8.0 has set the LANG-Variable to en_US.UTF-8, which caused Calamaris
-  to crash, maybe due to a perl-bug. (Investigation needed). You can
-  workaround this problem by unsetting LANG. Please see
+  to crash with 'Split loop at (eval 1) line 21, <> line 1', maybe due to a
+  perl-bug. (Investigation needed). You can workaround this problem by
+  unsetting LANG. Please see
   https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=77437 .
 
 * Calamaris can't resolve IPv6-IPs to DNS-Names yet. If you can tell me how i
@@ -268,6 +269,7 @@ Thank You!
 * The developers and contributors of Perl.
 * The contributors, feature requesters and bug-reporters of Calamaris.
 * Gerold 'Nimm Perl' Meerkoetter.
+* Massimo Carnevali <lec3748@iperbole.bologna.it>
 
 
 Not happy yet?
@@ -281,4 +283,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.41 2003-02-08 23:06:07 cord Exp $
+$Id: README,v 2.42 2003-05-14 21:00:25 cord Exp $
