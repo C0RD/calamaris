@@ -3,7 +3,7 @@ I want to give the 'audience' some examples for using Calamaris.
 So if you build some Scripts, crontabs or else around Calamaris, please
 mail and describe them to Calamaris@Cord.de.
 
-I'll add them to this file. Thank You.
+I'll probably add them to this file. Thank You.
 
 Matthew King (nerd@zip.com.au) squidreport.cron:
 -----------------------------------------------------------------------
@@ -84,6 +84,83 @@ exit 0
 -----------------------------------------------------------------------
 
 
+Thomas Wahyudi (thomas@home.unpar.ac.id) method:
+-----------------------------------------------------------------------
+#!/bin/sh
+# SquidReport Script by Matthew King
+# rewriten by Thomas Wahyudi <thomas@home.unpar.ac.id>
+# Last update: 15-05-2000.
+
+# Sample Crontab
+# 0  0  *  *  *   /cache/squid/bin/squid -k rotate
+# 30 0  *  *  *   /cache/squid/bin/squidreport
+
+##################################################
+
+dailyreport="/www/htdocs/Squid/report/daily/"
+weeklyreport="/www/htdocs/Squid/report/weekly/"
+programpath="/cache/squid/bin/calamaris"
+squidlog="/cache/squid/logs/access.log.0"
+
+hef1=`/bin/date | /usr/bin/awk '{print $2}'`
+hef2=`/bin/date | /usr/bin/awk '{print $3}'`
+hef3=`/bin/date | /usr/bin/awk '{print $1}'`
+hef4=`/bin/date | /usr/bin/awk '{print $6}'`
+
+# Convert date if less then 10
+##############################
+
+if [ "$hef2" -lt "10" ]
+then
+     hef2="0$hef2"
+fi
+
+# Create the new report and place it into the report location
+# report in file ex. Mar.28.Tue.2000.htm will contain yesterday performance
+###########################################################################
+
+cat $squidlog/access.log.0 | nice -39 $programpath -wamH 'Yesterday worf' >
+"$dailyreport$hef1.$hef2.$hef3.$hef4.htm"
+
+# This script will remove the outdated Squid HTML report,
+# The report will include all available squid access log files..
+# Roughly 31 days worth. The report will then be dumped into
+# report location to be viewed via a web browser.
+################################################################
+
+totalreport=`/bin/ls $dailyreport | /usr/bin/wc | /usr/bin/awk '{print $1}'`
+
+if [ $totalreport -gt 31 ]
+then
+   get1file=`/bin/ls $dailyreport | /usr/bin/head -n 1`
+   /bin/rm $dailyreport$get1file
+fi
+
+# Every Monday will create report for weekly report
+###################################################
+
+totalreport=`/bin/ls $weeklyreport | /usr/bin/wc | /usr/bin/awk '{print
+$1}'`
+
+if [ "$hef3" = "Mon" ]
+then
+
+cat $squidlog/access.log.6 $squidlog/access.log.5 $squidlog/access.log.4
+$squidlog/access.log.3 \
+    $squidlog/access.log.2 $squidlog/access.log.1 $squidlog/access.log.0 \
+    | $programpath -wamH 'Weekly worf' >
+"$weeklyreport$hef1.$hef2.$hef3.$hef4.htm"
+
+if [ $totalreport -gt 5 ]
+then
+   get1file=`/bin/ls $weeklyreport | /usr/bin/head -n 1`
+   /bin/rm $weeklyreport$get1file
+fi
+
+fi
+-----------------------------------------------------------------------
+
+
 My (cord@Wunder-Nett.org) method:
 -----------------------------------------------------------------------
 
@@ -116,4 +193,4 @@ Everyone who really uses Squidmaster@Cord.de while testing has to send me a
 Version of the EXAMPLES
 -----------------------
 
-$Id: EXAMPLES,v 2.5 2000-05-13 18:56:08 cord Exp $
+$Id: EXAMPLES,v 2.6 2000-05-24 21:18:22 cord Exp $
