@@ -27,6 +27,8 @@ Which software can produce Calamaris-parseable Log-files?
 * Netscape/iPlanet/SunONE Web Proxy Server
   (http://www.iplanet.com/downloads/download/detail_14_13.html)
 * Squid with the SmartFilter-patch
+* Cisco Content Engines
+  (http://www.cisco.com/en/US/products/hw/contnetw/index.html)
 
 Where to get Calamaris?
 -----------------------
@@ -35,10 +37,10 @@ The Calamaris-Home-page is located at http://Calamaris.Cord.de/
 
 There is also an Announcement-Mailing-list. To subscribe send mail with
 'subscribe your@mail.adr.ess' in the Mail-Body to
-Calamaris-announce-request@Cord.de.  Subscribers will get a mail on every new
+<Calamaris-announce-request@Cord.de>.  Subscribers will get a mail on every new
 release, including a list of the changes. --> low traffic.
 
-Philipp Frauenfelder (pfrauenf@debian.org) has build a Debian Package, which
+Philipp Frauenfelder <pfrauenf@debian.org> has build a Debian Package, which
 can be found via http://packages.debian.org/calamaris .
 
 There is a port for FreeBSD, which can be found at
@@ -78,6 +80,7 @@ How to use it?
   + NetApp Default Log-file-Format (some kind of Extended Log-file-Format)
   + NetApps understanding of Squid Native log-files
   + Squid with SmartFilter-Patch Log-files
+  + Cisco Content Engines
 
   If Calamaris can't parse the input, check your log-file format.
   + Squid-Log-files: http://www.squid-cache.org/Doc/FAQ/FAQ-6.html
@@ -155,7 +158,7 @@ Are there known bugs or other problems?
 
 * If you reuse a cache-file, which is not created with
   '-d -1 -r -1 -t -1 -R -1' the number of 'others' is likely wrong everywhere.
-  (reported by Clare Lahiff (clare@tarboosh.anu.edu.au))
+  (reported by Clare Lahiff <clare@tarboosh.anu.edu.au>)
 
   If i store the number of 'others' somewhere i still don't know which data is
   ment there, and in the next run (if i sum up) the number of others is to
@@ -172,17 +175,14 @@ Are there known bugs or other problems?
 
   Calamaris will add a warning to the report if it recognises unsorted input.
 
-* Squid with the SmartFilter-Patch produces broken Log-files if an URL is in
-  it's database. I don't want to construct a workaround for the bugs in others
-  people spy-ware. Even if they fix that problem, i would not add a report to
-  give an overview about the usage of the Categories. (see first point of this
-  chapter.) A workaround for these broken Log-files is:
-  awk '{print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10}' access.log |calamaris
-  (Calamaris will recognize the Logfiles as normal Squid-Logs)
+* Squid with SmartFilter-Patch and Cisco Content Engines have the ability to
+  block or allow requests by checking against a database, and write this to
+  the Logfiles. I will not add a report to give an overview about the usage
+  of the Categories. (see first point of this chapter.)
 
 * Squid doesn't log outgoing UDP-Requests, so i can't put them into the
   statistics without parsing squid.conf and the cache.log-file. (Javier Puche
-  (Javier.Puche@rediris.es) asked for this), but i don't think that i should
+  <Javier.Puche@rediris.es> asked for this), but i don't think that i should
   put this into Calamaris...
 
 * Squid and NetCache also support some kind of 'Common Logfile-format'.  I
@@ -218,11 +218,14 @@ I think that Calamaris v2 is now finished. (except for bugs, that maybe were
 not found yet.)
 
 But if you have an idea what is still missing in a software for parsing proxy
-log-files, let me know. --> Calamaris@Cord.de. I'll will build it in, or add
+log-files, let me know. --> <Calamaris@Cord.de>. I'll will build it in, or add
 it to the wish-list below :-)
 
 * Output-Option are subject to change in the next releases. I want to
   concentrate that -m/-w/-W/-? into one switch.
+
+* adding an option to limit domain (and related) reports to a minimum number
+  of transactions. (suggested by Franck Bourdonnec <fbourdonnec@chez.com>)
 
 * rewrite peak-measurement. The new calculation method is very time intensive
   and slows down Calamaris by 30 or more percent, but it is faster than the
@@ -253,7 +256,7 @@ Ernst Heiri has build a spin-off of my Calamaris V1, which can be found
 *where?*
 
 There is also a C++-port of Ernst Heiri's Calamaris available. It is
-(according to the author Jens-S. Voeckler (voeckler@rvs.uni-hannover.de)) five
+(according to the author Jens-S. Voeckler <voeckler@rvs.uni-hannover.de>) five
 times faster than the Perl-variant.  check
 http://www.cache.dfn.de/DFN-Cache/Development/seafood.html for this.
 
@@ -273,7 +276,7 @@ Thank You!
 Not happy yet?
 --------------
 
-Drop me a line to Calamaris@Cord.de and tell me what is missing or wrong or
+Drop me a line to <Calamaris@Cord.de> and tell me what is missing or wrong or
 not clear or whatever. You are welcome (especially if you read this file that
 far :-)
 
@@ -281,4 +284,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.39 2002-11-23 17:37:58 cord Exp $
+$Id: README,v 2.40 2003-01-19 16:52:16 cord Exp $
