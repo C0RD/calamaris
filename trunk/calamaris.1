@@ -1,4 +1,4 @@
-.TH CALAMARIS 1 "$Date: 1999-02-20 17:59:51 $" Handmade "Calamaris Manual"
+.TH CALAMARIS 1 "$Date: 1999-05-11 18:22:25 $" Handmade "Calamaris Manual"
 
 .SH NAME
 calamaris \- generate statistic out of log files from 
@@ -75,14 +75,28 @@ output is limited by n.  (-1 is unlimited)
 .SS Input Format
 .TP
 .I -f type
-format: sets the type of input logfiles. 
+format: sets the type of input logfiles. If set to
+
 .I 'squid'
-means native logfile derived from Squid V1.1.beta26-V2.x. This is the Default.
-If set to
+.B Calamaris 
+expects native logfile derived from Squid V1.1.beta26-V2.x. This is the
+Default.
+
+.I 'squid-mime' 
+.B Calamaris 
+expects native logfile with enabled derived from Squid V1.1.alpha1-V1.1.beta25
+with
+.I log_mime_hdrs 
+enabled. (This only enables parsing of these kind of logfile, the additional
+data will be ignored.)
+
+.B Warning:
+Logging of MIME-Headers breaks the privacy of your users!
+
 .I 'squid-old' 
 .B Calamaris 
 expects native logfile derived from Squid V1.1.alpha1-V1.1.beta25. 
-If set to 
+
 .I 'nc'
 it expects Logfiles from NetCache. (Please see the README on this.)
 
@@ -234,9 +248,9 @@ Cord Beermann.
 
 .SH VERSION
 
-Version of this manpage: $Id: calamaris.1,v 1.10 1999-02-20 17:59:51 cord Exp $
+Version of this manpage: $Id: calamaris.1,v 1.11 1999-05-11 18:22:25 cord Exp $
 
-It describes the usage of Calamaris V2.21 and later.
+It describes the usage of Calamaris V2.25 and later.
 
 Information about new releases, mailing lists, and other related issues
 can be found from the 
