@@ -1,126 +1,189 @@
-.TH CALAMARIS 1 "$Date: 2003-05-14 21:22:37 $" Handmade "Calamaris Manual"
+.TH "CALAMARIS" "1" "$Date: 2004-09-15 21:30:46 $" "Handmade" "Calamaris Manual"
 
-.SH NAME
-calamaris \- generate statistic out of log files from Proxy-Cache-Servers
+.SH "NAME"
+.B calamaris
+- generate text and graphical statistics out of log files from
+Proxy-Cache-Servers
 
-.SH SYNOPSIS
+.SH "SYNOPSIS"
 cat log |
 .B calamaris
-[ calamaris_options ]
+[ --config-file .../calamaris.conf ] [ switches ]
 
-.SH DESCRIPTION
+.SH "DESCRIPTION"
 .B Calamaris
-is used to produce statistical output from
-.BR Squid ,
-.B NetCache,
-.B Inktomi Traffic Server,
-.B Oops! proxy server,
-.B Compaq Tasksmart,
-.B Cisco Content Engines
-or related Proxy log files.  The resulting output can be
-.I ascii
-or
-.IR html .
-It is possible to cache calculated data in a file to use them in later runs.
+is used to produce statistical output from \fBSquid\fR, \fBNetCache\fR,
+\fBInktomi Traffic Server\fR, \fBOops! proxy server\fR,
+\fBCompaq Tasksmart\fR, \fBCisco Content Engines\fR or related Proxy log
+files.  The resulting output can be ascii or html with or without graphic. It
+is possible to cache calculated data in a file to use them in later runs.
 
-This manual page describes the options of
-.B Calamaris
-and gives a few examples.
+This manual page describes the options of \fBCalamaris\fR and gives a few
+examples.
 
-.SH OPTIONS
+.SH "OPTIONS"
+.SS Configuration File
+
+.TP
+.I --config-file file
+
+Not all reports and modification can be made through command-line-switches.
+To use all options of Calamaris you\'ll have to use the configuration file.
+You'll find the configuration-directives below, always inside of braces.
+Examples are in the calamaris.conf which should come with this package.
 
 .SS Reports
 
 .TP
-.I -a
-all: extracts all reports available,
-.I -a
+.I --all-useful-reports|-a
+extracts all useful reports available,
+.I --all-useful-reports
 equals
-.IR "-D 10 -d 20 -P 60 -r 20 -s -t 20" .
+.I --size-distribution-report 10
+.I --domain-report 20
+.I --performance-report 60
+.I --requester-report 20
+.I --status-report
+.I --type-report 20
+.I --response-time-report
+.I --errorcode-distribution-report
+.
 
 .TP
-.I -d n
-domain report: switches the top level and the second level report on.  The
-data is derived from the URL.  The output is limited by n.  (-1 is unlimited)
+.I --domain-report|-d n ($domain_report)
+switches the top level and the second level report on.  The data is derived
+from the URL.  The output is limited by n.  (-1 is unlimited)
 
 .TP
-.I -p type
-peak report: Measures the peaks of the Proxy usage in requests per second,
-per minute and per hour.  It reports peaks for TCP, UDP and ALL requests. If
-set to
+.I --domain-report-limit n ($domain_report_limit)
+limit the domain-report to lines which have n or more requests.
+
+.TP
+.I --domain-report-n-level|-N n ($domain_report_n_level)
+All URL-Host reports will be switched from 2nd-level to n-level-reports. (-1
+shows a full urlhost-report)
+
+.B Note:
+This option is only useful with activated domain-report.
+
+.TP
+.I --errorcode-distribution-report ($errorcode_distribution_report)
+shows the Response code distribution over all objects
+
+.TP
+.I ($object_freshness_report)
+shows the freshness of objects in your cache.
+.B Calamaris
+looks for freshness tags like 'TCP_HIT', 'TCP_REFRESH_MISS', ...  and make
+statistics on it. With this information you can optimize the caching behaviour
+of your cache depending on the objects content type.  E.g. squid admins could
+use this information to configure the refresh_pattern. This option needs more
+configuration in the configuration-file.
+
+.TP
+.I --peak-report|-p type ($peak_report)
+Measures the peaks of the Proxy usage in requests per second, per minute and
+per hour.  It reports peaks for TCP, UDP and ALL requests. If set to
 .I 'old'
 these values were calculated with the old slow method, if set to
 .I 'new'
 the new faster (but still slow) method is used.
 
 .TP
-.I -P n
-performance report: Shows the throughput of TCP requests for every n minutes.
+.I --performance-report|-P n ($performance_report)
+Shows the throughput of TCP requests for every n minutes.
 
 .TP
-.I -r n
-requester report: Switches the UDP and TCP requester reports on.  The output
-is limited by n.  (-1 is unlimited)
+.I --performance-report-adjust|-T n ($performance_report_adjust)
+Time: Adjust the Performancereport in minutes for non GMT-Timezoners.
 
 .TP
-.I -R n
-Requested report: adds to each line of the requester report the requested
-URLs. The output is limited by n.  (-1 is unlimited, and can result in very
-very long reports.)
+.I --requester-report|-r n ($requester_report)
+Switches the UDP and TCP requester reports on.  The output is limited by n.
+(-1 is unlimited)
+
+.TP
+.I --requester-report-no-dns-lookup|-n ($requester_report_no_dns_lookup)
+Switches the IP lookup for the requesters off.
+
+.TP
+.I --requester-report-use-user-info|-u ($requester_report_use_user_info)
+Switches the usage of eventually available ident information for requester
+reports on.
+
+.B Warning:
+This breaks the privacy of your users! (see PRIVACY-Section below)
+
+.TP
+.I --requester-report-with-targets|-R n ($requester_report_with_targets)
+adds to each line of the requester report the requested URLs. The output is
+limited by n.  (-1 is unlimited, and can result in very very long reports.)
 
 .B Warning:
 Using this option breaks the privacy of your users! (see PRIVACY-Section
 below)
 
 .TP
-.I -s
-status report: alters the default behaviour of
+.I --response-time-report ($response_time_report)
+sums up the time distribution over all objects
+
+.TP
+.I (@response_time_report_interval)
+This array defines the time steps, which should be reported in the
+response-time-report.
+
+.TP
+.I --size-distribution-report|-D n ($size_distribution_report)
+shows size-based distribution of requested objects, smaller numbers result in
+more verbose reports. (choose 2, 10 or 100 for useful output.)
+
+.TP
+.I --status-report|-s ($status_report)
+alters the default behaviour of
 .B Calamaris
 and makes the status reports more verbose.
 
 .TP
-.I -t n
-type report: switches the content type and the file extension report on.  The
-output is limited by n.  (-1 is unlimited)
+.I --type-report|-t n ($type_report)
+switches the content type and the file extension report on.  The output is
+limited by n.  (-1 is unlimited)
 
 .TP
-.I -D n
-Distribution Histogram: shows size-based distribution of requested objects,
-smaller numbers result in more verbose reports. (choose 2, 10 or 100 for
-useful output.)
+.I --type-report-ignore-case|-c ($type_report_ignore_case)
+Switch to case-insensitive. This is useful for the 'Requested extensions'
+report.
 
-Allocation report: shows how different sized objects perform on your Proxy.
-
-.SS Input Format
+.SS Input
 .TP
-.I -f type
-format: sets the type of input logfiles. If set to
+.I --input-format|-f type ($input_format)
+sets the type of input logfiles. If set to
 
 .I 'auto'
 .B Calamaris
 tries to guess the input file format.  This is the Default.
 
 .B Note:
-If the first line of your input file is corrupted, Calamaris will stop with
-an error.
+If the first line of your input file is corrupted,
+.B Calamaris
+will stop with an error.
 
 .I 'squid'
 .B Calamaris
 expects native logfile derived from
-.B Squid V1.1.beta26-V2.x
-or
+.B Squid
+V1.1.beta26-V2.x or
 .B OOPS.
 
 .I 'squid-extended'
 .B Calamaris
 expects native logfile derived from
-.B Squid V1.1.alpha1-V2.x
-with
+.B Squid
+V1.1.alpha1-V2.x with
 .I log_mime_hdrs
 enabled or
 .B Squid
 with
-.B Smartfilter-Patch.
+.B Smartfilter-Patch
 or squid-style logfiles out of
 .B Cisco Content Engines.
 (This only enables parsing of these kind of logfile, the additional
@@ -132,13 +195,14 @@ PRIVACY-Section below)
 .I 'squid-old'
 .B Calamaris
 expects native logfile derived from
-.B Squid V1.1.alpha1-V1.1.beta25.
+.B Squid
+V1.1.alpha1-V1.1.beta25.
 
 .I 'nc'
 .B Calamaris
 expects Logfiles from
-.B NetCache up to V4.x.
-(Please see the README on this.)
+.B NetCache
+up to V4.x. (Please see the README on this.)
 
 .I 'its'
 .B Calamaris
@@ -151,21 +215,100 @@ expects Logfiles in Extended Logfile Format (i.e. from
 .B Compaq Tasksmart,
 .B Novell Internet Caching System
 or
-.B NetCache V5.x
-)
+.B NetCache
+V5.x)
 
 .I 'nse'
 .B Calamaris
 expects Logfiles in Netscape Extended-1 or Netscape Extended-2
 Logfile Format (from
-.B Netscape/ipoint Proxy-Server
+.B Netscape/iPlanet/SunOne Proxy-Server
 )
 
-.SS Output Format
+.TP
+.I --ipfilter-exclude IP/range ($ipfilter_exclude)
+all IPs are analyzed, except IP/range.
+Format: 1.1.1.1/32:1.1.2.0/24
+1.1.1.1/255.255.255.255:1.1.2.0/255.255.255.0
+
+IP list separated by ':'
+This switch needs the perl Module NetAddr::IP.
+
+.B Warning:
+This breaks the privacy of your users! (see PRIVACY-Section below)
+
+.TP
+.I --ipfilter-include IP/range ($ipfilter_include)
+no IPs are analyzed, except IP/range. Format: see --ipfilter-exclude
+
+.B Warning:
+This breaks the privacy of your users! (see PRIVACY-Section below)
+
+.TP
+.I --no-input|-z ($no_input)
+Switches reading from standard input off.  You can use this to merge
+many cache files to one (see
+.I --cache-input-file
+and
+.I --cache-output-file)
+or to generate a report out of cache files.
+
+.TP
+.I --time-interval|-I t-t ($time_interval)
+defines which time-interval should be parsed.  t has to be the
+format yyyymmddhhmmss
+
+.B Note:
+omitting the beginning or ending date is allowed.
+
+.SS Output
 Standard output format is plain ascii with 80 chars width.
 
 .TP
-.I -F type[,type[,type[,...]]]
+.I ($column1_color)
+.I ($column2_color)
+defines the colors for the columns in graphics. (only useful with
+.I --output-format
+graph)
+
+.TP
+.I ($formats[n])
+Through the config-file you are able to modify the width of the report and
+alter the culomns that are displayed in the reports. n is the number of the
+report, as displayed by --help in the --show-reports-option.
+
+.TP
+.I --hostname|-H name ($hostname)
+The name for the title or subject of the output.  If set to
+.I 'lookup'
+.B Calamaris
+looks up the host name of the system its been run on.
+
+.TP
+.I --logo|-l string ($logo)
+add a custom string to a HTML-Report. It'll be added to a table on the
+top of the output.
+.I -l '<A HREF="http://cord.de/"><IMG BORDER=0
+SRC="http://cord.de/Images/cord/cordlog2n.gif" ALT="Cord"></A>'
+will add my logo with a link to the Report.
+
+.B Note:
+.I --logo
+works only in combination with
+.I --output-format html
+
+.TP
+.I --meta|-M string ($meta)
+Meta: adds a custom string or the content of a file into the <HEAD> of a
+HTML-Report. Useful if you want to add Stylesheets or something to the Report.
+
+.B Note:
+.I --meta
+works only in combination with
+.I --output-format html
+
+.TP
+.I --output-format|-F type[,type[,type[,...]]] ($output_format)
 Format: sets the format of the output-report. If set to
 
 .I 'mail'
@@ -180,45 +323,27 @@ to send html mails.
 all output is given in html with tables without HTML-Headers. Useful for
 Server-Side-Includes.
 
+.I 'graph'
+enables graphics for html or html-embed.
+
 .I 'unformatted'
 gives out the raw numbers seperated by spaces. Useful for re-using the output
-in other scripts. If you use this along with 
+in other scripts. If you use this along with
 .I -U,
 the byte values are calculated in the given Unit, and displayed without
 indication along with the numbers. the indication moves up to the header of
 the report.
 
 .TP
-.I -M string
-Meta: adds a custom string into the <HEAD> of a HTML-Report. Useful if you
-want to add Stylesheets or something to the Report.
-
-.B Note:
-.I -M
-works only in combination with
-.IR -F
-html.
+.I --output-path ($output_path)
+output calamaris statistics to /path. In case of graph output, the graphics
+destination is /path and the filename is index.html, else it is calamaris.txt.
+If
+.I --output-path
+is not given, all graphics are written to the working directory.
 
 .TP
-.I -l string
-logo: add a custom string to a HTML-Report. It'll be added to a table on the
-top of the output.
-.I -l '<A HREF="http://cord.de/"><IMG BORDER=0 SRC="http://cord.de/Images/cord/cordlog2n.gif" ALT="Cord"></A>'
-will add my logo with a link to the Report.
-
-.B Note:
-.I -l
-works only in combination with
-.IR -F
-html.
-
-.TP
-.I -U string
-Unit: You can define this to K(ilo), M(ega), G(iga) or T(era) for
-the Byte-units.
-
-.TP
-.I -S n[,n[,n[,...]]]
+.I --show-reports|-S n[,n[,n[,...]]] ($show_reports)
 Show: Shows only the defined reports in the specified order. Default is to
 display the reports as they are defined through the report-switches above. The
 following numbers are defined:
@@ -230,7 +355,7 @@ following numbers are defined:
 1  Incoming request peak per protocol
 .RE
 .RS
-2  Incoming transfer volume per protocol
+2  Incoming transfer volume peak per protocol
 .RE
 .RS
 3  Incoming requests by method
@@ -269,23 +394,63 @@ following numbers are defined:
 14 Incoming TCP-requests by host
 .RE
 .RS
-15 Distribution Histogram
+15 Size Distribution Diagram
 .RE
 .RS
-16 Performance in  minute steps
+16 Performance in n minute steps
+.RE
+.RS
+17 UDP-Request duration distribution in msec
+.RE
+.RS
+18 TCP-Request duration distribution in msec
+.RE
+.RS
+19 UDP Response code distribution
+.RE
+.RS
+20 TCP Response code distribution
+.RE
 
 .B Note:
 Using this doesn't make
 .B Calamaris
-any faster, the internal calculations will
-be done as the report-switches were set (see above).
+any faster, the internal calculations will be done as the report-switches
+were set (see above).
+
+.TP
+.I --sort-order|-O ($sort_order)
+Changes the sort order in the reports to request size, default is
+sorting by number of requests.
+
+.TP
+.I ($text_color)
+defines the colors for text/axis/legend/labels in graphics. (only useful with
+.I --output-format graph
+)
+
+.TP
+.I --unit|-U string ($unit)
+You can define this to K(ilo), M(ega), G(iga) or T(era) for the Byte-units.
+
+.TP
+.I ($width)
+defines the width of the graphics. height is calculated from this with a
+3:2-ratio. (only useful with
+.I --output-format graph
+)
+
+.TP
+.I ($x_scale)
+defines how many datasets should be drawn on the graph. 30 is a good value,
+but you can play with this. if $x_scale gets to big, you're on your own ;-)
 
 .SS Caching
 
 .TP
-.I -i file
-input file: You can reuse a cache file generated with
-.I -o file
+.I --cache-input-file|-i file ($cache_input_file)
+You can reuse a cache file generated with
+.I --cache-output-file file
 to add old data to a new report.  Several files can be seperated with a ':'.
 
 .B Note:
@@ -298,13 +463,13 @@ if you reuse cache-files, which were not created with
 the number of 'others' is likely wrong everywhere.
 
 .TP
-.I -o file
-output file:
+.I --cache-output-file|-o file ($cache_output_file)
 .B Calamaris
 stores a summary of the computed information in
 .I file
 and you can reuse it at a later time with
-.IR -i .
+.I --cache-input-file
+.
 
 .B Note:
 The output file can be the same as the input file: it is simply overwritten
@@ -315,126 +480,78 @@ measurements.
 .SS Misc
 
 .TP
-.I -H name
-Host name: The name for the title or subject of the output.  If set to
-.I 'lookup'
-.B Calamaris
-looks up the host name of the system its been run on.
-
-.TP
-.I -n
-no lookup: Switches the IP lookup for the requesters off.
-
-.TP
-.I -O
-Order: Changes the sort order in the reports to request size, default is
-sorting by number of requests.
-
-.TP
-.I -I t-t  
-Interval: defines which time-interval should be parsed.  t has to be the
-format yyyymmddhhmmss
-
-.B Note:
-omitting the beginning or ending date is allowed.
-
-.TP
-.I -N
-N-level: All URL-Host reports will be switched from 2nd-level to
-N-level-reports. (-1 shows a full urlhost-report)
-
-.B Note:
-This option is only useful with activated domain-report.
-
-.TP
-.I -T n
-Time: Adjust the Performancereport in minutes for non GMT-Timezoners.
-
-.TP
-.I -c
-case: Switch to case-insensitive. This is useful for
-the 'Requested extensions' report.
-
-.TP
-.I -u
-user: Switches the usage of eventually available ident information for
-requester reports on.
-
-.B Warning:
-This breaks the privacy of your users! (see PRIVACY-Section below)
-
-.TP
-.I -z
-zero: Switches reading from standard input off.  You can use this to merge
-many cache files to one (see
-.I -i
-and
-.IR -o )
-or to generate a report out of cache files.
-
-.TP
-.I -b n
+.I --benchmark|-b n ($benchmark)
 benchmark: A switch for the impatient as it prints a '#' for every n parsed
 lines.
 
 .TP
-.I -v
-verbose: print more information about what is Calamaris is doing
-and believing.
+.I --copyright|-C
+Prints the copyright information of
+.B Calamaris
+.
 
 .TP
-.I -L
-Loop: prints the internal loop to STDERR. (for Debugging)
+.I --help|-h
+Prints a brief description of the command line options.
 
 .TP
-.I -C
-Copyright: Prints the copyright information of
-.BR Calamaris .
+.I --version|-V
+Prints out the Version-Number.
+
+.SS Debug
 
 .TP
-.I -h
-help: Prints a brief description of the command line options.
+.I --dump-loop|-L
+prints the internal loop to STDERR. (for Debugging)
 
 .TP
-.I -V
-Version: Prints out the Version-Number.
+.I ($test)
+activates some small tests for the programmer.
 
-.SH EXAMPLES
+.TP
+.I --verbose|-v ($verbose)
+print more information about what is Calamaris is doing and believing.
 
+.SH "EXAMPLES"
 .TP
 This example mails the daily statistics to root:
 cat /var/log/squid/access.log | nice -39
 .B calamaris
--aH 'daily worf' -F mail | mail root
+.I --all-useful-reports
+.I --hostname
+'daily worf'
+.I --output-format
+mail | mail root
 
 .TP
 This one only caches a summary for later use:
 cat /var/log/squid/access.log |
 .B calamaris
--a -o daily.`date +"%w"` > /dev/null
+--all-useful-reports --cache-output-file daily.`date +"%w"` > /dev/null
 
 .TP
 You can then use the caches to have weekly statistics:
 
 if [ $DAYOFWEEK = "0" ]; then
 .B calamaris
--a -i daily.1:daily.2:daily.3:daily.4:daily.5:daily.6:daily.0 -z -F mail -H "weekly worf" | mail root ;
+--all-useful-reports --cache-input-file daily.1:daily.2:daily.3:daily.4:daily.5:daily.6:daily.0 --no-input --output-format mail --hostname "weekly worf" | mail root ;
 fi
 
-.SH BUGS
+.SH "BUGS"
 If you have a problem with
-.BR Calamaris ,
-please make sure that you use the recent version of
+.B Calamaris
+, please make sure that you use the recent version of
 .B Calamaris
 (see VERSION below). Also check that your proxy works correctly and doesn't
 produce invalid Logfiles. (see the README for buglist and pointers.)
 
-If you're sure that you've encountered a bug in Calamaris, please report it to
-Calamaris-bug@cord.de. This also applies if Calamaris itself says 'please
-report this'.
+If you're sure that you've encountered a bug in
+.B Calamaris
+please report it to Calamaris-bug@cord.de. This also applies if
+.B Calamaris
+itself says 'please report this'.
 
-.SH PRIVACY
-
+.SH "PRIVACY"
 .B Calamaris
 can be (mis-)used to track what users are requesting.
 
@@ -456,39 +573,41 @@ open the net at specific times or to specific sites, if you want.)
 
 .TP
 -
-If you still want to use Calamaris that way, let your vict^Wusers
-know, that they'll be monitored. (in Germany you have to let them
-know!)
+If you still want to use
+.B Calamaris
+that way, let your vict^Wusers know, that they'll be monitored. (in Germany you
+have to let them know!)
 
 .SH "SEE ALSO"
 .B squid(8)
 
-.SH AUTHOR
-Cord Beermann <Cord@Wunder-Nett.org>. There are also a lot of people who
-contributed code, gave ideas or requested features. Look them up in the
-executable.
+.SH "AUTHOR"
+Cord Beermann <Cord@Wunder-Nett.org>,
+Michael Pophal <michael.pophal@nefkom.net>.
+There are also a lot of people who contributed code, gave ideas or requested
+features. Look them up in the executable.
 
 This man page was written by Philipp Frauenfelder <pfrauenf@debian.org>,
 maintainer of the Debian package.  Maintenance is now taken over by
 Cord Beermann.
 
-.SH VERSION
+.SH "VERSION"
+Version of this manpage: $Id: calamaris.1,v 3.0 2004-09-15 21:30:46 cord Exp $
 
-Version of this manpage: $Id: calamaris.1,v 1.28 2003-05-14 21:22:37 cord Exp $
-
-It describes the usage of Calamaris V2.58 and later.
+It describes the usage of Calamaris V3.0 and later.
 
 Information about new releases, mailing lists, and other related issues
 can be found from the
 .B Calamaris
-home page at http://Calamaris.Cord.de/
+home page at 
+.URL http://Calamaris.Cord.de/
 
-.SH WARRANTY
+.SH "WARRANTY"
 .B Calamaris
 comes with "absolutely no warranty".
 
-.SH COPYRIGHT
-Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003 Cord Beermann
+.SH "COPYRIGHT"
+Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004 Cord Beermann
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -496,8 +615,8 @@ Foundation; either version 2 of the License, or (at your option) any later
 version.
 
 (If you modify and want to publish it under the name
-.BR Calamaris ,
-please ask me.  I don't want to confuse the 'audience' with many different
+.B Calamaris
+, please ask me.  I don't want to confuse the 'audience' with many different
 versions of the same name and/or Version number.  (This is not part of the
 license, it is only a favour i asked of you.))
 
