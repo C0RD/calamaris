@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.20 1999-02-06 21:08:24 cord Exp $
+# $Id: calamaris,v 2.21 1999-02-20 17:45:13 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic for Squid and NetCache Native Log-files
 #
@@ -33,6 +33,7 @@
 #	Jost Krieger (Jost.Krieger@ruhr-uni-bochum.de)
 #	Gerd Michael Hoffmann (Hoffmann@dvgw.de)
 #	Gerold Meerkoetter (gerold@noc.fh-lippe.de)
+#	Iain Lea (iain@bricbrac.de)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -41,8 +42,8 @@
 
 # (If you modify and want to publish it under the name 'Calamaris', please ask
 # me. I don't want to confuse the 'audience' with many different versions of
-# the same name and/or Version number. (This part is not part of the license,
-# it is only a favour i asked of you.))
+# the same name and/or Version number. (This is not part of the license, it 
+# is only a favour i asked of you.))
 
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -61,20 +62,18 @@
 
 require 5;
 
-use vars qw($opt_a $opt_b $opt_c $opt_d $opt_f $opt_h $opt_H $opt_i $opt_m
-	    $opt_n $opt_o $opt_O $opt_p $opt_P $opt_r $opt_s $opt_t $opt_u
-	    $opt_w $opt_z);
+use vars qw($opt_a $opt_b $opt_c $opt_d $opt_f $opt_h $opt_H $opt_i $opt_l
+	    $opt_m $opt_n $opt_o $opt_O $opt_p $opt_P $opt_r $opt_s $opt_t
+	    $opt_u $opt_w $opt_z);
 use Getopt::Std;
 use Sys::Hostname;
 
-getopts('ab:cd:f:hH:i:mno:Op:P:r:st:uwz');
+getopts('ab:cd:f:hH:i:l:mno:Op:P:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 2.20 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
-Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
-and you are welcome to redistribute it under certain conditions.
-See source for details.
-
-';
+$COPYRIGHT='Calamaris $Revision: 2.21 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
+Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
+welcome to redistribute it under certain conditions.  See source for details.
+Calamaris-Homepage: http://Calamaris.Cord.de/';
 
 $USAGE='Usage: cat log | ' . $0 . ' [switches]
 
@@ -95,14 +94,17 @@ Reports:
 
 Input Format:
 -f type	format 	(sets the type of input logfiles)
-	squid = Native-Logfile derived from Squid V1.1.beta26-V2.x 
-	(This is the Default)
-	squid-old = Native-Logfile derived from Squid V1.1.alpha1-V1.1.beta25
-	nc = Squid-style Logfiles derived from NetCache V???
+		squid = Native-Logfile derived from Squid V1.1.beta26-V2.x 
+		(This is the Default)
+		squid-old = Native-Logfile derived from Squid 
+			V1.1.alpha1-V1.1.beta25
+		nc = Squid-style Logfiles derived from NetCache V???
 
 Output Format: (Default is plain text)
 -m	mail	(mail format)
 -w	web	(HTML format, can be combined with -m)
+-l string logo 	(add this string to the head of the report. works only in
+		 combination with -w)
 
 Caching:
 -i file	input-file (input-datafile for caching, to add many files separate
@@ -136,9 +138,9 @@ if ($opt_b and $opt_b < 1) {
 
 if ($opt_H) {
   if ($opt_H eq '1' or $opt_H eq 'lookup') {
-    $hostname = ' ' . hostname() . ' ';
+    $hostname = hostname() . ' ';
   } else {
-    $hostname = ' ' . $opt_H . ' ';
+    $hostname = $opt_H . ' ';
   }
 } else {
   $hostname = '';
@@ -485,9 +487,9 @@ if (not defined $opt_f or $opt_f eq 'squid') {
   } else {';
 } elsif ($opt_f eq 'nc') {
   $loop .= '
-  s/\; /\;/o;
+  s#\; c#\;_c#og; # Hack to handle buggy logfiles of NetCache V3.2.x
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
-   $log_method, $log_url, $log_ident, $log_hier, $log_content, $log_abort, 
+   $log_method, $log_url, $log_ident, $log_hier, $log_content, $log_abort,
    $foo) = split;
   if (not defined $foo or not defined $log_abort or $foo ne \'\' or
       $log_abort eq \'\' or $log_reqtime lt 0) {';
@@ -519,6 +521,7 @@ if (not defined $opt_f or $opt_f eq 'squid') {
   }
   $urlhost =~ s#^.*@##o;
   $urlhost =~ s#[:\?].*$##o;
+  $urlhost =~ tr/A-Z/a-z/;
   @urlext = split \'\.\', $urlext;
   $urlext = (@urlext)[$#urlext];
   $urlext = \'<none>\' if $#urlext <= 0;
@@ -616,7 +619,7 @@ if (not defined $opt_f or $opt_f eq 'squid') {
     die($USAGE);
   }
   $loop .= '
-  if (($log_method eq \'ICP_QUERY\') or ($log_status =~ m#^ICP#o)) {
+  if (($log_method =~ m#^ICP_#o) or ($log_status =~ m#^ICP#o)) {
     $udp++;
     $udp_size += $log_size;
     $udp_time += $log_reqtime;';
@@ -824,7 +827,7 @@ if (not defined $opt_f or $opt_f eq 'squid') {
       $tcp_hit_urlext{$urlext}++;
       $tcp_hit_urlprot{$urlprot}++;' if ($opt_t);
   $loop .= '
-    } elsif ($log_hier_method eq \'NONE\' or $log_hitfail =~ m#^ERR_#o) {
+    } elsif ($log_hier_method =~ m#NONE#o or $log_hitfail =~ m#^ERR_#o) {
       $tcp_miss_none++;
       $tcp_miss_none_size += $log_size;
       $tcp_miss_none_time += $log_reqtime;';
@@ -857,7 +860,7 @@ if (not defined $opt_f or $opt_f eq 'squid') {
       $tcp_miss_requester_size{$requester} += $log_size;' if ($opt_r);
   $loop .= '
     }
-    if ($log_hier_method ne \'NONE\') {
+    if ($log_hier_method !~ m#NONE#o) {
       $hier++;
       $hier_size += $log_size;
       $hier_time += $log_reqtime;
@@ -987,13 +990,19 @@ $date_stop = convertdate($time_end);
 
 print("MIME-Version: 1.0\n", "Content-Type: text/html; charset=us-ascii\n",
       "Content-Transfer-Encoding: 7bit\n") if ($opt_m and $opt_w);
-printf("Subject: %sProxy-Report (%s - %s)\n\n", $hostname, $date_start,
-       $date_stop) if ($opt_m);
+print("Subject: ${hostname}Proxy Report ($date_start - $date_stop)\n\n") if
+  ($opt_m);
 if ($opt_w) {
-  print("<html><head><title>Proxy-Report</title><META NAME=\"GENERATOR\" CONTENT=\"Calamaris/\$Id: calamaris,v 2.20 1999-02-06 21:08:24 cord Exp $\"></head><body>\n");
-  printf("<h1><a name=\"0\">%sProxy-Report (%s - %s)</a></h1>\n", $hostname,
-	 $date_start, $date_stop);
-  print("<hr><ul>\n");
+  print("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"
+\"http://www.w3.org/TR/REC-html40/loose.dtd\">
+<html><head><title>${hostname}Proxy Report ($date_start - $date_stop)</title>
+<META NAME=\"GENERATOR\" CONTENT=\"Calamaris/" . '$Revision: 2.21 $' . "\"></head>
+<body bgcolor=\"#FFFFFF\">
+<table border=\"0\">
+<tr>");
+  print("<td>$opt_l</td>") if ($opt_l);
+  print("<td><h1><a name=\"0\">${hostname}Proxy Report</a></h1>
+<p>$date_start - $date_stop</p></td></tr></table><hr><ul>");
   outref('Summary', 1);
   outref('Incoming request peak per protocol', 2) if ($opt_p);
   outref('Incoming requests by method', 3);
@@ -1015,14 +1024,15 @@ if ($opt_w) {
     outref('Incoming TCP-requests by host', 14);
   }
   outref("Performance in $opt_P minute steps", 15) if ($opt_P);
-  print("</ul><hr>\n");
+  print("</ul>\n");
 } else {
-  printf("\n%sProxy-Report (%s - %s)\n", $hostname, $date_start, $date_stop);
+  print("\n${hostname}Proxy-Report ($date_start - $date_stop)\n");
 }
 
 @format=(19,8);
 if ($hostname) {
-  outtitle('Summary for' . $hostname, 1);
+  chop($hostname);
+  outtitle('Summary for ' . $hostname, 1);
 } else {
   outtitle('Summary', 1);
 }
@@ -1653,54 +1663,67 @@ if ($opt_r) {
 }
 
 if ($opt_P) {
-  @format=(15,8,6,'kbs','kbs','kbs','kbs','kbs','kbs');
-  outtitle("Performance in $opt_P minute steps", 15); outstart();
-  outheader('', '', '', 'incomin', '   hit', '  miss', ' direct', 'sibling',
-	    ' fetch');
-  outheader('date', ' request', ' MByte', ' kB/sec', ' kB/sec', ' kB/sec',
-	    ' kB/sec', ' kB/sec', ' kB/sec');
-  outseperator();
-  foreach $perf_date (sort keys(%perf_counter)) {
-    writecache(U, $perf_date, $perf_counter{$perf_date},
-	       $perf_size{$perf_date}, $perf_time{$perf_date},
-	       $perf_tcp_hit_size{$perf_date}, $perf_tcp_hit_time{$perf_date},
-	       $perf_tcp_miss_size{$perf_date},
-	       $perf_tcp_miss_time{$perf_date},
-	       $perf_hier_direct_size{$perf_date},
-	       $perf_hier_direct_time{$perf_date},
-	       $perf_hier_sibling_size{$perf_date},
-	       $perf_hier_sibling_time{$perf_date},
-	       $perf_hier_parent_size{$perf_date},
-	       $perf_hier_parent_time{$perf_date});
-    outline(substr(convertdate($perf_date),0,15), $perf_counter{$perf_date},
-	    $perf_size{$perf_date} / 1048576,
-	    removezerotimes($perf_size{$perf_date}, $perf_time{$perf_date}),
-	    removezerotimes($perf_tcp_hit_size{$perf_date},
-			    $perf_tcp_hit_time{$perf_date}),
-	    removezerotimes($perf_tcp_miss_size{$perf_date},
-			    $perf_tcp_miss_time{$perf_date}),
-	    removezerotimes($perf_hier_direct_size{$perf_date},
-			    $perf_hier_direct_time{$perf_date}),
-	    removezerotimes($perf_hier_sibling_size{$perf_date},
-			    $perf_hier_sibling_time{$perf_date}),
-	    removezerotimes($perf_hier_parent_size{$perf_date},
-			    $perf_hier_parent_time{$perf_date}));
+  if ($tcp == 0) {
+    outtitle("Performance in $opt_P minute steps: no matching requests", 15);
+  } else {
+    @format=(15,8,6,'kbs','kbs','kbs','kbs','kbs','kbs');
+    outtitle("Performance in $opt_P minute steps", 15); outstart();
+    outheader('', '', '', 'incomin', '   hit', '  miss', ' direct', 'sibling',
+	      ' fetch');
+    outheader('date', ' request', ' MByte', ' kB/sec', ' kB/sec', ' kB/sec',
+	      ' kB/sec', ' kB/sec', ' kB/sec');
+    outseperator();
+    foreach $perf_date (sort keys(%perf_counter)) {
+      writecache(U, $perf_date, $perf_counter{$perf_date},
+		 $perf_size{$perf_date}, $perf_time{$perf_date},
+		 $perf_tcp_hit_size{$perf_date},
+		 $perf_tcp_hit_time{$perf_date},
+		 $perf_tcp_miss_size{$perf_date},
+		 $perf_tcp_miss_time{$perf_date},
+		 $perf_hier_direct_size{$perf_date},
+		 $perf_hier_direct_time{$perf_date},
+		 $perf_hier_sibling_size{$perf_date},
+		 $perf_hier_sibling_time{$perf_date},
+		 $perf_hier_parent_size{$perf_date},
+		 $perf_hier_parent_time{$perf_date});
+      outline(substr(convertdate($perf_date),0,15), $perf_counter{$perf_date},
+	      $perf_size{$perf_date} / 1048576,
+	      removezerotimes($perf_size{$perf_date}, $perf_time{$perf_date}),
+	      removezerotimes($perf_tcp_hit_size{$perf_date},
+			      $perf_tcp_hit_time{$perf_date}),
+	      removezerotimes($perf_tcp_miss_size{$perf_date},
+			      $perf_tcp_miss_time{$perf_date}),
+	      removezerotimes($perf_hier_direct_size{$perf_date},
+			      $perf_hier_direct_time{$perf_date}),
+	      removezerotimes($perf_hier_sibling_size{$perf_date},
+			      $perf_hier_sibling_time{$perf_date}),
+	      removezerotimes($perf_hier_parent_size{$perf_date},
+			      $perf_hier_parent_time{$perf_date}));
+    }
+    outseperator();
+    outline('overall', $tcp, $tcp_size / 1048576,
+	    removezerotimes($tcp_size, $tcp_time),
+	    removezerotimes($tcp_hit_size, $tcp_hit_time),
+	    removezerotimes($tcp_miss_size, $tcp_miss_time),
+	    removezerotimes($hier_direct_size, $hier_direct_time),
+	    removezerotimes($hier_sibling_size, $hier_sibling_time),
+	    removezerotimes($hier_parent_size, $hier_parent_time));
+    outstop();
   }
-  outseperator();
-  outline('overall', $counter, $size / 1048576, removezerotimes($size, $time),
-	  removezerotimes($tcp_hit_size, $tcp_hit_time),
-	  removezerotimes($tcp_miss_size, $tcp_miss_time),
-	  removezerotimes($hier_direct_size, $hier_direct_time),
-	  removezerotimes($hier_sibling_size, $hier_sibling_time),
-	  removezerotimes($hier_parent_size, $hier_parent_time));
-  outstop();
 }
 close(CACHE);
 
 if ($opt_w) {
-  print("<address>$COPYRIGHT</address>\n</body></html>\n");
+  print("<hr><address><A HREF=\"http://Calamaris.Cord.de/\">Calamaris</A> " .
+    '$Revision: 2.21 $' . ", Copyright &copy; 1997, 1998, 1999 <A
+    HREF=\"http://Cord.de/\">Cord Beermann</A>.<br>Calamaris comes with
+    ABSOLUTELY NO WARRANTY. It is free software, and you are welcome to
+    redistribute it under certain conditions.  See source for
+    details.</address>\n</body></html>\n");
 } else {
-  print("\n\n\n$COPYRIGHT\n");
+  print("\n\n");
+  print("-- \n") if ($opt_m);
+  print("$COPYRIGHT\n");
 }
 
 sub removezerotimes {
@@ -1750,7 +1773,7 @@ sub convertdate {
     my ($sec,$min,$hour,$mday,$mon,$year) = (localtime($date))[0,1,2,3,4,5,6];
     my $month = $months[$mon];
     my $retdate = sprintf("%02d.%s %02d %02d:%02d:%02d\n", $mday, $month,
-			  $year, $hour, $min, $sec);
+			  substr($year,-2), $hour, $min, $sec);
     chomp($retdate);
     return $retdate;
   } else {
@@ -1762,6 +1785,7 @@ sub outtitle {
   my $print = shift(@_);
   my $name = shift(@_);
   if ($opt_w) {
+    print("<hr>\n");
     print("<h2><a name=\"$name\">$print</a></h2>\n");
   } else {
     print("\n# $print\n");
@@ -1845,7 +1869,7 @@ sub outline {
 	}
       } elsif ($format[$no] eq 'kbs') {
 	if ($print eq '-') {
-	  printf('    -   ');
+	  print('    -   ');
 	} else {
 	  printf("%7.2f ", $print);
 	}
@@ -1883,7 +1907,6 @@ sub outstop {
   if ($opt_w) {
     print("</table>\n");
     print("<p><a href=\"#0\">Back to Top</a>\n");
-    print("<hr>\n");
   }
 }
 
