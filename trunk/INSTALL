@@ -39,6 +39,7 @@ How to use it?
     (if your system has packages for these available, you should use them.)
   + cd /usr/local
   + tar -xzvf /path/to/calamaris-3.0.xxx.tgz
+  + ln -s /usr/local/calamaris-3.0.xxx /usr/local/calamaris
   + Note: calamaris looks in /usr/local/ for needed calamaris perl modules. If
     you want to change this path, you have to change the 'use lib' directive
     in the calamaris code and perl modules. (still looking for a nicier
@@ -50,7 +51,7 @@ How to use it?
 
 * Use it!
 
-  'cat access.log.1 access.log.0 | calamaris'
+  'cat access.log.1 access.log.0 | /usr/local/calamaris/calamaris'
 
   Calamaris by default generates by a brief ASCII report of incoming and
   outgoing requests.
@@ -65,7 +66,8 @@ How to use it?
   You should also take a look at the EXAMPLES-File, for
   'Real-Life'-usage-examples of Calamaris.
 
+
 Version of the INSTALL
 ---------------------
 
-$Id: INSTALL,v 3.0 2004-09-15 20:58:46 cord Exp $
+$Id: INSTALL,v 3.1 2004-12-23 20:01:03 cord Exp $
