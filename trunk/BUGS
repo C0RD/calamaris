@@ -1,0 +1,114 @@
+Calamaris
+Version 3
+
+Are there known bugs or other problems?
+---------------------------------------
+
+* RedHat 8.0 has set the LANG-Variable to en_US.UTF-8, which caused Calamaris
+  to crash with 'Split loop at (eval 1) line 21, <> line 1', maybe due to a
+  perl-bug. (Investigation needed). You can workaround this problem by
+  unsetting LANG. Please see
+  https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=77437 .
+
+* There is a problem if you parse Logfiles from accelerating proxies. In
+  iPlanet Web Proxy Server there is only an 'unqualified' URL in the Logfiles,
+  which confuses all reports that rely on that field. (reported by Pawel
+  Worach <pawel.worach@nordea.com>)
+
+* Calamaris can't resolve IPv6-IPs to DNS-Names yet. If you can tell me how i
+  can do it in perl, let me know ;-)
+
+* the byte-histogram sometimes displays a 0-0-byte line. this is correct. the
+  requests added there are really logged as 0-byte-sized in the Logfile. Note
+  that empty byte-ranges as 1-9 (which is impossible because of
+  protocol-overhead) are skipped and not displayed in the report, so you can
+  end up with 0-0 followed by 10-99 in the report. (noted by Reagan Blundell
+  <reagan@muppet.whatever.net.au> through Debian-Bug-Tracking)
+
+* there were many requests to add something that enables Calamaris to track
+  down who is using the Cache to get what. I added these with stomach-ache,
+  because it breaks the privacy of the users. So please read the following
+  and think about it, before using Calamaris to be the 'Big Brother':
+
+  - If you don't trust your users than there is something more wrong than
+    the loss of productivity.
+  - Squid has some nice acl-mechanisms. If you think that your users don't
+    use the net properly, don't let them use it. (You can also open the net
+    at specific times or to specific sites, if you want.)
+
+  If you still want to use Calamaris that way, let your vict^Wusers know
+  that they'll be monitored. (in Germany you have to let them know!)
+
+  After some discussion in a newsgroup i was 'accused' to not announce the
+  spy-features of Calamaris. THIS IS INTENTIONAL. This is MY program, it can
+  spy on users, because there are many people who want to have that feature,
+  but what i write on the feature-sheet is MY decision. Don't annoy me, you
+  might damage my motivation to maintain this FREE (as in speech) piece of
+  software.
+
+* In Calamaris V3 I use a new Cache-File-Format, which is incompatible with
+  the old V2-Format. You can convert V2-cache to V3-cache with the
+  calamaris-convert-cache-script, but it will only make the old data readable
+  for the new version. You'll notice that the missing data, which wasn't
+  calculated in the old version will result in sometimes strange results in
+  the output.
+
+* If you reuse a cache-file, which is not created with
+  '-d -1 -r -1 -t -1 -R -1' the number of 'others' is likely wrong everywhere.
+  (reported by Clare Lahiff <clare@tarboosh.anu.edu.au>)
+
+  If i store the number of 'others' somewhere i still don't know which data is
+  ment there, and in the next run (if i sum up) the number of others is to
+  high (if the number of occurrences is below the threshold) or the summed up
+  data misses the occurrences of the last run (if the number of occurances is
+  above the threshold). i think i can't fix this...
+
+* If you want to parse more than one logfile (i.e. from the 'logfilerotate')
+  or want to use more than one input-cache-file you have to put them in
+  chronological sorted order (oldest first), else you get wrong peak values.
+
+  However: If you use the caching function the peak-values can be wrong,
+  because peaks occurring during log-rotate-time can't be detected.
+
+  Calamaris will add a warning to the report if it recognises unsorted input.
+
+* Squid with SmartFilter-Patch and Cisco Content Engines have the ability to
+  block or allow requests by checking against a database, and write this to
+  the Logfiles. I will not add a report to give an overview about the usage
+  of the Categories. (see first point of this chapter.)
+
+* Squid doesn't log outgoing UDP-Requests, so i can't put them into the
+  statistics without parsing squid.conf and the cache.log-file. (Javier Puche
+  <Javier.Puche@rediris.es> asked for this), but i don't think that i should
+  put this into Calamaris...
+
+* Squid and NetCache also support some kind of 'Common Logfile-format'.  I
+  won't support that, because Common Log is missing some very important data
+  i.e. the request-time and the hierarchie-information. If you're still stuck
+  with that format, i recommend the 'analog'-software by Steven Turner. Other
+  way round:  change logging to 'native' and convert it to 'common'. There is
+  software for that available, i.e. my shrimp.pl. This also applies for the
+  Common-style Log-files which NetCache produces.
+
+* If you use Calamaris at UNIX-epoch-date 2147483648 or later (~19.Jan 2038)
+  you might get wrong dates on 32bit-systems.  (I just added this to delight
+  the people who really read this ;-) and to make a statement on this... on
+  Y2K they found many systems which wasn't expected to run in that year. If
+  you read this while checking if this package is Y2K038-compatible, then
+  this is probably a really old system ;-)
+  Y2038-Statement: Calamaris is as buggy as the used perl-version.
+
+* It is written in Perl. Yea, Perl is a great language for something like this
+  (also it is the only one I'm able to write something like this in ;-).
+  Calamaris was first intended as demo for what i expect from a statistical
+  software. (OK, it is fun to write it, and it is even more fun to recognise
+  that many people use the script). For my Caches with about 150MB logfile per
+  week it is OK, but for those people on a heavy loaded Parent-cache it is
+  possibly to slow.  How does it perform with the perlcc coming in Perl5.6 or
+  Perl6?
+
+
+Version of the BUGS
+-------------------
+
+$Id: BUGS,v 3.0 2004-09-15 20:51:43 cord Exp $
