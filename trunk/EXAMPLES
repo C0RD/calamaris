@@ -1,0 +1,25 @@
+I want to give the 'audience' some examples for using calamaris.
+
+So if you build some Scripts, crontabs or else around calamaris, please
+mail and describe them to calamaris@cord.de.
+
+I'll add them to this file. Thank You.
+
+
+My (cord@Wunder-Nett.org) method:
+-----------------------------------------------------------------------
+
+squid.conf:
+-----------------------------------------------------
+[...]
+logfile_rotate 7
+[...]
+-----------------------------------------------------
+
+crontab:
+-----------------------------------------------------
+0 0 * * *	/usr/local/squid/bin/squid -k rotate
+30 0 * * *	cat /var/log/squid/access.log.0 | nice -39 /usr/local/squid/bin/calamaris.pl -amH 'daily worf' |mail squidmaster@my.domain
+0 3 * * 7	(cd /var/log/squid/; cat access.log.6 access.log.5 access.log.4 access.log.3 access.log.2 access.log.1 access.log.0) | nice -39 /usr/local/squid/bin/calamaris.pl -amH 'weekly worf' |mail squidmaster@my.domain
+-----------------------------------------------------
+-----------------------------------------------------------------------
