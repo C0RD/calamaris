@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.18 1999-02-04 22:29:36 cord Exp $
+# $Id: calamaris,v 2.19 1999-02-04 22:39:47 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic for Squid and NetCache Native Log-files
 #
@@ -69,7 +69,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:f:hH:i:mno:Op:P:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 2.18 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 2.19 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -478,9 +478,10 @@ if (not defined $opt_f or $opt_f eq '') {
   $loop .= '
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
    $log_method, $log_url, $log_ident, $log_hier, $foo) = split;
-  if (not defined $foo or not defined $log_hier or $foo ne \'\' or
-      $log_hier eq \'\' or $log_reqtime lt 0) {
-    $log_content = \'-\';';
+  unless (not defined $foo or not defined $log_hier or $foo ne \'\' or
+      	  $log_hier eq \'\' or $log_reqtime lt 0) {
+    $log_content = \'-\';
+  } else {';
 } elsif ($opt_f eq 'nc1') {
   $loop .= '
   if (m#^([^ ]+) - - \[([^\[\]]+)\] \"([^ \"]+) ([^ \"]+)\" ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)$#) {
@@ -998,7 +999,7 @@ print("MIME-Version: 1.0\n", "Content-Type: text/html; charset=us-ascii\n",
 printf("Subject: %sProxy-Report (%s - %s)\n\n", $hostname, $date_start,
        $date_stop) if ($opt_m);
 if ($opt_w) {
-  print("<html><head><title>Proxy-Report</title><META NAME=\"GENERATOR\" CONTENT=\"Calamaris/\$Id: calamaris,v 2.18 1999-02-04 22:29:36 cord Exp $\"></head><body>\n");
+  print("<html><head><title>Proxy-Report</title><META NAME=\"GENERATOR\" CONTENT=\"Calamaris/\$Id: calamaris,v 2.19 1999-02-04 22:39:47 cord Exp $\"></head><body>\n");
   printf("<h1><a name=\"0\">%sProxy-Report (%s - %s)</a></h1>\n", $hostname,
 	 $date_start, $date_stop);
   print("<hr><ul>\n");
