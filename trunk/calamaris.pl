@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.122 1998-09-23 21:03:20 cord Exp $
+# $Id: calamaris.pl,v 1.123 1998-09-24 18:07:43 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Logfiles.
 #
@@ -64,7 +64,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.122 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.123 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -1458,7 +1458,7 @@ if ($opt_P) {
 	       $perf_hier_parent_time{$perf_date});
     outline(substr(convertdate($perf_date),0,15),
 	    $perf_counter{$perf_date},
-	    $perf_size{$perf_date} / 1024,
+	    $perf_size{$perf_date} / 1024^24,
 	    removezerotimes($perf_size{$perf_date}, $perf_time{$perf_date}),
 	    removezerotimes($perf_tcp_hit_size{$perf_date},
 	    $perf_tcp_hit_time{$perf_date}),
@@ -1472,7 +1472,7 @@ if ($opt_P) {
 	    $perf_hier_parent_time{$perf_date}));
   }
   outseperator();
-  outline('overall', $counter, $size / 1024, removezerotimes($size, $time),
+  outline('overall', $counter, $size / 1024^2, removezerotimes($size, $time),
 	  removezerotimes($tcp_hit_size, $tcp_hit_time),
 	  removezerotimes($tcp_miss_size, $tcp_miss_time),
 	  removezerotimes($hier_direct_size, $hier_direct_time),
