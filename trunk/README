@@ -37,7 +37,7 @@ Philipp Frauenfelder (pfrauenf@debian.org) has build a Debian Package, which
 can be found in the slink (Debian 2.1) tree.
 
 Dima Sivachenko (demon@gpad.ac.ru) made a port for FreeBSD, which can be found
-at http://www.freebsd.org/ports/
+at http://www.freebsd.org/ports/www/
 
 How to use it?
 --------------
@@ -50,9 +50,9 @@ How to use it?
 
 * You'll also need Squid (see http://squid.nlanr.net/) Version 1.1.x or later
   (or logfiles derived from it). It has to produce the 'Native logfile format'
-  (which is the default since Version 1.1.x). If Calamaris can't parse the
-  access.log, check your logfile format.  It is explained in the Squid FAQ
-  which can be reached via the Address above.
+  (which is the default since Version 1.1.x).  If Calamaris can't parse the
+  access.log, check your logfile format.  It is explained in the Squid FAQ at
+  http://squid.nlanr.net/Squid/FAQ/FAQ-6.html.
 
 * Put Calamaris itself into a warm, dry place on your computer (i.e. into the
   Squid-bin-directory, or /usr/local/bin/). Maybe (if your Perl isn't located
@@ -73,7 +73,7 @@ How to use it?
     are chronologically ordered (oldest file first), else some reports can
     return wrong values.
 
-  You can alter Calamaris' behaviour with switches. Start calamris with '-h'
+  You can alter Calamaris' behaviour with switches. Start Calamaris with '-h'
   or check the manpage.
 
   You should also take a look at the EXAMPLES-File, for
@@ -83,8 +83,7 @@ How to use it?
 Are there known bugs or other problems?
 ---------------------------------------
 
-* NetCache-Logfile-parsing is working now. However: I don't have that loads of
-  NetCache Logfiles ready to make a real test. So if you encounter problems
+* NetCache-Logfile-parsing is working now. However: If you encounter problems
   with it, please send me the lines Calamaris complains about. (PLEASE: Don't
   send me loads of lines. It is enough to send me a few lines of the offending
   lines. If I need more i'll ask for it. Thank You.)
@@ -111,21 +110,24 @@ Are there known bugs or other problems?
 * Squid doesn't log outgoing UDP-Requests, so i can't put them into the
   statistics without parsing squid.conf and the cache.log-file. (Javier Puche
   (Javier.Puche@rediris.es) asked for this), but i don't think that i should
-  put this into Calamaris...  (Check last point of 'Bugs and shortcomings'.)
+  put this into Calamaris...
+
+* Squid and NetCache also supports some kind of 'Common Logfileformat'.  I
+  don't think that i'll put support for that into Calamaris because that
+  Common Log is missing some very important data i.e. the requesttime and the
+  hierarchie-information.  If you're still stuck with that format, i recommend
+  the 'analog'-software by Steven Turner. Other way round:  change logging to
+  'native' and convert it to 'common'. There is software for that available,
+  i.e. my shrimp.pl. This also applies for the Common-style Logfiles which
+  NetCache produces.
 
 * It is written in Perl. Yea, Perl is a great language for something like this
-  (also it is the only one I'm able to write something like this in).
-  Calamaris was first intended as demo for what i wanted from a statistical
+  (also it is the only one I'm able to write something like this in ;-).
+  Calamaris was first intended as demo for what i expect from a statistical
   software. (OK, it is fun to write it, and it is even more fun to recognize
   that many people use the script). For my Caches with about 150MB logfile per
   week it is OK, but for those people on a heavy loaded Parent-cache it is
-  simply to slow.
-
-* Hmmm, while looking through those many different reports i generate, i think
-  that i generate more than anybody ever wants to now about squid :-) So i
-  added switches, so everybody can switch on or off the reports wanted. But
-  this is also a speed disadvantage because of the many checks if set or
-  not...
+  possibly to slow.
 
 
 What will happen next?
@@ -153,17 +155,6 @@ add it to the wish-list below :-)
 * build graphics (hope i remember who suggested this first, the mail must be
   somewhere in my work-mailbox ;-) (This is a thing for Calamaris v3, if i
   ever going to write it. there are nice gd-libs in Perl ;-)
-
-* work on NetCache-Support. The NetCache-Support is working, but is (because
-  of the lack of tests, only in some kind of beta-state. See above.
-
-* add parsing of 'Common Logfileformat'. I don't think that this makes sense,
-  because Common Log is missing some very important data i.e. the Requesttime
-  and the Hierarchie-Information.  (So I won't build something like that in.)
-  If you're still stuck with that format, i recommend the 'analog'-software by
-  Steven Turner. Other way round:  change logging to 'native' and convert it
-  to 'common'. There is software for that available, i.e. my shrimp.pl. This
-  also applies for the Common-style Logfiles which NetCache produces.
 
 * make Calamaris faster. see above. If someone wants to rewrite Calamaris in a
   faster language: Feel Free! (But respect the GNU-License) It would be nice
@@ -207,4 +198,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.18 1999-02-06 21:08:23 cord Exp $
+$Id: README,v 2.19 1999-02-20 17:12:08 cord Exp $
