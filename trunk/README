@@ -26,9 +26,9 @@ The Calamaris-Home-page is located at http://Calamaris.Cord.de/
 you have to use http://Cord.de/homepages/cord/tools/squid/calamaris/)
 
 There is also an Announcement-Mailing-list. To subscribe send mail with
-'subscribe' in the Mail-Body to Calamaris-announce-request@Cord.de.
-Subscribers will get a mail on every new release, including a list of the
-changes. --> low traffic.
+'subscribe your@mail.adr.es' in the Mail-Body to
+Calamaris-announce-request@Cord.de.  Subscribers will get a mail on every new
+release, including a list of the changes. --> low traffic.
 
 Kevin Way (kevin@research-inc.com) has build rpms of Calamaris, which can be
 found at http://overtone.org/rpms/
@@ -37,7 +37,8 @@ Philipp Frauenfelder (pfrauenf@debian.org) has build a Debian Package, which
 can be found in the slink (Debian 2.1) tree.
 
 Dima Sivachenko (demon@gpad.ac.ru) made a port for FreeBSD, which can be found
-at http://www.freebsd.org/ports/www/
+at http://www.freebsd.org/ports/www.html
+
 
 How to use it?
 --------------
@@ -90,6 +91,11 @@ Are there known bugs or other problems?
   with it, please send me the lines Calamaris complains about. (PLEASE: Don't
   send me loads of lines. It is enough to send me a few lines of the offending
   lines. If I need more i'll ask for it. Thank You.)
+
+* If Calamaris reports an 'unknown log_hier_method' to you, please check if
+  you're logfile is NOT corrupted by pointing cache.log and access.log to the
+  same location or by Squid's behaviour that it sometimes writes two
+  access.log lines at the same time. (This is a known Squid bug.)
 
 * I fixed a bug regarding caching of Performance-Data. This breaks old
   Calamaris-Cache-Files... I put a workaround in, which allows to parse old
@@ -198,10 +204,11 @@ Not happy yet?
 --------------
 
 Drop me a line to Calamaris@Cord.de and tell me what is missing or wrong or
-not clear or whatever. You are welcome :-)
+not clear or whatever. You are welcome (especially if you read this file that
+far :-)
 
 
 Version of the README
 ---------------------
 
-$Id: README,v 2.20 1999-04-02 15:19:10 cord Exp $
+$Id: README,v 2.21 1999-05-01 18:55:46 cord Exp $
