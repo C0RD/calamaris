@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.104 1998-04-07 18:31:27 cord Exp $
+# $Id: calamaris.pl,v 1.105 1998-04-07 19:26:44 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - get statistic out of the Squid Native Log.
 #
@@ -21,6 +21,7 @@
 #	Thoralf Freitag (Thoralf.Freitag@isst.fhg.de)
 #	Marco Paganini (paganini@paganini.net)
 #	Michael Riedel (mr@fto.de)
+#	Kris Boulez (kris@belbone.be)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -85,8 +86,7 @@
 # * Hmmm, while looking through those many different reports i generate, i
 # think that i generate more than anybody ever wants to now about squid :-) So
 # i added switches, so everybody can switch on or off the reports wanted. But
-# this is also a disadvantage because of the many checks if set or not ...
-
+# this is also a speed disadvantage because of the many checks if set or not...
 
 require 5;
 
@@ -98,7 +98,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pr:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.104 $, Copyright (C) 1997, 1998 Cord Beermann
+$COPYRIGHT='calamaris $Revision: 1.105 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -717,18 +717,40 @@ if ($opt_p or $opt_a) {
 printf("Subject: %sSquid-Report (%s - %s)\n\n", $hostname, $date_start,
        $date_stop) if ($opt_m);
 if ($opt_w) {
-    print("<html><head><title>Squid-Report</title></head><body>\n");
-    printf("<h1>%sSquid-Report (%s - %s)</h1>\n", $hostname, $date_start,
-	   $date_stop);
+  print("<html><head><title>Squid-Report</title></head><body>\n");
+  printf("<h1>%sSquid-Report (%s - %s)</h1>\n", $hostname, $date_start,
+	 $date_stop);
+  print("<hr><ul>\n");
+  outref('Summary', 1);
+  outref('Incoming request peak per protocol', 2) if ($opt_p or $opt_a);
+  outref('Incoming requests by method', 3);
+  outref('Incoming UDP-requests by status', 4);
+  outref('Incoming TCP-requests by status', 5);
+  outref('Outgoing requests by status', 6);
+  outref('Outgoing requests by destination', 7);
+  if ($opt_d or $opt_a) {
+    outref('Request-destinations by 2ndlevel-domain', 8);
+    outref('Request-destinations by toplevel-domain', 9);
+  }
+  if ($opt_t or $opt_a) {
+    outref('TCP-Request-protocol', 10);
+    outref('Requested content-type', 11);
+    outref('Requested extensions', 12);
+  }
+  if ($opt_r or $opt_a) {
+    outref('Incoming UDP-requests by host', 13);
+    outref('Incoming TCP-requests by host', 14);
+  }
+  print("</ul><hr>\n");
 } else {
-    printf("%sSquid-Report (%s - %s)\n", $hostname, $date_start, $date_stop);
+  printf("%sSquid-Report (%s - %s)\n", $hostname, $date_start, $date_stop);
 }
 
 @format=(17,8);
 if ($hostname) {
-    outtitle('Summary for' . $hostname);
+  outtitle('Summary for' . $hostname, 1);
 } else {
-    outtitle('Summary');
+  outtitle('Summary', 1);
 }
 outstart();
 outline('outlines parsed:', $counter);
@@ -738,7 +760,7 @@ outstop();
 
 @format=(3,4,18,5,18,7,18);
 if ($opt_p or $opt_a) {
-  outtitle('Incoming request peak per protocol');
+  outtitle('Incoming request peak per protocol', 2);
   outstart();
   outheader('prt', ' sec', 'peak begins at', ' min', 'peak begins at', ' hour',
 	    'peak begins at');
@@ -755,9 +777,9 @@ if ($opt_p or $opt_a) {
 
 @format=(33,8,'%',9,'%',4,'kbs');
 if ($counter == 0) {
-  outtitle('Incoming requests by method: none');
+  outtitle('Incoming requests by method: none', 3);
 } else {
-  outtitle('Incoming requests by method');
+  outtitle('Incoming requests by method', 3);
   outstart();
   outheader('method',' request','% ','  kByte','% ',' sec',' kB/sec');
   outseperator();
@@ -776,9 +798,9 @@ if ($counter == 0) {
 }
 
 if ($udp == 0) {
-  outtitle('Incoming UDP-requests by status: none');
+  outtitle('Incoming UDP-requests by status: none', 4);
 } else {
-  outtitle('Incoming UDP-requests by status');
+  outtitle('Incoming UDP-requests by status', 4);
   outstart();
   outheader('status',' request','% ','  kByte','% ','msec',' kB/sec');
   outseperator();
@@ -821,9 +843,9 @@ if ($udp == 0) {
 }
 
 if ($tcp == 0) {
-  outtitle('Incoming TCP-requests by status: none');
+  outtitle('Incoming TCP-requests by status: none', 5);
 } else {
-  outtitle('Incoming TCP-requests by status');
+  outtitle('Incoming TCP-requests by status', 5);
   outstart();
   outheader('status',' request','% ','  kByte','% ',' sec',' kB/sec');
   outseperator();
@@ -887,9 +909,9 @@ if ($tcp == 0) {
 }
 
 if ($hier == 0) {
-  outtitle('Outgoing requests by status: none');
+  outtitle('Outgoing requests by status: none', 6);
 } else {
-  outtitle('Outgoing requests by status');
+  outtitle('Outgoing requests by status', 6);
   outstart();
   outheader('status',' request','% ','  kByte','% ',' sec',' kB/sec');
   outseperator();
@@ -958,9 +980,9 @@ if ($hier == 0) {
 }
 
 if ($tcp_miss == 0) {
-  outtitle('Outgoing requests by destination: none');
+  outtitle('Outgoing requests by destination: none', 7);
 } else {
-  outtitle('Outgoing requests by destination');
+  outtitle('Outgoing requests by destination', 7);
   outstart();
   outheader('neighbor type',' request','% ',' kByte','% ',' sec', ' kB/sec');
   outseperator();
@@ -1005,9 +1027,9 @@ if ($tcp_miss == 0) {
 @format=(39,8,'%',9,'%','%');
 if ($opt_d or $opt_a) {
   if ($tcp == 0) {
-    outtitle('Request-destinations: none');
+    outtitle('Request-destinations: none', 8);
   } else {
-    outtitle('Request-destinations by 2ndlevel-domain');
+    outtitle('Request-destinations by 2ndlevel-domain', 8);
     outstart();
     outheader('destination',' request','% ','  kByte','% ','hit-%');
     outseperator();
@@ -1040,7 +1062,7 @@ if ($opt_d or $opt_a) {
     outseperator();
     outline(Sum, $tcp, 100, $tcp_size / 1024, 100, 100 * $tcp_hit / $tcp);
     outstop();
-    outtitle('Request-destinations by toplevel-domain');
+    outtitle('Request-destinations by toplevel-domain', 9);
     outstart();
     outheader('destination',' request','% ','  kByte','% ','hit-%');
     outseperator();
@@ -1078,9 +1100,9 @@ if ($opt_d or $opt_a) {
 
 if ($opt_t or $opt_a) {
   if ($tcp == 0) {
-    outtitle('TCP-Request-protocol: none');
+    outtitle('TCP-Request-protocol: none', 10);
   } else {
-    outtitle('TCP-Request-protocol');
+    outtitle('TCP-Request-protocol', 10);
     outstart();
     outheader('protocol',' request','% ','  kByte','% ','hit-%');
     outseperator();
@@ -1098,9 +1120,9 @@ if ($opt_t or $opt_a) {
     outstop();
   }
   if ($tcp == 0) {
-    outtitle('Requested content-type: none');
+    outtitle('Requested content-type: none', 11);
   } else {
-    outtitle('Requested content-type');
+    outtitle('Requested content-type', 11);
     outstart();
     outheader('content-type',' request','% ','  kByte','% ','hit-%');
     outseperator();
@@ -1135,9 +1157,9 @@ if ($opt_t or $opt_a) {
     outstop();
   }
   if ($tcp == 0) {
-    outtitle('Requested extensions: none');
+    outtitle('Requested extensions: none', 12);
   } else {
-    outtitle('Requested extensions');
+    outtitle('Requested extensions', 12);
     outstart();
     outheader('extensions',' request','% ','  kByte','% ','hit-%');
     outseperator();
@@ -1176,9 +1198,9 @@ if ($opt_t or $opt_a) {
 @format=(33,8,'%',9,'%',4,'kbs');
 if ($opt_r or $opt_a) {
   if ($udp == 0) {
-    outtitle('Incoming UDP-requests by host: none');
+    outtitle('Incoming UDP-requests by host: none', 13);
   } else {
-    outtitle('Incoming UDP-requests by host');
+    outtitle('Incoming UDP-requests by host', 13);
     outstart();
     outheader('host',' request','hit-%','  kByte','hit-%','msec',' kB/sec');
     outseperator();
@@ -1206,9 +1228,9 @@ if ($opt_r or $opt_a) {
   }
 
   if ($tcp == 0) {
-    outtitle('Incoming TCP-Requests by host: none');
+    outtitle('Incoming TCP-Requests by host: none', 14);
   } else {
-    outtitle('Incoming TCP-requests by host');
+    outtitle('Incoming TCP-requests by host', 14);
     outstart();
     outheader('host',' request','hit-%','  kByte','hit-%','sec',' kB/sec');
     outseperator();
@@ -1261,7 +1283,7 @@ if ($opt_r or $opt_a) {
 close(CACHE);
 
 if ($opt_w) {
-  print("<hr>\n<address>$COPYRIGHT</address>\n</body></html>\n");
+  print("<address>$COPYRIGHT</address>\n</body></html>\n");
 } else {
   print("\n\n\n$COPYRIGHT\n");
 }
@@ -1313,11 +1335,18 @@ sub convertdate {
 
 sub outtitle {
   my $print = shift(@_);
+  my $name = shift(@_);
   if ($opt_w) {
-    print("<h2>$print</h2>\n");
+    print("<h2><a name=\"$name\">$print</a></h2>\n");
   } else {
     print("\n# $print\n");
   }
+}
+
+sub outref {
+  my $print = shift(@_);
+  my $name = shift(@_);
+  print("<li><a href=\"#$name\">$print</a>\n");
 }
 
 sub outstart {
@@ -1421,7 +1450,7 @@ sub outseperator {
 }
 
 sub outstop {
-  print("</table>\n") if ($opt_w);
+  print("</table><hr>\n") if ($opt_w);
 }
 
 sub writecache {
