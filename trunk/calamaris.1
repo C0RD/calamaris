@@ -1,4 +1,4 @@
-.TH CALAMARIS 1 "$Date: 2000-10-27 13:52:51 $" Handmade "Calamaris Manual"
+.TH CALAMARIS 1 "$Date: 2002-01-17 21:04:34 $" Handmade "Calamaris Manual"
 
 .SH NAME
 calamaris \- generate statistic out of log files from Proxy-Cache-Servers
@@ -13,8 +13,8 @@ cat log |
 is used to produce statistical output from
 .BR Squid ,
 .B NetCache,
-.B Inktomi Traffic Server
-.B Oops! proxy server
+.B Inktomi Traffic Server,
+.B Oops! proxy server,
 .B Compaq Tasksmart
 or related Proxy log files.  The resulting output can be
 .I ascii
@@ -35,7 +35,7 @@ and gives a few examples.
 all: extracts all reports available,
 .I -a
 equals
-.IR "-d 20 -P 60 -r 20 -s -t 20" .
+.IR "-D 10 -d 20 -P 60 -r 20 -s -t 20" .
 
 .TP
 .I -d n
@@ -82,6 +82,14 @@ and makes the status reports more verbose.
 type report: switches the content type and the file extension report on.  The
 output is limited by n.  (-1 is unlimited)
 
+.TP
+.I -D n
+Distribution Histogram: shows size-based distribution of requested objects,
+smaller numbers result in more verbose reports. (choose 2, 10 or 100 for
+useful output.)
+
+Allocation report: shows how different sized objects perform on your Proxy.
+
 .SS Input Format
 .TP
 .I -f type
@@ -124,7 +132,7 @@ expects native logfile derived from
 .I 'nc'
 .B Calamaris
 expects Logfiles from
-.B NetCache.
+.B NetCache up to V4.x.
 (Please see the README on this.)
 
 .I 'its'
@@ -135,9 +143,10 @@ expects Logfiles from
 .I 'elff'
 .B Calamaris
 expects Logfiles in Extended Logfile Format (i.e. from
-.B Compaq Tasksmart
-or
+.B Compaq Tasksmart,
 .B Novell Internet Caching System
+or
+.B NetCache V5.x
 )
 
 .I 'nse'
@@ -233,8 +242,8 @@ Time: Adjust the Performancereport in minutes for non GMT-Timezoners.
 
 .TP
 .I -c
-case: Switch to case-insensitive. This is useful for the
-'Requested extensions' report.
+case: Switch to case-insensitive. This is useful for
+the 'Requested extensions' report.
 
 .TP
 .I -u
@@ -329,7 +338,7 @@ than the loss of productivity.
 -
 Squid has some nice acl-mechanisms. If you think that your users
 don't use the net properly, don't let them use it. (You can also
-open the net at specific times or tp specific sites, if you want.)
+open the net at specific times or to specific sites, if you want.)
 
 .TP
 -
@@ -351,9 +360,9 @@ Cord Beermann.
 
 .SH VERSION
 
-Version of this manpage: $Id: calamaris.1,v 1.17 2000-10-27 13:52:51 cord Exp $
+Version of this manpage: $Id: calamaris.1,v 1.18 2002-01-17 21:04:34 cord Exp $
 
-It describes the usage of Calamaris V2.40 and later.
+It describes the usage of Calamaris V2.43 and later.
 
 Information about new releases, mailing lists, and other related issues
 can be found from the
@@ -365,7 +374,7 @@ home page at http://Calamaris.Cord.de/
 comes with "absolutely no warranty".
 
 .SH COPYRIGHT
-Copyright (C) 1997, 1998, 1999, 2000 Cord Beermann
+Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002 Cord Beermann
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
