@@ -112,6 +112,11 @@ How to use it?
 Are there known bugs or other problems?
 ---------------------------------------
 
+* Calamaris doesn't support IPv6-IPs yet. If you have a proxy which allows
+  IPv6-Clients, then send me a few lines of your logfiles, so i can understand
+  the system and add support. (report through Debian-BugTracking by Michael R.
+  Schwarzbach (spg@fs.tum.de))
+
 * the byte-histogram sometimes displays a 0-0-byte line. this is correct. the
   requests added there are really logged as 0-byte-sized in the Logfile. Note
   that empty byte-ranges as 1-9 (which is impossible because of
@@ -204,6 +209,9 @@ But if you have an idea what is still missing in a software for parsing proxy
 logfiles, let me know. --> Calamaris@Cord.de. I'll will build it in, or add
 it to the wish-list below :-)
 
+* Output-Option are subject to change in the next releases. I want to
+  concentrate that -m/-w/-W/-? into one switch.
+
 * rewrite peak-measurement. The new calculation method is very time intensive
   and slows down Calamaris by 30 or more percent, but it is faster than the
   old way. However: i'm not really satisfied with it, so i put it out of the
@@ -264,4 +272,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.34 2002-05-17 20:33:24 cord Exp $
+$Id: README,v 2.35 2002-06-05 17:46:21 cord Exp $
