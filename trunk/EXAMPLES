@@ -56,7 +56,7 @@ WEEKWEB=`awk -F: '(!/¨#/) && ($1 == "weekly") { print $3; }' $CONFFILE`
 WEEKDO=`awk -F: '(!/¨#/) && ($1 == "weekly") { print $4; }' $CONFFILE`
 WEEKTITLE=`awk -F: '(!/¨#/) && ($1 == "weekly") { print $5; }' $CONFFILE`
 
-# perhaps sometimes I will do this, 
+# perhaps sometimes I will do this,
 # but as weekends and ends of months don't meet always...
 
 # MONTHMAIL=`awk -F: '(!/¨#/) && ($1 == "monthly") { print $2; }' $CONFFILE`
@@ -109,7 +109,7 @@ fi
 
 if [ $DAYOFWEEK = "0" ]; then
     case $WEEKDO in
-	nothing) 
+	nothing)
 	;;
 	mail) (
 		echo "To: $WEEKMAIL"
@@ -152,14 +152,14 @@ exit 0
 # 1998-10-09
 
 # there are three categories: daily, weekly and monthly. For each of these
-# one line is responsible. There must be a line for each category but only 
+# one line is responsible. There must be a line for each category but only
 # one.
 
 # cat: [daily|weekly|monthly]
 # mailto: mailaddress, eg. root
 # webto: path incl. file name, eg. /var/www/daily.html. The script does
-#                       currently not check wether the directory exists and
-#                       fail with a rather ugly error.
+#			currently not check wether the directory exists and
+#			fail with a rather ugly error.
 # todo: [nothing|mail|web|both]
 # title: try it :-)
 
@@ -245,9 +245,9 @@ mail -s "Daily Proxy-Report `date`" webmaster@ghks.de
 ## Weekly report will be stored as web page
 #
 if [ $DAYOFWEEK = "0" ]; then
-        cat access.log.? | $BINDIR/calamaris -awl '<A
+       	cat access.log.? | $BINDIR/calamaris -awl '<A
 HREF="http://www.ghks.de/">GHKS</A>' > \
-        /data/www/ghks.de/admin/proxy/report-$DATE.html
+       	/data/www/ghks.de/admin/proxy/report-$DATE.html
 fi
 
 exit 0
@@ -363,4 +363,4 @@ Everyone who really uses Squidmaster@Cord.de while testing has to send me a
 Version of the EXAMPLES
 -----------------------
 
-$Id: EXAMPLES,v 2.8 2000-10-27 13:42:57 cord Exp $
+$Id: EXAMPLES,v 2.9 2002-05-17 20:30:13 cord Exp $
