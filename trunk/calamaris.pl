@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.106 1998-04-07 20:06:41 cord Exp $
+# $Id: calamaris.pl,v 1.107 1998-04-09 20:44:23 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - get statistic out of the Squid Native Log.
 #
@@ -98,7 +98,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pr:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.106 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.107 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -759,7 +759,7 @@ if ($hostname) {
 }
 outstart();
 outline('lines parsed:', $counter);
-outline('invalid outlines:', $invalid);
+outline('invalid lines:', $invalid);
 outline('parse time (sec):', $time_run);
 outstop();
 
