@@ -1,4 +1,4 @@
-.TH CALAMARIS 1 "$Date: 2002-05-29 20:13:06 $" Handmade "Calamaris Manual"
+.TH CALAMARIS 1 "$Date: 2002-06-05 17:34:16 $" Handmade "Calamaris Manual"
 
 .SH NAME
 calamaris \- generate statistic out of log files from Proxy-Cache-Servers
@@ -173,9 +173,14 @@ mail: adds a subject header to the beginning of the report.
 
 .TP
 .I -w
-web: all output is given in html with tables and such.  Can be combined with
+web: all output is given in html with tables.  Can be combined with
 .I -m
 to send html mails.
+
+.TP
+.I -W
+Web: all output is given in html with tables without HTML-Headers. Useful for
+Server-Side-Includes.
 
 .TP
 .I -l string
@@ -443,9 +448,9 @@ Cord Beermann.
 
 .SH VERSION
 
-Version of this manpage: $Id: calamaris.1,v 1.22 2002-05-29 20:13:06 cord Exp $
+Version of this manpage: $Id: calamaris.1,v 1.23 2002-06-05 17:34:16 cord Exp $
 
-It describes the usage of Calamaris V2.48 and later.
+It describes the usage of Calamaris V2.49 and later.
 
 Information about new releases, mailing lists, and other related issues
 can be found from the
