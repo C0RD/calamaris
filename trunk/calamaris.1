@@ -1,4 +1,4 @@
-.TH CALAMARIS 1 "$Date: 2003-02-09 00:06:59 $" Handmade "Calamaris Manual"
+.TH CALAMARIS 1 "$Date: 2003-05-14 21:22:37 $" Handmade "Calamaris Manual"
 
 .SH NAME
 calamaris \- generate statistic out of log files from Proxy-Cache-Servers
@@ -184,9 +184,20 @@ Server-Side-Includes.
 gives out the raw numbers seperated by spaces. Useful for re-using the output
 in other scripts. If you use this along with 
 .I -U,
- the byte values are calculated in the given Unit, and displayed without
+the byte values are calculated in the given Unit, and displayed without
 indication along with the numbers. the indication moves up to the header of
 the report.
+
+.TP
+.I -M string
+Meta: adds a custom string into the <HEAD> of a HTML-Report. Useful if you
+want to add Stylesheets or something to the Report.
+
+.B Note:
+.I -M
+works only in combination with
+.IR -F
+html.
 
 .TP
 .I -l string
@@ -198,7 +209,8 @@ will add my logo with a link to the Report.
 .B Note:
 .I -l
 works only in combination with
-.IR -w.
+.IR -F
+html.
 
 .TP
 .I -U string
@@ -393,7 +405,7 @@ Version: Prints out the Version-Number.
 This example mails the daily statistics to root:
 cat /var/log/squid/access.log | nice -39
 .B calamaris
--amH 'daily worf' | mail root
+-aH 'daily worf' -F mail | mail root
 
 .TP
 This one only caches a summary for later use:
@@ -406,7 +418,7 @@ You can then use the caches to have weekly statistics:
 
 if [ $DAYOFWEEK = "0" ]; then
 .B calamaris
--a -i daily.1:daily.2:daily.3:daily.4:daily.5:daily.6:daily.0 -zmH "weekly worf" | mail root
+-a -i daily.1:daily.2:daily.3:daily.4:daily.5:daily.6:daily.0 -z -F mail -H "weekly worf" | mail root ;
 fi
 
 .SH BUGS
@@ -462,9 +474,9 @@ Cord Beermann.
 
 .SH VERSION
 
-Version of this manpage: $Id: calamaris.1,v 1.27 2003-02-09 00:06:59 cord Exp $
+Version of this manpage: $Id: calamaris.1,v 1.28 2003-05-14 21:22:37 cord Exp $
 
-It describes the usage of Calamaris V2.57 and later.
+It describes the usage of Calamaris V2.58 and later.
 
 Information about new releases, mailing lists, and other related issues
 can be found from the
