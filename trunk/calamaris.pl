@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.112 1998-07-09 19:04:32 cord Exp $
+# $Id: calamaris.pl,v 1.113 1998-07-09 19:56:06 cord Exp $
 #
-# DESCRIPTION: calamaris.pl - get statistic out of the Squid Native Log.
+# DESCRIPTION: calamaris.pl - statistic for Squid or NetCache Proxy Native Log.
 #
 # Copyright (C) 1997, 1998 Cord Beermann
 #
@@ -28,6 +28,10 @@
 # under the terms of the GNU General Public License as published by the Free
 # Software Foundation; either version 2 of the License, or (at your option)
 # any later version.
+
+# (If you modify and want to publish it under the name 'calamaris', please
+# ask me. I don't want to confuse the 'audience' with many different versions
+# of the same name and Version number.)
 
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -62,6 +66,10 @@
 # * A Readme and so on has still to be written. (Maybe i should put this
 # section into a seperate file?)
 
+# * I've seen problems with vars.pm which seems to get in the
+# perl-distribution later... if someone point me out which version it was, i'm
+# going to change the 'require 5' for that.
+
 # * if you want to parse more than one Logfile (i.e. from the logfilerotate)
 # you have to put them in chronological sorted order (oldest first) into
 # calamaris, else you get wrong peak values. (Is this something that i should
@@ -82,7 +90,8 @@
 # that many people use the script). For my Caches with about 150MB-Logfile per
 # week it is OK, but for those people on a heavy loaded Parentcach it is
 # simply to slow. So if someone wants to rewrite calamaris in a faster
-# language: Feel Free! (But respect the GNU-License)
+# language: Feel Free! (But respect the GNU-License) (and it would be nice if
+# you drop me a note)
 
 # * Hmmm, while looking through those many different reports i generate, i
 # think that i generate more than anybody ever wants to now about squid :-) So
@@ -90,7 +99,13 @@
 # this is also a speed disadvantage because of the many checks if set or not...
 
 # todos
+
 # * add report for byte-peak (Andreas Strotmann <A.Strotmann@Uni-Koeln.DE>)
+# (Don't think that i put this in calamaris v2)
+
+# * build graphics (hope i remember who suggested this first ;-) (This is a
+# thing for calamaris v3, if i ever going to write it. there are nice gd-libs
+# in perl ;-)
 
 require 5;
 
@@ -102,7 +117,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pr:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.112 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.113 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -375,7 +390,7 @@ unless ($opt_z) {
 	$peak_all_sec_time = $log_date - 1;
       }
     }
-    if ($log_method eq 'ICP_QUERY') {
+    if (($log_method eq 'ICP_QUERY') or ($log_status =~ /^([ICP].+)/)) {
       $udp++;
       $udp_size += $log_size;
       $udp_time += $log_reqtime;
@@ -410,7 +425,7 @@ unless ($opt_z) {
 	  $peak_udp_sec_time = $log_date - 1;
 	}
       }
-      if ($log_hitfail =~ /^UDP_HIT/o) {
+      if ($log_hitfail =~ /^(UDP|ICP)_HIT/o) {
 	$udp_hit++;
 	$udp_hit_size += $log_size;
 	$udp_hit_time += $log_reqtime;
@@ -563,7 +578,7 @@ unless ($opt_z) {
 	  $tcp_miss_direct++;
 	  $tcp_miss_direct_size += $log_size;
 	  $tcp_miss_direct_time += $log_reqtime;
-	} elsif ($log_hier_method =~ /(PARENT|SIBLING)\w+HIT/o) {
+	} elsif ($log_hier_method =~ /(PARENT|SIBLING|NEIGHBOR)\w+HIT/o) {
 	  $tcp_miss_neighbor_hit++;
 	  $tcp_miss_neighbor_hit_time += $log_reqtime;
 	  $tcp_miss_neighbor_hit_size += $log_size;
@@ -608,7 +623,7 @@ unless ($opt_z) {
 	    $hier_direct_size{$log_hier_method} += $log_size;
 	    $hier_direct_time{$log_hier_method} += $log_reqtime;
 	  }
-	} elsif ($log_hier_method =~ /(PARENT|SIBLING)\w+HIT/o) {
+	} elsif ($log_hier_method =~ /(PARENT|SIBLING|NEIGHBOR)\w+HIT/o) {
 	  $hier_sibling++;
 	  $hier_sibling_size += $log_size;
 	  $hier_sibling_time += $log_reqtime;
@@ -721,11 +736,11 @@ if ($opt_p or $opt_a) {
 }
 print("Content-Type: text/html; charset=us-ascii
 Content-Transfer-Encoding: 7bit\n") if ($opt_m and $opt_w);
-printf("Subject:%sSquid-Report (%s - %s)\n\n", $hostname, $date_start,
+printf("Subject:%sProxy-Report (%s - %s)\n\n", $hostname, $date_start,
        $date_stop) if ($opt_m);
 if ($opt_w) {
-  print("<html><head><title>Squid-Report</title></head><body>\n");
-  printf("<h1><a name=\"0\">%sSquid-Report (%s - %s)</a></h1>\n", $hostname,
+  print("<html><head><title>Proxy-Report</title></head><body>\n");
+  printf("<h1><a name=\"0\">%sProxy-Report (%s - %s)</a></h1>\n", $hostname,
 	 $date_start, $date_stop);
   print("<hr><ul>\n");
   outref('Summary', 1);
@@ -750,7 +765,7 @@ if ($opt_w) {
   }
   print("</ul><hr>\n");
 } else {
-  printf("%sSquid-Report (%s - %s)\n", $hostname, $date_start, $date_stop);
+  printf("%sProxy-Report (%s - %s)\n", $hostname, $date_start, $date_stop);
 }
 
 @format=(19,8);
