@@ -17,11 +17,12 @@ and Shortcomings' on this.)
 Where to get it?
 ----------------
 
-The Calamaris-Homepage is located at http://www.cord.de/~cord/tools/squid/
+The Calamaris-Homepage is located at
+http://www.cord.de/~cord/tools/squid/calamaris/
 
 There is also an Announcement-Mailinglist. To subscribe send mail to
-calamaris-request@cord.de. Subscribers will get a mail on every new release,
-including a list of the changes. --> Low-Traffic.
+calamaris-announce-request@cord.de. Subscribers will get a mail on every new
+release, including a list of the changes. --> Low-Traffic.
 
 
 How to use it?
@@ -32,7 +33,7 @@ How to use it?
   security of your computer) that you use an actual version (>=5.005_02) of
   it.
 
-* You'll also need Squid (see http://squid.nlanr.net) Version 1.1.x or later
+* You'll also need Squid (see http://squid.nlanr.net/) Version 1.1.x or later
   (or Logfiles derived from that). It has to produce the 'Native
   Logfileformat' (which is the default since Version 1.1.x). If Calamaris
   can't parse the access.log, check your logfile-format.  It is explained in
@@ -45,7 +46,7 @@ How to use it?
 
 * Use it! 
 
-  'cat access.log.1 access.log.0 | calamaris.pl' 
+  'cat access.log.1 access.log.0 | calamaris.pl'
 
   Calamaris generates by default a brief ascii report of incoming and outgoing
   requests. 
@@ -218,8 +219,9 @@ Is there anything else?
 Ernst Heiri builds a spin-off of my calamaris V1, which can be found *where?*
 
 There is also now a C++-port of Ernst Heiri's Calamaris available which is
-(according to the author Jens-S. Voeckler (voeckler@rvs.uni-hannover.de)) much
-faster than the perl-variant. *where?*
+(according to the author Jens-S. Voeckler (voeckler@rvs.uni-hannover.de)) five
+times faster than the perl-variant.  check
+http://statistics.www-cache.dfn.de/Projects/seafood/ for this.
 
 more Squid-Logfile-Analysers can be found via the Squid-Homepage at
 http://squid.nlanr.net/
@@ -244,4 +246,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 1.3 1998-09-25 19:02:44 cord Exp $
+$Id: README,v 1.4 1998-09-30 17:33:02 cord Exp $
