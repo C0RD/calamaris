@@ -151,6 +151,11 @@ But if you have an idea what is still missing in a software for parsing
 proxy logfiles, let me know. --> Calamaris@Cord.de. I'll will build it in, or
 add it to the wish-list below :-)
 
+* add support for 'Compaq Cache' which is logging in W3C Extended
+  Logfile format. (I'm not sure yet if this is possible, but i'm
+  trying.) (Antonio Casado Rodriguez (acasado@ualm.es) sent me
+  some logfiles.)
+
 * seperate on/off switching of incoming UDP/TCP-Requests (based on
   UDP-Requests?) (suggested by John Line <webadm@info.cam.ac.uk>)
 
@@ -228,4 +233,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.23 2000-05-13 19:01:07 cord Exp $
+$Id: README,v 2.24 2000-05-24 21:34:19 cord Exp $
