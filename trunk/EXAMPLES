@@ -5,6 +5,33 @@ mail and describe them to Calamaris@Cord.de.
 
 I'll add them to this file. Thank You.
 
+Matthew King (nerd@zip.com.au) squidreport.cron:
+-----------------------------------------------------------------------
+#!/bin/sh
+
+# SquidReport Script by Matthew King
+# Last update: 27-03-99.
+
+# This script will remove the current Squid HTML report, and will replace
+# it with a fresh one. The report will include all available squid access
+# log files.. Roughly 7 days worth. The report will then be dumped into
+# /home/httpd/html/ to be viewed via a web browser.
+
+# Remove the current report!
+cd /home/httpd/html/
+rm -f squidreport.html
+echo > squidreport.html
+cd /
+
+# Create the new report and place it into the /home/httpd/html/ dir..
+cd /var/log/squid/
+cat access.log.7 access.log.6 access.log.5 access.log.4 access.log.3 \
+    access.log.2 access.log.1 access.log \
+    | /usr/local/bin/calamaris.pl -a -w > /home/httpd/html/squidreport.html
+
+# Phew! It is done :) 60 odd seconds later :)
+-----------------------------------------------------------------------
+
 
 My (cord@Wunder-Nett.org) method:
 -----------------------------------------------------------------------
@@ -38,4 +65,4 @@ Everyone who really uses Squidmaster@Cord.de while testing has to send me a
 Version of the EXAMPLES
 -----------------------
 
-$Id: EXAMPLES,v 2.3 1998-12-05 13:06:19 cord Exp $
+$Id: EXAMPLES,v 2.4 1999-04-02 14:59:44 cord Exp $
