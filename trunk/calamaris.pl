@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 2.7 1998-10-12 19:26:46 cord Exp $
+# $Id: calamaris.pl,v 2.8 1998-10-12 20:03:54 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Log-files
 #
@@ -66,7 +66,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 2.7 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 2.8 $, Copyright (C) 1997, 1998 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -395,8 +395,9 @@ if ($opt_i) {
 	 $perf_hier_sibling_time{$y}, $perf_hier_parent_size{$y},
 	 $perf_hier_parent_time{$y}) = @cache;
 	# stupid, yes...
-	# change this if you like, i don't know what to set here.
-	$perf_tcp_hit_time{$y} = 99999; 
+	# I set this to 0/.1 so removezerotime prints a - in the report.
+	$perf_tcp_hit_size{$y} = 0;
+	$perf_tcp_hit_time{$y} = .000001;
 # End of stupid bug-workaround
       } else {
 	warn("can't parse cache-line: \"$x @cache\"\n");

@@ -155,10 +155,9 @@ How to use it?
 Are there known bugs or other problems?
 ---------------------------------------
 
-* I fixed a bug regarding caching of Performance-Data. This broke old
-  Calamaris-Cache-Files... I put now a workaround in, which allows to parse
-  old and new cachefiles. This sets the missing variable to a defined value,
-  and results in wrong values in the Performance-report on 'Cache-Hits'.
+* I fixed a bug regarding caching of Performance-Data. This brakes old
+  Calamaris-Cache-Files... I a workaround in, which allows to parse old and
+  new cachefiles. This sets 'Cache-Hits' in the Performance-Report to '-'.
 
 * It is possible that you encounter problems if you use Squid V1.2.x/V2.x.
   Calamaris isn't well tested with the new release. (I don't have a production
@@ -269,4 +268,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.5 1998-10-12 19:22:50 cord Exp $
+$Id: README,v 2.6 1998-10-12 20:03:53 cord Exp $
