@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.121 1998-09-22 21:43:35 cord Exp $
+# $Id: calamaris.pl,v 1.122 1998-09-23 21:03:20 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Logfiles.
 #
@@ -44,8 +44,8 @@
 # more details.
 
 # You should have received a copy of the GNU General Public License along with
-# this program; if not, write to the Free Software # Foundation, Inc., 59
-# Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+# Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
 # A Perl script is "correct" if it gets the job done before your boss fires
@@ -53,79 +53,6 @@
 #   -- 'Programming Perl Second Edition'
 #	by Larry Wall, Tom Christiansen & Randal L. Schwartz
 
-
-# Instructions:
-
-# * Switch 'emulate_httpd_log' off
-
-# * Pipe your Logfile in calamaris
-
-
-# Example:
-
-# cat access.log.1 access.log.0 |calamaris.pl
-
-
-# Bugs and shortcomings
-
-# * A Readme and so on has still to be written. (Maybe i should put this
-# section into a seperate file?)
-
-# * If you parse NetCache Logfiles with calamaris, it seems that you can run
-# into trouble. I've looked for information on the Logfile-format from the
-# vendor, but it seems that they don't give any info to people who don't want
-# to tell them their Name and Adress. So, if someone can provide me with that
-# info, i'll try to put it into calamaris, if not... (i've seen that NetCache
-# produces broken Logfiles with different counts of fields, is that a buggy
-# version?)
-
-# * I've seen problems with vars.pm which seems to get in the
-# perl-distribution later... if someone point me out which version it was, i'm
-# going to change the 'require 5' for that.
-
-# * if you want to parse more than one Logfile (i.e. from the logfilerotate)
-# you have to put them in chronological sorted order (oldest first) into
-# calamaris, else you get wrong peak values. (Is this something that i should
-# fix? Don't think so...)
-
-# * If you use the caching function the peak-values can be wrong if the peak
-# is around the time the log-files were rotated.
-
-# * Squid doesn't log outgoing UDP-Requests, so i can't put them into the
-# statistics without parsing squid.conf. (Javier Puche
-# (Javier.Puche@rediris.es) asked for this), but i don't think that i should
-# put this into calamaris... (Check last point of 'Bugs and shortcomings'.)
-
-# * It is written in perl. Yea, perl is a great language for something like
-# this (also it is the only one i'm able to write something like this in).
-# Calamaris was first intended as demo for what i wanted from a statistical
-# software. (OK, it is fun to write it, and it is even more fun to recognize
-# that many people use the script). For my Caches with about 150MB-Logfile per
-# week it is OK, but for those people on a heavy loaded Parentcache it is
-# simply to slow. So if someone wants to rewrite calamaris in a faster
-# language: Feel Free! (But respect the GNU-License) (and it would be nice if
-# you drop me a line about it)
-#
-# There is now a C++-port of an early modified calamaris available which is
-# (according to the author Jens-S. Voeckler (voeckler@rvs.uni-hannover.de))
-# much faster (but it is based on a spin-off of calamaris v1.x).
-
-# * Hmmm, while looking through those many different reports i generate, i
-# think that i generate more than anybody ever wants to now about squid :-) So
-# i added switches, so everybody can switch on or off the reports wanted. But
-# this is also a speed disadvantage because of the many checks if set or not...
-
-# todos
-
-# * add report for byte-peak (inspirated by Andreas Strotmann
-# <A.Strotmann@Uni-Koeln.DE>) (Don't think that i put this in calamaris v2)
-
-# * build graphics (hope i remember who suggested this first, the mail must be
-# somewhere in my work-mailbox ;-) (This is a thing for calamaris v3, if i
-# ever going to write it. there are nice gd-libs in perl ;-)
-
-# * add real NetCache-Support. The NetCache-Support is rudimentary working,
-# but is only in some kind of alpha-state. see 'Bugs and Shortcomings' above.
 
 require 5;
 
@@ -137,7 +64,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.121 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.122 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
