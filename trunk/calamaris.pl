@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.107 1998-04-09 20:44:23 cord Exp $
+# $Id: calamaris.pl,v 1.108 1998-04-15 21:24:08 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - get statistic out of the Squid Native Log.
 #
@@ -79,7 +79,7 @@
 # Calamaris was first intended as demo for what i wanted from a statistical
 # software. (OK, it is fun to write it, and it is even more fun to recognize
 # that many people use the script). For my Caches with about 150MB-Logfile per
-# week it is OK, but for those people on a heavy loaded Parentcaches it is
+# week it is OK, but for those people on a heavy loaded Parentcach it is
 # simply to slow. So if someone wants to rewrite calamaris in a faster
 # language: Feel Free! (But respect the GNU-License)
 
@@ -98,7 +98,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pr:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.107 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.108 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -723,8 +723,8 @@ printf("Subject: %sSquid-Report (%s - %s)\n\n", $hostname, $date_start,
        $date_stop) if ($opt_m);
 if ($opt_w) {
   print("<html><head><title>Squid-Report</title></head><body>\n");
-  printf("<h1>%sSquid-Report (%s - %s)</h1>\n", $hostname, $date_start,
-	 $date_stop);
+  printf("<h1><a name=\"0\">%sSquid-Report (%s - %s)</a></h1>\n", $hostname,
+	 $date_start, $date_stop);
   print("<hr><ul>\n");
   outref('Summary', 1);
   outref('Incoming request peak per protocol', 2) if ($opt_p or $opt_a);
@@ -949,7 +949,8 @@ if ($hier == 0) {
 	    (1024 * $hier_sibling_time));
     foreach $hitfail (sort {$hier_sibling{$b} <=> $hier_sibling{$a}}
 		      keys(%hier_sibling)) {
-      writecache(J, $hitfail, $hier_sibling{$hitfail}, $hier_sibling_size{$hitfail}, $hier_sibling_time{$hitfail});
+      writecache(J, $hitfail, $hier_sibling{$hitfail},
+		 $hier_sibling_size{$hitfail}, $hier_sibling_time{$hitfail});
       outline(' ' . $hitfail, $hier_sibling{$hitfail}, 100 *
 	      $hier_sibling{$hitfail} / $hier, $hier_sibling_size{$hitfail} /
 	      1024, 100 * $hier_sibling_size{$hitfail} / $hier_size,
@@ -1132,7 +1133,7 @@ if ($opt_t or $opt_a) {
     outheader('content-type',' request','% ','  kByte','% ','hit-%');
     outseperator();
     @counter = keys %tcp_content;
-    $other_count = $#counter + 1;
+    $other_content = $#counter + 1;
     $other = $tcp;
     $other_size = $tcp_size;
     $other_hit = $tcp_hit;
@@ -1153,7 +1154,7 @@ if ($opt_t or $opt_a) {
     }
     if ($other) {
       writecache(Q, '<other>', $other, $other_size, $other_hit);
-      outline('other: '. $other_count . ' content-types', $other, 100 *
+      outline('other: '. $other_content . ' content-types', $other, 100 *
 	      $other / $tcp, $other_size / 1024, 100 * $other_size /
 	      $tcp_size, 100 * $other_hit / $other);
     }
@@ -1373,7 +1374,8 @@ sub outheader {
     } elsif ($format[$no] =~ m#kbs#o) {
       print(substr($p,0,7) . ' ' x (7 - length($p)), ' ');
     } else {
-      print(substr($p,0,$format[$no]) . ' ' x ($format[$no] - length($p)), ' ');
+      print(substr($p,0,$format[$no]) . ' ' x ($format[$no] - length($p)),
+	    ' ');
     }
     $no++;
   }
@@ -1455,7 +1457,11 @@ sub outseperator {
 }
 
 sub outstop {
-  print("</table><hr>\n") if ($opt_w);
+  if ($opt_w) {
+    print("</table>\n");
+    print("<p><a href=\"#0\">Back to Top</a>\n");
+    print("<hr>\n");
+  }
 }
 
 sub writecache {
