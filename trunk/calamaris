@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.56 2003-01-19 19:47:09 cord Exp $
+# $Id: calamaris,v 2.57 2003-02-08 23:55:49 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
@@ -46,7 +46,7 @@
 #	Dancer Vesperman <dancer@zeor.simegen.com>
 #	Vincent ? <vincent@aib.net>
 #	Elrond ? <Elrond@Wunder-Nett.org>
-#	Holger Marzen <hm@sik-gmbh.de>
+#	Holger Marzen <holger@marzen.de>
 #	Panagiotis Christias <P.Christias@noc.ntua.gr>
 #	Patrik Rak <patrik@ash.ein.cz>
 #	Steve Snyder <swsnyder@insightbb.com>
@@ -107,14 +107,14 @@
 
 # If you have to remove this, read the README!
 require 5.002;
-use vars qw($opt_3 $opt_a $opt_b $opt_c $opt_C $opt_d $opt_D $opt_f $opt_h
-	    $opt_H $opt_i $opt_I $opt_l $opt_L $opt_m $opt_n $opt_N $opt_o
-	    $opt_O $opt_p $opt_P $opt_r $opt_R $opt_s $opt_S $opt_t $opt_T
-	    $opt_u $opt_U $opt_v $opt_V $opt_w $opt_W $opt_z);
+use vars qw($opt_3 $opt_a $opt_b $opt_c $opt_C $opt_d $opt_D $opt_f $opt_F
+	    $opt_h $opt_H $opt_i $opt_I $opt_l $opt_L $opt_m $opt_n $opt_N
+	    $opt_o $opt_O $opt_p $opt_P $opt_r $opt_R $opt_s $opt_S $opt_t
+	    $opt_T $opt_u $opt_U $opt_v $opt_V $opt_w $opt_W $opt_z);
 use Getopt::Std;
 use Sys::Hostname;
 
-getopts('3ab:cCd:D:f:hH:i:I:l:LmnN:o:Op:P:r:R:sS:t:T:uU:vVwWz');
+getopts('3ab:cCd:D:f:F:hH:i:I:l:LmnN:o:Op:P:r:R:sS:t:T:uU:vVwWz');
 
 if ( $opt_b and $opt_b < 1 ) {
   print STDERR "$0: wrong value at -b -option: \"$opt_b\"\n\n";
@@ -149,23 +149,15 @@ if ($opt_H) {
   $host_name = '';
 }
 
-if ($opt_N) {
-  if ( $opt_N != -1 and $opt_N < 2 ) {
-    ## REmove this in 2003
-    if ( $opt_N eq 'f' ) {
-      print STDERR "$0: wrong value at -N -option: \"$opt_N\".
-	use -N -1 instead.\n\n";
-    } else {
-      print STDERR "$0: wrong value at -N -option: \"$opt_N\"\n\n";
-    }
-    $usage_err = 1;
-  }
+if ($opt_N and $opt_N != -1 and $opt_N < 2 ) {
+  print STDERR "$0: wrong value at -N -option: \"$opt_N\"\n\n";
+  $usage_err = 1;
 }
 
 if ($opt_I) {
   use Time::Local;
-  ($interval_begin, $interval_end) = split('-', $opt_I);
-  if ($interval_begin =~ m#^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$#) {
+  ( $interval_begin, $interval_end ) = split ( '-', $opt_I );
+  if ( $interval_begin =~ m#^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$# ) {
     $interval_begin = timegm( $6, $5, $4, $3, $2 - 1, $1 - 1900 );
   } elsif ( $interval_begin eq '' ) {
     $interval_begin = 0;
@@ -173,13 +165,30 @@ if ($opt_I) {
     print STDERR "$0: wrong value at -I -option: \"$opt_I\"\n\n";
     $usage_err = 1;
   }
-  if ($interval_end =~ m#^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$#) {
+  if ( $interval_end =~ m#^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$# ) {
     $interval_end = timegm( $6, $5, $4, $3, $2 - 1, $1 - 1900 );
   } elsif ( $interval_end eq '' ) {
     $interval_end = 9999999999;
   } else {
     print STDERR "$0: wrong value at -I -option: \"$opt_I\"\n\n";
     $usage_err = 1;
+  }
+}
+
+if ($opt_F) {
+  foreach $output ( split ( /\s*,\s*/, $opt_F ) ) {
+    if ( $output eq 'mail' ) {
+      $outtype_mail = 1;
+    } elsif ( $output eq 'html' ) {
+      $outtype_html = 1;
+    } elsif ( $output eq 'html-embed' ) {
+      $outtype_htmlembed = 1;
+    } elsif ( $output eq 'unformatted' ) {
+      $outtype_unformatted = 1;
+    } else {
+      print STDERR "$0: unknown output-format: $output\n\n";
+      $usage_err = 1;
+    }
   }
 }
 
@@ -190,10 +199,37 @@ if ($opt_3) {
 }
 
 # remove at end of 2004
-if (defined $opt_f and $opt_f =~ m#^squid-(mime|smartfilter)$#) {
+if ( defined $opt_f and $opt_f =~ m#^squid-(mime|smartfilter)$# ) {
   print STDERR "$0: obsoleted input format '$opt_f':
 	use -f 'squid-extended' instead\n\n";
   $usage_err = 1;
+}
+
+# change at end of 2003
+# remove at end of 2004
+if ( defined $opt_w ) {
+  print STDERR "$0: obsoleted output format switch -w:
+        use -F 'html' instead\n\n";
+  $outtype_html = 1;
+  $output_warn = 1;
+}
+
+# change at end of 2003
+# remove at end of 2004
+if ( defined $opt_W ) {
+  print STDERR "$0: obsoleted output format switch -W:
+	use -F 'html-embed' instead\n\n";
+  $outtype_htmlembed = 1;
+  $output_warn = 1;
+}
+
+# change at end of 2003
+# remove at end of 2004
+if ( defined $opt_m ) {
+  print STDERR "$0: obsoleted output format switch -m:
+	use -F 'mail' instead\n\n";
+  $outtype_mail = 1;
+  $output_warn = 1;
 }
 
 $sortorder = '';
@@ -239,9 +275,10 @@ if ( $opt_N == -1 or $opt_N > 2 ) {
 	    'Distribution Histogram', "Performance in $P minute steps"
 	    );
 
-$VERSION='Calamaris $Revision: 2.56 $';
+$VERSION='Calamaris $Revision: 2.57 $';
 
-$COPYRIGHT = 'Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003 Cord Beermann.
+$COPYRIGHT =
+'Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
 welcome to redistribute it under certain conditions. See source for details.
 Calamaris-Homepage: http://Calamaris.Cord.de/';
@@ -275,9 +312,9 @@ Input:
 		auto = tries to guess the input format
 		(This is the Default)
 		squid = Native-Logfile derived from Squid V1.1.beta26-V2.x
-		squid-extended = Native-Logfile with log_mime_hdrs enabled derived
-			from Squid V1.1.beta26-V2.x (*)
-			or Cisco Content Engines (*) 
+		squid-extended = Native-Logfile with log_mime_hdrs enabled
+			derived from Squid V1.1.beta26-V2.x (*)
+			or Cisco Content Engines (*)
 			or Squid with SmartFilter-patch (*)
 		squid-old = Native-Logfile derived from Squid
 			V1.1.alpha1-V1.1.beta25
@@ -287,10 +324,12 @@ Input:
 			Internet Caching System, NetCache 5.x)
 		nse = Netscape Extended-1/2 Logfile Format
 
-Output: (Default is plain text)
--m	mail	  (mail format)
--w	web	  (HTML format, can be combined with -m)
--W	Web	  (HTML format without HTML-headers)
+Output: (Default is plain formatted text)
+-F type	Format	  (output format (comma-seperated list))
+		  mail = mail format
+		  html = HTML format
+		  html-embed = HTML format without HTML-headers
+		  unformatted = plain unformatted output
 -l string logo	  (add this string to the head of the report. works only in
 		   combination with -w)
 -H name Host-name (a name for the Output, -H \'lookup\' issues a lookup for
@@ -308,7 +347,8 @@ foreach ( 0 .. $#reports ) {
   $USAGE .= "\t\t$_\t$reports[$_]\n";
 }
 
-$USAGE .= '		(Note: only putting out one report does not speed up Calamaris
+$USAGE .=
+'		(Note: only putting out one report does not speed up Calamaris
 		 as the internal operations were done based on the
 		 report-switches. Default: Reports are displayed based on
 		 activated reports.)
@@ -652,7 +692,7 @@ if ($opt_i) {
 	 $perf_hier_parent_size{$y}, $perf_hier_parent_time{$y} )
 	  = @cache;
 # This is for a stupid bug I brought in... it should save older Cache-Files,
-# and put them in so that we can work with them.. remove in 08/2003
+# and put them in so that we can work with them.. remove at end of 2003
       } elsif ( $x eq 'U' and $#cache == 12 ) {
 	$cache_warn1 = 'The Performance data misses the Cache-Hits-value';
 	$y = shift (@cache);
@@ -681,7 +721,7 @@ if ($opt_i) {
 	$udp_requester_urlhost_time{$y}{$z} += $cache[2];
 	$udp_hit_requester_urlhost{$y}{$z} += $cache[3];
 	$udp_hit_requester_urlhost_size{$y}{$z} += $cache[4];
-# Start of Bug-fix - remove this in 08/2003
+# Start of Bug-fix - remove this at end of 2003
       } elsif ( $x eq 'V' and $#cache == 5 ) {
 	$cache_warn2 = 'The UDP-Requester-Report misses the other-value';
 	$y = '<other>' unless ($y);
@@ -710,7 +750,7 @@ if ($opt_i) {
 	$tcp_requester_urlhost_time{$y}{$z} += $cache[2];
 	$tcp_hit_requester_urlhost{$y}{$z} += $cache[3];
 	$tcp_hit_requester_urlhost_size{$y}{$z} += $cache[4];
-# Start of Bugfix - remove in 08/2003
+# Start of Bugfix - remove at end of 2003
       } elsif ( $x eq 'W' and $#cache == 5 ) {
 	$cache_warn3 = 'The TCP-Requester-Report misses the other-value';
 	$y = '<other>' unless ($y);
@@ -1458,8 +1498,9 @@ Thank You.\n\n";
     $tcp_time += $log_reqtime;';
   $loop .= '
     $perf_date =
-      ( int( ( $log_date + ' . "( $opt_T * 60 ) ) / ( 60 * $opt_P ) ) * 60 * $opt_P ) -
-      ( $opt_T * 60 );" . '
+      ( int( ( $log_date + '
+	. "( $opt_T * 60 ) ) / ( 60 * $opt_P ) ) * 60 * $opt_P ) -
+	 ( $opt_T * 60 );" . '
     unless ( defined $perf_counter{$perf_date} ) {
       $perf_counter{$perf_date} = $perf_size{$perf_date} =
 	$perf_tcp_hit_size{$perf_date} = $perf_tcp_miss_size{$perf_date} =
@@ -1815,23 +1856,23 @@ $out_head = '';
 $out_head .= 'MIME-Version: 1.0
 Content-Type: text/html; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-' if ( $opt_m and $opt_w );
+' if ( $outtype_mail and $outtype_html );
 $out_head .=
   "Subject: ${host_name}Proxy Report ($date_start - $date_stop)\n\n"
-  if ($opt_m);
-if ( $opt_w or $opt_W ) {
+  if ($outtype_mail);
+if ( $outtype_html or $outtype_htmlembed ) {
   $out_head .=
     "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"
 	\"http://www.w3.org/TR/REC-html40/loose.dtd\">
 <html>
  <head>
   <title>${host_name}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.56 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.57 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
-   <tr>\n" if ($opt_w);
-  $out_head .= "    <td>$opt_l</td>\n" if ( $opt_l and $opt_w );
+   <tr>\n" if ($outtype_html);
+  $out_head .= "    <td>$opt_l</td>\n" if ( $opt_l and $outtype_html );
   $out_head .= "    <td>
      <h1><a name=\"top\">${host_name}Proxy Report</a></h1>
      <p>$date_start - $date_stop</p>
@@ -1839,9 +1880,9 @@ if ( $opt_w or $opt_W ) {
    </tr>
   </table>
   <hr>
-  <ul>\n" if ($opt_w);
+  <ul>\n" if ($outtype_html);
   $out_head .= "<p>$date_start - $date_stop</p>
-  <ul>\n" if ($opt_W);
+  <ul>\n" if ($outtype_htmlembed);
 
   if ($opt_S) {
     foreach ( split ( ",", $opt_S ) ) {
@@ -1887,6 +1928,18 @@ if ( ( $invalid / $counter ) > .05 and $counter > 1000 ) {
   outstop('E');
 }
 
+if ( defined($output_warn) ) {
+  @format = (60);
+  outstart('E');
+  outline( 'E', '' );
+  outline( 'E', 'Output Options have been changed' );
+  outline( 'E',
+	  'You shouldn\'t use -w, -W and -m anymore and use -F instead' );
+  outline( 'E', '' );
+  outline( 'E', 'For now Calamaris maps the old switch to the new, but' );
+  outline( 'E', 'the workaround will be removed at end of 2003' );
+}
+
 if ( defined($peak_warn) ) {
   @format = (60);
   outstart('E');
@@ -1902,8 +1955,10 @@ if ( $cache_warn1 or $cache_warn2 or $cache_warn3 ) {
   @format = (60);
   outstart('E');
   outline( 'E', '' );
-  outline( 'E', 'Caused by bugs, there were some changes in Cache-File-Format' );
-  outline( 'E', 'in the lifetime of Calamaris. Your Cachefiles still contain' );
+  outline( 'E',
+	  'Caused by bugs, there were some changes in Cache-File-Format' );
+  outline( 'E',
+	  'in the lifetime of Calamaris. Your Cachefiles still contain' );
   outline( 'E', 'some buggy lines, which causes the following problems:' );
   outline( 'E', '' );
   outline( 'E', "$cache_warn1" ) if $cache_warn1;
@@ -1911,8 +1966,10 @@ if ( $cache_warn1 or $cache_warn2 or $cache_warn3 ) {
   outline( 'E', "$cache_warn3" ) if $cache_warn3;
   outline( 'E', '' );
   outline( 'E', 'To correct the problem you should run Calamaris with' );
-  outline( 'E', 'calamaris -i buggy.cache -o buggy.cache -z [usual_options]' );
-  outline( 'E', 'the workarounds are scheduled to be removed in 08/2003' );
+  outline( 'E',
+	  'calamaris -i buggy.cache -o buggy.cache -z [usual_options]' );
+  outline( 'E',
+	  'the workarounds are scheduled to be removed at end of 2003' );
 }
 
 if ( $opt_I and $opt_i ) {
@@ -2054,11 +2111,13 @@ outstart(3);
 if ( $counter == 0 ) {
   outline( 3, 'no matching requests' );
 } else {
-  outheader( 3, 'method', ' request', '% ', '  Byte', '% ', ' sec',
+  outheader( 3, 'method', ' request', '% ',
+	    $outtype_unformatted ? " ${opt_U}Byte" : '  Byte', '% ', ' sec',
 	    ' kB/sec' );
   outseperator(3);
   foreach $method (
-		   sort { ${"method$sortorder"}{$b} <=> ${"method$sortorder"}{$a} }
+		   sort { ${"method$sortorder"}{$b} <=>
+			  ${"method$sortorder"}{$a} }
 		   keys(%method) )
   {
     writecache(
@@ -2084,7 +2143,8 @@ outstart(4);
 if ( $udp == 0 ) {
   outline( 4, 'no matching requests' );
 } else {
-  outheader( 4, 'status', ' request', '% ', '  Byte', '% ', 'msec',
+  outheader( 4, 'status', ' request', '% ',
+	    $outtype_unformatted ? " ${opt_U}Byte" : '  Byte', '% ', 'msec',
 	    ' kB/sec' );
   outseperator(4);
   if ( $udp_hit == 0 ) {
@@ -2142,8 +2202,8 @@ if ( $udp == 0 ) {
     }
   }
   outseperator(4);
-  outline( 4, 'Sum', $udp, ' ', kilomegagigatera( $udp_size, $format[3] ),
-	  ' ', $udp_time / $udp, $udp_size / ( 1.024 * $udp_time ) );
+  outline( 4, 'Sum', $udp, 100, kilomegagigatera( $udp_size, $format[3] ),
+	  100, $udp_time / $udp, $udp_size / ( 1.024 * $udp_time ) );
 }
 outstop(4);
 
@@ -2152,7 +2212,8 @@ outstart(5);
 if ( $tcp_hit + $tcp_miss + $tcp_miss_none == 0 ) {
   outline( 5, 'no matching requests' );
 } else {
-  outheader( 5, 'status', ' request', '% ', '  Byte', '% ', ' sec',
+  outheader( 5, 'status', ' request', '% ',
+	    $outtype_unformatted ? " ${opt_U}Byte" : '  Byte', '% ', ' sec',
 	    ' kB/sec' );
   outseperator(5);
   if ( $tcp_hit == 0 ) {
@@ -2243,8 +2304,8 @@ if ( $tcp_hit + $tcp_miss + $tcp_miss_none == 0 ) {
     }
   }
   outseperator(5);
-  outline( 5, 'Sum', $tcp, ' ', kilomegagigatera( $tcp_size, $format[3] ),
-	  ' ', $tcp_time / ( 1000 * $tcp ), $tcp_size / ( 1.024 * $tcp_time )
+  outline( 5, 'Sum', $tcp, 100, kilomegagigatera( $tcp_size, $format[3] ),
+	  100, $tcp_time / ( 1000 * $tcp ), $tcp_size / ( 1.024 * $tcp_time )
 	  );
 }
 outstop(5);
@@ -2254,7 +2315,8 @@ outstart(6);
 if ( $hier == 0 ) {
   outline( 6, 'no matching requests' );
 } else {
-  outheader( 6, 'status', ' request', '% ', '  Byte', '% ', ' sec',
+  outheader( 6, 'status', ' request', '% ',
+	    $outtype_unformatted ? " ${opt_U}Byte" : '  Byte', '% ', ' sec',
 	    ' kB/sec' );
   outseperator(6);
   if ( $hier_direct == 0 ) {
@@ -2307,12 +2369,12 @@ if ( $hier == 0 ) {
 		 'J', $hitfail, $hier_sibling{$hitfail},
 		 $hier_sibling_size{$hitfail}, $hier_sibling_time{$hitfail}
 		 );
-      outline(
-	      6, ' ' . $hitfail, $hier_sibling{$hitfail},
+      outline( 6, ' ' . $hitfail, $hier_sibling{$hitfail},
 	      100 * $hier_sibling{$hitfail} / $hier,
 	      kilomegagigatera( $hier_sibling_size{$hitfail}, $format[3] ),
 	      100 * $hier_sibling_size{$hitfail} / $hier_size,
-	      $hier_sibling_time{$hitfail} / ( 1000 * $hier_sibling{$hitfail} ),
+	      $hier_sibling_time{$hitfail} /
+		( 1000 * $hier_sibling{$hitfail} ),
 	      $hier_sibling_size{$hitfail} /
 		( 1.024 * $hier_sibling_time{$hitfail} ) );
     }
@@ -2328,7 +2390,7 @@ if ( $hier == 0 ) {
 	    $hier_parent_size / ( 1.024 * $hier_parent_time )
 	    );
     foreach $hitfail ( sort {
-      ${"hier_parent$sortorder"}{$b} <=>  ${"hier_parent$sortorder"}{$a}
+      ${"hier_parent$sortorder"}{$b} <=> ${"hier_parent$sortorder"}{$a}
 	} keys(%hier_parent)
 		      )
     {
@@ -2347,8 +2409,9 @@ if ( $hier == 0 ) {
     }
   }
   outseperator(6);
-  outline( 6, 'Sum', $hier, ' ', kilomegagigatera( $hier_size, $format[3] ),
-	  ' ', $hier_time / ( 1000 * $hier ), $hier_size / ( 1.024 * $hier_time ) );
+  outline( 6, 'Sum', $hier, 100, kilomegagigatera( $hier_size, $format[3] ),
+	  100, $hier_time / ( 1000 * $hier ),
+	  $hier_size / ( 1.024 * $hier_time ) );
 }
 outstop(6);
 
@@ -2357,7 +2420,8 @@ outstart(7);
 if ( $hier == 0 ) {
   outline( 7, 'no matching requests' );
 } else {
-  outheader( 7, 'neighbor type', ' request', '% ', '  Byte', '% ', ' sec',
+  outheader( 7, 'neighbor type', ' request', '% ',
+	    $outtype_unformatted ? " ${opt_U}Byte" : '  Byte', '% ', ' sec',
 	    ' kB/sec' );
   outseperator(7);
   outline(
@@ -2402,7 +2466,7 @@ if ( $hier == 0 ) {
 	      kilomegagigatera( $hier_neighbor_status_size{$neighbor}{$status},
 			       $format[3] ),
 	      100 * $hier_neighbor_status_size{$neighbor}{$status} /
-	      $hier_size,
+		$hier_size,
 	      $hier_neighbor_status_time{$neighbor}{$status} /
 	      ( 1000 * $hier_neighbor_status{$neighbor}{$status} ),
 	      $hier_neighbor_status_size{$neighbor}{$status} /
@@ -2410,9 +2474,9 @@ if ( $hier == 0 ) {
     }
   }
   outseperator(7);
-  outline( 7, 'Sum', $hier, ' ', kilomegagigatera( $hier_size, $format[3] ),
-	  ' ', $hier_time / ( 1000 * $hier ), $hier_size / ( 1.024 * $hier_time )
-	  );
+  outline( 7, 'Sum', $hier, 100, kilomegagigatera( $hier_size, $format[3] ),
+	  100, $hier_time / ( 1000 * $hier ),
+	  $hier_size / ( 1.024 * $hier_time ) );
 }
 outstop(7);
 
@@ -2423,7 +2487,9 @@ if ($opt_d) {
     outline( 8, 'no matching requests' );
     outstop(8);
   } else {
-    outheader( 8, 'destination', ' request', '% ', '  Byte', '% ', 'hit-%' );
+    outheader( 8, 'destination', ' request', '% ',
+	      $outtype_unformatted ? " ${opt_U}Byte" : '  Byte', '% ', 'hit-%'
+	      );
     outseperator(8);
     @counter = keys %tcp_urlhost;
     $other_urlhost = $#counter + 1;
@@ -2468,7 +2534,9 @@ if ($opt_d) {
     outstop(8);
 
     outstart(9);
-    outheader( 9, 'destination', ' request', '% ', '  Byte', '% ', 'hit-%' );
+    outheader( 9, 'destination', ' request', '% ',
+	      $outtype_unformatted ? " ${opt_U}Byte" : '  Byte', '% ', 'hit-%'
+	      );
     outseperator(9);
     @counter = keys %tcp_urltld;
     $other_tld = $#counter + 1;
@@ -2520,7 +2588,9 @@ if ($opt_t) {
   if ( $tcp == 0 ) {
     outline( 10, 'no matching requests' );
   } else {
-    outheader( 10, 'protocol', ' request', '% ', '  Byte', '% ', 'hit-%' );
+    outheader( 10, 'protocol', ' request', '% ',
+	      $outtype_unformatted ? " ${opt_U}Byte" : '  Byte', '% ', 'hit-%'
+	      );
     outseperator(10);
     foreach $urlprot ( sort {
       ${"tcp_urlprot$sortorder"}{$b} <=> ${"tcp_urlprot$sortorder"}{$a}
@@ -2549,7 +2619,8 @@ if ($opt_t) {
     if ( $tcp == 0 ) {
       outline( 11, 'no matching requests' );
     } else {
-      outheader( 11, 'content-type', ' request', '% ', '  Byte', '% ',
+      outheader( 11, 'content-type', ' request', '% ',
+		$outtype_unformatted ? " ${opt_U}Byte" : '  Byte', '% ',
 		'hit-%' );
       outseperator(11);
       @counter = keys %tcp_content;
@@ -2601,7 +2672,9 @@ if ($opt_t) {
   if ( $tcp == 0 ) {
     outline( 12, 'no matching requests' );
   } else {
-    outheader( 12, 'extensions', ' request', '% ', '  Byte', '% ', 'hit-%' );
+    outheader( 12, 'extensions', ' request', '% ',
+	      $outtype_unformatted ? " ${opt_U}Byte" : '  Byte', '% ', 'hit-%'
+	      );
     outseperator(12);
     @counter = keys %tcp_urlext;
     $other_urlext = $#counter + 1;
@@ -2654,15 +2727,13 @@ if ($opt_r) {
     outline( 13, 'no matching requests' );
   } else {
     if ($opt_R) {
-      outheader(
-		13, 'host / target', ' request', 'hit-%', '  Byte', 'hit-%',
-		'msec', ' kB/sec'
-		);
+      outheader( 13, 'host / target', ' request', 'hit-%',
+		$outtype_unformatted ? " ${opt_U}Byte" : '  Byte', 'hit-%',
+		'msec', ' kB/sec' );
     } else {
-      outheader(
-		13, 'host', ' request', 'hit-%', '  Byte', 'hit-%', 'msec',
-		' kB/sec'
-		);
+      outheader( 13, 'host', ' request', 'hit-%',
+		$outtype_unformatted ? " ${opt_U}Byte" : '  Byte', 'hit-%',
+		'msec', ' kB/sec' );
     }
     outseperator(13);
     @counter = keys %udp_requester;
@@ -2796,15 +2867,13 @@ if ($opt_r) {
     outline( 14, 'no matching requests' );
   } else {
     if ($opt_R) {
-      outheader(
-		14, 'host / target', ' request', 'hit-%', '  Byte', 'hit-%',
-		'sec', ' kB/sec'
-		);
+      outheader( 14, 'host / target', ' request', 'hit-%',
+		$outtype_unformatted ? " ${opt_U}Byte" : '  Byte', 'hit-%',
+		'sec', ' kB/sec' );
     } else {
-      outheader(
-		14, 'host', ' request', 'hit-%', '  Byte', 'hit-%', 'sec',
-		' kB/sec'
-		);
+      outheader( 14, 'host', ' request', 'hit-%',
+		$outtype_unformatted ? " ${opt_U}Byte" : '  Byte', 'hit-%',
+		'sec', ' kB/sec' );
     }
     outseperator(14);
     @counter = keys %tcp_requester;
@@ -2941,8 +3010,9 @@ if ($opt_D) {
   if ( $tcp == 0 ) {
     outline( 15, 'no matching requests' );
   } else {
-    outheader( 15, 'object-size (bytes)', ' request', 'hit-%', '  Byte',
-	      'hit-%', 'sec', ' kB/sec' );
+    outheader( 15, 'object-size (bytes)', ' request', 'hit-%',
+	      $outtype_unformatted ? " ${opt_U}Byte" : '  Byte', 'hit-%',
+	      'sec', ' kB/sec' );
     outseperator(15);
     foreach $distribution ( sort { $a <=> $b } keys(%tcp_distribution) ) {
       writecache(
@@ -3011,29 +3081,18 @@ if ($opt_P) {
 	      16, substr( convertdate($perf_date), 0, 15 ),
 	      $perf_counter{$perf_date},
 	      kilomegagigatera( $perf_size{$perf_date}, $format[2] ),
-	      removezerotimes(
-			      $perf_size{$perf_date}, $perf_time{$perf_date}
+	      removezerotimes( $perf_size{$perf_date}, $perf_time{$perf_date}
 			      ),
-	      removezerotimes(
-			      $perf_tcp_hit_size{$perf_date},
-			      $perf_tcp_hit_time{$perf_date}
-			      ),
-	      removezerotimes(
-			      $perf_tcp_miss_size{$perf_date},
-			      $perf_tcp_miss_time{$perf_date}
-			      ),
-	      removezerotimes(
-			      $perf_hier_direct_size{$perf_date},
-			      $perf_hier_direct_time{$perf_date}
-			      ),
-	      removezerotimes(
-			      $perf_hier_sibling_size{$perf_date},
-			      $perf_hier_sibling_time{$perf_date}
-			      ),
-	      removezerotimes(
-			      $perf_hier_parent_size{$perf_date},
-			      $perf_hier_parent_time{$perf_date}
-			      )
+	      removezerotimes( $perf_tcp_hit_size{$perf_date},
+			      $perf_tcp_hit_time{$perf_date} ),
+	      removezerotimes( $perf_tcp_miss_size{$perf_date},
+			      $perf_tcp_miss_time{$perf_date} ),
+	      removezerotimes( $perf_hier_direct_size{$perf_date},
+			      $perf_hier_direct_time{$perf_date} ),
+	      removezerotimes( $perf_hier_sibling_size{$perf_date},
+			      $perf_hier_sibling_time{$perf_date} ),
+	      removezerotimes( $perf_hier_parent_size{$perf_date},
+			      $perf_hier_parent_time{$perf_date} )
 	      );
     }
     outseperator(16);
@@ -3070,10 +3129,10 @@ if ($opt_S) {
   }
 }
 
-if ( $opt_w or $opt_W ) {
+if ( $outtype_html or $outtype_htmlembed ) {
   print '  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.56 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002, 2003
+   $Revision: 2.57 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002, 2003
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
@@ -3081,27 +3140,35 @@ if ( $opt_w or $opt_W ) {
    details.
   </p>
 ';
-  if ($opt_w) {
+  if ($outtype_html) {
     print ' </body>
 </html>', "\n";
   }
 } else {
   print "\n\n";
-  print "-- \n" if ($opt_m);
+  print "-- \n" if ($outtype_mail);
   print "$VERSION\n$COPYRIGHT\n";
 }
 
 sub kilomegagigatera {
   my ($value) = shift (@_);
-  my ($length) = shift (@_);
+  my ($length) = $outtype_unformatted ? 999 : shift (@_);
   if ( $value > 10**( $length + 8 ) or $opt_U eq 'T' ) {
-    return int( ( $value / 1024**4 ) + .5 ) . 'T';
+    return
+      sprintf( "%d%s", int( ( $value / 1024**4 ) + .5 ),
+	      $outtype_unformatted ? '' : 'T' );
   } elsif ( $value > 10**( $length + 5 ) or $opt_U eq 'G' ) {
-    return int( ( $value / 1024**3 ) + .5 ) . 'G';
+    return
+      sprintf( "%d%s", int( ( $value / 1024**3 ) + .5 ),
+	      $outtype_unformatted ? '' : 'G' );
   } elsif ( $value > 10**( $length + 2 ) or $opt_U eq 'M' ) {
-    return int( ( $value / 1024**2 ) + .5 ) . 'M';
+    return
+      sprintf( "%d%s", int( ( $value / 1024**2 ) + .5 ),
+	      $outtype_unformatted ? '' : 'M' );
   } elsif ( $value > 10**($length) or $opt_U eq 'K' ) {
-    return int( ( $value / 1024 ) + .5 ) . 'K';
+    return
+      sprintf( "%d%s", int( ( $value / 1024 ) + .5 ),
+	      $outtype_unformatted ? '' : 'K' );
   } else {
     return $value;
   }
@@ -3119,7 +3186,8 @@ sub removezerotimes {
 
 sub getfqdn {
   my ($host) = @_;
-  if ( $host =~ m#^([^@]+@)?(::ffff:)?(([0-9][0-9]{0,2}\.){3}[0-9][0-9]{0,2}$)#o ) {
+  if ( $host =~
+      m#^([^@]+@)?(::ffff:)?(([0-9][0-9]{0,2}\.){3}[0-9][0-9]{0,2}$)#o ) {
     $hostcache{$3} = addtonam($3) unless defined $hostcache{$3};
     return $1 . $hostcache{$3} if defined $1;
     return $hostcache{$3};
@@ -3170,7 +3238,7 @@ sub outref {
 
 sub outstart {
   my $index = shift (@_);
-  if ( $opt_w or $opt_W ) {
+  if ( $outtype_html or $outtype_htmlembed ) {
     if ( $index eq 'E' ) {
       $out_body{$index} .= "  <hr>
   <table border=\"0\">\n";
@@ -3188,10 +3256,12 @@ sub outheader {
   my $index = shift (@_);
   my $print;
   my $no = 0;
-  $out_body{$index} .= "   <tr>\n" if ( $opt_w or $opt_W );
+  $out_body{$index} .= "   <tr>\n" if ( $outtype_html or $outtype_htmlembed );
   foreach (@_) {
     $p = $_;
-    if ( $opt_w or $opt_W ) {
+    if ($outtype_unformatted) {
+      $out_body{$index} .= "$p ";
+    } elsif ( $outtype_html or $outtype_htmlembed ) {
       $p =~ s# +# #go;
       $p =~ s#(^ | $)##go;
       $p = '&nbsp;' if ( $p eq '' );
@@ -3210,7 +3280,7 @@ sub outheader {
     }
     $no++;
   }
-  $out_body{$index} .= '   </tr>' if ( $opt_w or $opt_W );
+  $out_body{$index} .= '   </tr>' if ( $outtype_html or $outtype_htmlembed );
   $out_body{$index} .= "\n";
 }
 
@@ -3218,10 +3288,12 @@ sub outline {
   my $index = shift (@_);
   my $print;
   my $no = 0;
-  $out_body{$index} .= "   <tr>\n" if ( $opt_w or $opt_W );
+  $out_body{$index} .= "   <tr>\n" if ( $outtype_html or $outtype_htmlembed );
   foreach (@_) {
     $print = $_;
-    if ( $opt_w or $opt_W ) {
+    if ($outtype_unformatted) {
+      $out_body{$index} .= "$print ";
+    } elsif ( $outtype_html or $outtype_htmlembed ) {
       $print =~ s# +# #go;
       $print =~ s# $##go;
       $print =~ s#<#\&lt\;#go;
@@ -3283,16 +3355,18 @@ sub outline {
     }
     $no++;
   }
-  $out_body{$index} .= '   </tr>' if ( $opt_w or $opt_W );
+  $out_body{$index} .= '   </tr>' if ( $outtype_html or $outtype_htmlembed );
   $out_body{$index} .= "\n";
 }
 
 sub outseperator {
   my $index = shift (@_);
   my $print;
-  $out_body{$index} .= "   <tr>\n" if ( $opt_w or $opt_W );
+  $out_body{$index} .= "   <tr>\n" if ( $outtype_html or $outtype_htmlembed );
   foreach $print (@format) {
-    if ( $opt_w or $opt_W ) {
+    if ($outtype_unformatted) {
+      $out_body{$index} .= "--- ";
+    } elsif ( $outtype_html or $outtype_htmlembed ) {
       $out_body{$index} .= "    <td></td>\n";
     } elsif ( $print eq '%' ) {
       $out_body{$index} .= sprintf( '-' x 6 . ' ' );
@@ -3302,13 +3376,13 @@ sub outseperator {
       $out_body{$index} .= sprintf( '-' x $print . ' ' );
     }
   }
-  $out_body{$index} .= '   </tr>' if ( $opt_w or $opt_W );
+  $out_body{$index} .= '   </tr>' if ( $outtype_html or $outtype_htmlembed );
   $out_body{$index} .= "\n";
 }
 
 sub outstop {
   my $index = shift (@_);
-  if ( $opt_w or $opt_W ) {
+  if ( $outtype_html or $outtype_htmlembed ) {
     $out_body{$index} .= "  </table>\n";
     $out_body{$index} .= "  <p><a href=\"#top\">Back to Top</a></p>\n";
   }
