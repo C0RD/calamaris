@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.27 1999-06-08 19:48:01 cord Exp $
+# $Id: calamaris,v 2.28 1999-09-25 12:33:34 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic for Squid and NetCache Native Log-files
 #
@@ -41,6 +41,9 @@
 #	Richard Vaughan (richard_vaughan@timewarp.co.uk)
 #	Jonas Luster (jonas@nethammer.qad.org)
 #	Clare Lahiff (Clare.Lahiff@anu.edu.au)
+#	Toni Andjelkovic (toni@telecom.at)
+#	Chris Teakle (ccteakle@its.uq.edu.au)
+#	? 'Dancer' ? (dancer@zeor.simegen.com)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -78,7 +81,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:f:hH:i:l:mno:Op:P:r:st:uwz');
 
-$COPYRIGHT='Calamaris $Revision: 2.27 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
+$COPYRIGHT='Calamaris $Revision: 2.28 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
 welcome to redistribute it under certain conditions.  See source for details.
 Calamaris-Homepage: http://Calamaris.Cord.de/';
@@ -122,7 +125,7 @@ Caching:
 -o file	output-file (output-datafile for caching, can be the same as -i)
 
 Misc:
--b n	benchmark (prints a hash for each n lines)
+-b n	benchmark (prints a hash-sign (#) to stderr for each n lines processed)
 -H name Host-name (a name for the Output, -H \'lookup\' issues a lookup for
 		   the current host)
 -n	no-lookup (don\'t look IP-Numbers up)
@@ -141,7 +144,7 @@ print($COPYRIGHT, "\n") if ($opt_c);
 exit 0 if (($opt_h) or ($opt_c));
 
 if ($opt_b and $opt_b < 1) {
-  warn("$0: wrong value at -b -option: \"$opt_b\"\n");
+  print(STDERR "$0: wrong value at -b -option: \"$opt_b\"\n");
   die($USAGE);
 } else {
   $|=1;
@@ -473,7 +476,7 @@ if ($opt_i) {
 	$perf_tcp_hit_time{$y} = .000001;
 # End of stupid bug-workaround
       } else {
-	warn("can't parse cache-line: \"$x @cache\"\n");
+	print(STDERR "can't parse cache-line: \"$x @cache\"\n");
       }
     }
     close(CACHE);
@@ -481,7 +484,7 @@ if ($opt_i) {
 }
 
 unless ($opt_z) {
-  print("print a hash for each $opt_b lines:\n") if ($opt_b);
+  print(STDERR "print a hash-sign for each $opt_b lines:\n") if ($opt_b);
   $loop = '
 while (<>) {';
 if (not defined $opt_f or $opt_f eq 'squid') {
@@ -489,21 +492,24 @@ if (not defined $opt_f or $opt_f eq 'squid') {
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
    $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) = split;
   if (not defined $foo or not defined $log_content or $foo ne \'\' or
-      $log_content eq \'\' or $log_reqtime lt 0) {';
+      $log_content eq \'\' or $log_reqtime lt 0 or 
+      $log_date !~ m#^\d+\.\d{3}$#) {';
 } elsif ($opt_f eq 'squid-mime') {
   $loop .= '
   s/ \[[^\[\]]*\]//g;
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
    $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) = split;
   if (not defined $foo or not defined $log_content or $foo ne \'\' or
-      $log_content eq \'\' or $log_reqtime lt 0) {';
+      $log_content eq \'\' or $log_reqtime lt 0 or 
+      $log_date !~ m#^\d+\.\d{3}$#) {';
 } elsif ($opt_f eq 'squid-old') {
   $loop .= '
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
    $log_method, $log_url, $log_ident, $log_hier, $foo) = split;
+  $log_content = \'-\';
   unless (not defined $foo or not defined $log_hier or $foo ne \'\' or
-      	  $log_hier eq \'\' or $log_reqtime lt 0) {
-    $log_content = \'-\';
+      	  $log_hier eq \'\' or $log_reqtime lt 0 or 
+	  $log_date !~ m#^\d+\.\d{3}$#) {';
   } else {';
 } elsif ($opt_f eq 'nc') {
   $loop .= '
@@ -512,9 +518,10 @@ if (not defined $opt_f or $opt_f eq 'squid') {
    $log_method, $log_url, $log_ident, $log_hier, $log_content, $log_abort,
    $foo) = split;
   if (not defined $foo or not defined $log_abort or $foo ne \'\' or
-      $log_abort eq \'\' or $log_reqtime lt 0) {';
+      $log_abort eq \'\' or $log_reqtime lt 0 or 
+      $log_date !~ m#^\d+\.\d{3}$#) {';
 } else {
-  warn("$0: unknown value at -f -option: \"$opt_f\"\n");
+  print(STDERR "$0: unknown value at -f -option: \"$opt_f\"\n");
   die($USAGE);
 }
   $loop .= '
@@ -571,7 +578,8 @@ if (not defined $opt_f or $opt_f eq 'squid') {
   $requester = getfqdn($log_requester);';
   }
     $loop .= '
-  $requester = $log_ident . \'@\' . $requester;' if ($opt_u);
+  $requester = $log_ident . \'@\' . $requester if $log_ident ne \'-\';' if 
+    $opt_u;
   $loop .= '
   ($log_hier_method, $log_hier_host) = (split \'/\', $log_hier)[0,1];
   $log_content = \'<unknown>\' if $log_content eq \'-\';
@@ -579,7 +587,7 @@ if (not defined $opt_f or $opt_f eq 'squid') {
   $log_content = $urlhost = $urltld = $urlext = $urlprot = \'<error>\' if
     ($log_code =~ m#^[45]#o);';
   $loop .= "
-  print('#') if (\$counter / $opt_b) eq int(\$counter / $opt_b);" if $opt_b;
+  print(STDERR '#') if (0 == (\$counter % $opt_b));" if $opt_b;
   $loop .= '
   $counter++;
   $size += $log_size;
@@ -638,7 +646,7 @@ if (not defined $opt_f or $opt_f eq 'squid') {
     $peak_all_sec_time = $log_date - 1;
   }';
   } else {
-    warn("$0: unknown value at -p -option: \"$opt_p\"\n");
+    print(STDERR "$0: unknown value at -p -option: \"$opt_p\"\n");
     die($USAGE);
   }
   $loop .= '
@@ -939,12 +947,12 @@ if (not defined $opt_f or $opt_f eq 'squid') {
 	$hier_neighbor_status_time{$log_hier_host}{$log_hier_method} +=
 	  $log_reqtime;' if ($opt_s);
   $loop .= '
-      } elsif ($log_hier_method =~ m#CLOSEST_PARENT#o or $log_hier_method =~
-	       m#DEFAULT_PARENT#o or $log_hier_method =~ m#FIRST_UP_PARENT#o
-	       or $log_hier_method =~ m#PARENT_MISS#o or $log_hier_method =~
-	       m#PASSTHROUGH_PARENT#o or $log_hier_method =~
-	       m#ROUNDROBIN_PARENT#o or $log_hier_method =~ m#SINGLE_PARENT#o)
-	       {
+      } elsif ($log_hier_method =~ m#ANY_PARENT#o or $log_hier_method =~
+	       m#CLOSEST_PARENT#o or $log_hier_method =~ m#DEFAULT_PARENT#o or
+	       $log_hier_method =~ m#FIRST_UP_PARENT#o or $log_hier_method =~
+	       m#PARENT_MISS#o or $log_hier_method =~ m#PASSTHROUGH_PARENT#o
+	       or $log_hier_method =~ m#ROUNDROBIN_PARENT#o or
+	       $log_hier_method =~ m#SINGLE_PARENT#o) {
 	$hier_parent++;
 	$hier_parent_size += $log_size;
 	$hier_parent_time += $log_reqtime;';
@@ -979,7 +987,7 @@ if (not defined $opt_f or $opt_f eq 'squid') {
   $loop .= '
       } else { chomp($log_hier_method); 
 	unless (defined $errormsg) {
-	  warn("
+	  print(STDERR "
 Please check the following error(s). If you\'re sure that the offending line(s)
 are NOT corrupt and the error also occurs with the recent version of Calamaris
 (see the README for pointers and known bugs) then report them. Don\'t send me
@@ -1029,7 +1037,7 @@ if ($opt_w) {
 <html>
  <head>
   <title>${hostname}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.27 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.28 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
@@ -1762,7 +1770,7 @@ close(CACHE);
 if ($opt_w) {
   print('  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.27 $, Copyright &copy; 1997, 1998, 1999
+   $Revision: 2.28 $, Copyright &copy; 1997, 1998, 1999
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
@@ -1821,6 +1829,7 @@ sub convertdate {
   if ($date) {
     my ($sec,$min,$hour,$mday,$mon,$year) = (localtime($date))[0,1,2,3,4,5,6];
     my $month = $months[$mon];
+    $year += 1900;
     my $retdate = sprintf("%02d.%s %02d %02d:%02d:%02d\n", $mday, $month,
 			  substr($year,-2), $hour, $min, $sec);
     chomp($retdate);
