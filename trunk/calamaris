@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.46 2002-05-17 20:47:52 cord Exp $
+# $Id: calamaris,v 2.47 2002-05-23 20:26:26 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
@@ -49,7 +49,7 @@
 #	Holger Marzen (hm@sik-gmbh.de)
 #	Panagiotis Christias (P.Christias@noc.ntua.gr)
 #	Patrik Rak (patrik@ash.ein.cz)
-#	Steve Snyder (swsnyder@home.com)
+#	Steve Snyder (swsnyder@insightbb.com)
 #	Michael Copeland (michael.copeland@bell.ca)
 #	Warren Brown (wbrown@inktomi.com)
 #	Andy Nik (nik@che.nsk.su)
@@ -57,7 +57,6 @@
 #	Antonio Casado Rodríguez (acasado@ualm.es)
 #	Pavol Adamec (pavol_adamec@tempest.sk)
 #	Ram Cherukuri (ram@edgix.com)
-#	Steven Snyder (Steven_Snyder@3com.com)
 #	Marco Koch (MK@electricpaper.de)
 #	Stephen Welker (stephen.welker@nemostar.com.au)
 #	Christian Niederdorfer (christian.niederdorfer@infineon.com)
@@ -69,6 +68,8 @@
 #	Shawn Switenky (S.Switenky@telesat.ca)
 #	Jarkko Saloranta (jjs@kpo.fi)
 #	Jigar Rasalawala (jrasalawala@fourelle.com)
+#	Philipp Frauenfelder (philipp.frauenfelder@swissonline.ch)
+#	Alexey Markov (markov@crpi.ru)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -106,23 +107,10 @@ use Sys::Hostname;
 
 getopts('3ab:cCd:D:f:hH:i:l:Lmno:Op:P:r:R:sS:t:T:uU:vVwz');
 
-$VERSION='Calamaris $Revision: 2.46 $';
+$P = $opt_P ? $opt_P : '60';
 
-$COPYRIGHT = 'Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002 Cord Beermann.
-Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
-welcome to redistribute it under certain conditions. See source for details.
-Calamaris-Homepage: http://Calamaris.Cord.de/';
-
-if ($opt_a) {
-  $opt_s = 1;
-  $opt_P = 60 unless $opt_P;
-  $opt_d = 20 unless $opt_d;
-  $opt_r = 20 unless $opt_r;
-  $opt_t = 20 unless $opt_t;
-  $opt_D = 10 unless $opt_D;
-}
-
-@reports = ('Summary', 'Incoming request peak per protocol',
+@reports = (
+	    'Summary', 'Incoming request peak per protocol',
 	    'Incoming transfer volume per protocol',
 	    'Incoming requests by method', 'Incoming UDP-requests by status',
 	    'Incoming TCP-requests by status', 'Outgoing requests by status',
@@ -131,7 +119,15 @@ if ($opt_a) {
 	    'Request-destinations by toplevel-domain', 'TCP-Request-protocol',
 	    'Requested content-type', 'Requested extensions',
 	    'Incoming UDP-requests by host', 'Incoming TCP-requests by host',
-	    'Distribution Histogram', "Performance in $opt_P minute steps");
+	    'Distribution Histogram', "Performance in $P minute steps"
+	    );
+
+$VERSION='Calamaris $Revision: 2.47 $';
+
+$COPYRIGHT = 'Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002 Cord Beermann.
+Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
+welcome to redistribute it under certain conditions. See source for details.
+Calamaris-Homepage: http://Calamaris.Cord.de/';
 
 $USAGE = 'Usage: cat log | ' . $0 . ' [switches]
 
@@ -264,6 +260,15 @@ if ($opt_H) {
 
 $sortorder = '';
 $sortorder = '_size' if ($opt_O);
+
+if ($opt_a) {
+  $opt_s = 1;
+  $opt_P = 60 unless $opt_P;
+  $opt_d = 20 unless $opt_d;
+  $opt_r = 20 unless $opt_r;
+  $opt_t = 20 unless $opt_t;
+  $opt_D = 10 unless $opt_D;
+}
 
 $opt_T = 0 unless ($opt_T);
 $opt_r = $opt_R unless ($opt_r);
@@ -569,7 +574,7 @@ if ($opt_i) {
 	 $perf_hier_direct_size{$y}, $perf_hier_direct_time{$y},
 	 $perf_hier_sibling_size{$y}, $perf_hier_sibling_time{$y},
 	 $perf_hier_parent_size{$y}, $perf_hier_parent_time{$y} )
-	 = @cache;
+	  = @cache;
 # This is for a stupid bug I brought in... it should save older Cache-Files,
 # and put them in so that we can work with them.. I'll remove it in a
 # later release...
@@ -580,7 +585,8 @@ if ($opt_i) {
 	 $perf_tcp_miss_time{$y}, $perf_hier_direct_size{$y},
 	 $perf_hier_direct_time{$y}, $perf_hier_sibling_size{$y},
 	 $perf_hier_sibling_time{$y}, $perf_hier_parent_size{$y},
-	 $perf_hier_parent_time{$y} ) = @cache;
+	 $perf_hier_parent_time{$y} )
+	  = @cache;
 	# stupid, yes...
 	# I set this to 0/.000001 so removezerotime prints a - in the report.
 	$perf_tcp_hit_size{$y} = 0;
@@ -649,13 +655,15 @@ unless ($opt_z) {
 	print STDERR "guessing... using '-f its'\n" if ($opt_v);
 	last;
       } elsif ( $line =~
-	       m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+\s+\[.*\]\s+\[.*\]$#)
+	       m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+\s+\[.*\]\s+\[.*\]$#
+	       )
       {
 	$opt_f = 'squid-mime';
 	print STDERR "guessing... using '-f squid-mime'\n" if ($opt_v);
 	last;
       } elsif ( $line =~
-	  m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+\s+\S+\s*$#)
+	  m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+\s+\S+\s*$#
+	       )
       {
 	$opt_f = 'squid-smartfilter';
 	print STDERR "guessing... using '-f squid-smartfilter'\n" if ($opt_v);
@@ -683,7 +691,8 @@ unless ($opt_z) {
 	print STDERR "guessing... using '-f nse'\n" if ($opt_v);
 	last;
       } elsif ( $line =~
-	       m#^[\w\-\.]+\s+\S+\s+\S+\s+\[.+\]\s+\"\w+\s+\S+\s+\S+\"\s+\d+\s+\d+\s+\S+(\s+\[.*\]\s+\[.*\])?$#)
+	       m#^[\w\-\.]+\s+\S+\s+\S+\s+\[.+\]\s+\"\w+\s+\S+\s+\S+\"\s+\d+\s+\d+\s+\S+(\s+\[.*\]\s+\[.*\])?$#
+	       )
       {
 	print STDERR "$0: The first line of the input looks to me as if you
 switched 'emulate_httpd_log' to on. I can't parse that format. Please read
@@ -712,7 +721,7 @@ Calamaris-bug\@Cord.de. Thank You.\n\n$line\n\n";
   $loop = '
 for ( ; $line ; $line = <> ) {';
   if ( $opt_f eq 'squid' ) {
-  $loop .= '
+    $loop .= '
   ( $log_date, $log_reqtime, $log_requester, $log_status, $log_size,
    $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo )
     = split ( /\s+/, $line );
@@ -735,16 +744,20 @@ for ( ; $line ; $line = <> ) {';
       or $log_content eq \'\'
       or $log_reqtime < 0
       or $log_date !~ m#^\d+\.\d{3}$# )
-    {';
+  {';
   } elsif ( $opt_f eq 'squid-smartfilter' ) {
     $loop .= '
   ( $log_date, $log_reqtime, $log_requester, $log_status, $log_size,
    $log_method, $log_url, $log_ident, $log_hier, $log_content, $log_smart,
-   $foo ) = split ( /\s+/, $line );
-  if ( not defined $foo or not defined $log_smart or $foo ne \'\' or
-      $log_smart eq \'\' or $log_reqtime < 0 or
-      $log_date !~ m#^\d+\.\d{3}$# )
-      {';
+   $foo )
+    = split ( /\s+/, $line );
+  if ( not defined $foo
+      or not defined $log_smart
+      or $foo ne \'\'
+      or $log_smart eq \'\'
+      or $log_reqtime < 0
+      or $log_date !~ m#^\d+\.\d{3}$# )
+  {';
   } elsif ( $opt_f eq 'its' ) {
     $loop .= '
   ( $log_date, $log_reqtime, $log_requester, $log_status, $log_size,
@@ -761,7 +774,7 @@ for ( ; $line ; $line = <> ) {';
     $loop .= '
   ( $log_date, $log_reqtime, $log_requester, $log_status, $log_size,
    $log_method, $log_url, $log_ident, $log_hier, $foo )
-	  = split ( /\s+/, $line );
+    = split ( /\s+/, $line );
   unless ( not defined $foo
 	  or not defined $log_hier
 	  or $foo ne \'\'
@@ -774,7 +787,8 @@ for ( ; $line ; $line = <> ) {';
   $line =~ s#\; c#\;_c#og; # Hack to handle buggy logfiles of NetCache V3.2.x
   ( $log_date, $log_reqtime, $log_requester, $log_status, $log_size,
    $log_method, $log_url, $log_ident, $log_hier, $log_content, $log_abort,
-   $foo ) = split ( /\s+/, $line );
+   $foo )
+    = split ( /\s+/, $line );
   if ( not defined $foo or not defined $log_abort or $foo ne \'\' or
       $log_abort eq \'\' or $log_reqtime < 0 or
       $log_date !~ m#^\d+\.\d{3}$# )
@@ -785,283 +799,289 @@ for ( ; $line ; $line = <> ) {';
   use Time::Local;
   if ( $line =~
       m#^';
-  foreach (@fields) {
-    $tmpline1 .= '\s+' if ($tmpline1);
-    if ( $_ eq 'date' ) {
-      $tmpline1 .= '(\d+)-(\d+)-(\d+)';
-      $tmpline2 .= '
+    foreach (@fields) {
+      $tmpline1 .= '\s+' if ($tmpline1);
+      if ( $_ eq 'date' ) {
+	$tmpline1 .= '(\d+)-(\d+)-(\d+)';
+	$tmpline2 .= '
     $log_year = $' . ++$offset . ';
     $log_month = $' . ++$offset . ';
     $log_day = $' . ++$offset . ';';
-    } elsif ( $_ eq 'time' ) {
-      $tmpline1 .= '(\d+):(\d+):(\d+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq 'time' ) {
+	$tmpline1 .= '(\d+):(\d+):(\d+)';
+	$tmpline2 .= '
     $log_hour = $' . ++$offset . ';
     $log_min = $' . ++$offset . ';
     $log_sec = $' . ++$offset . ';';
-    } elsif ( $_ eq 'x-timestamp' ) {
-      $tmpline1 .= '(\d+\.\d+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq 'x-timestamp' ) {
+	$tmpline1 .= '(\d+\.\d+)';
+	$tmpline2 .= '
     $log_date = $' . ++$offset . ';';
-    $log_date = 0;
-    } elsif ( $_ eq 'c-ip' ) {
-      $tmpline1 .= '([\w\-\.]+)';
-      $tmpline2 .= '
+	$log_date = 0;
+      } elsif ( $_ eq 'c-ip' ) {
+	$tmpline1 .= '([\w\-\.]+)';
+	$tmpline2 .= '
     $log_requester = $' . ++$offset . ';';
-    } elsif ( $_ eq 'cs-authname'
-	     or $_ eq 'x-remote-id'
-	     or $_ eq 'x-username'
-	     or $_ eq 'cs-username' )
-    {
-      $tmpline1 .= '(\S+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq 'cs-authname'
+	       or $_ eq 'x-remote-id'
+	       or $_ eq 'x-username'
+	       or $_ eq 'cs-username' )
+      {
+	$tmpline1 .= '(\S+)';
+	$tmpline2 .= '
     $log_ident = $' . ++$offset . ';';
-    } elsif ( $_ eq 's-ip' or $_ eq 's-sitename' ) {
-      $tmpline1 .= '[\w\-\.]+';
-    } elsif ( $_ eq 'cs-method' ) {
-      $tmpline1 .= '([\w\-]+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq 's-ip' or $_ eq 's-sitename' ) {
+	$tmpline1 .= '[\w\-\.]+';
+      } elsif ( $_ eq 'cs-method' ) {
+	$tmpline1 .= '([\w\-]+)';
+	$tmpline2 .= '
     $log_method = $' . ++$offset . ';';
-    } elsif ( $_ eq 'cs-uri' ) {
-      $tmpline1 .= '(\S+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq 'cs-uri' ) {
+	$tmpline1 .= '(\S+)';
+	$tmpline2 .= '
     $log_url = $' . ++$offset . ';';
-    } elsif ( $_ eq 'cs-uri-stem'
-	     or $_ eq 'cs-uri-query'
-	     or $_ eq 'x-note' )
-    {
-      $tmpline1 .= '\S+';
-    } elsif ( $_ eq 'c-version' ) {
-      $tmpline1 .= '\w+/[\d\.]+';
-    } elsif ( $_ eq 'sc-status' ) {
-      $tmpline1 .= '(\d+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq 'cs-uri-stem'
+	       or $_ eq 'cs-uri-query'
+	       or $_ eq 'x-note' )
+      {
+	$tmpline1 .= '\S+';
+      } elsif ( $_ eq 'c-version' ) {
+	$tmpline1 .= '\w+/[\d\.]+';
+      } elsif ( $_ eq 'sc-status' ) {
+	$tmpline1 .= '(\d+)';
+	$tmpline2 .= '
     $log_code = $' . ++$offset . ';';
-    } elsif ( $_ eq 'sc-bytes' or $_ eq 'bytes' ) {
-      $tmpline1 .= '(\d+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq 'sc-bytes' or $_ eq 'bytes' ) {
+	$tmpline1 .= '(\d+)';
+	$tmpline2 .= '
     $log_size = $' . ++$offset . ';';
-    } elsif ( $_ eq 'cs-bytes' ) {
-      $tmpline1 .= '\d+';
-    } elsif ( $_ eq 'x-elapsed-milliseconds' ) {
-      $tmpline1 .= '(\d+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq 'cs-bytes' ) {
+	$tmpline1 .= '\d+';
+      } elsif ( $_ eq 'x-elapsed-milliseconds' ) {
+	$tmpline1 .= '(\d+)';
+	$tmpline2 .= '
     $log_reqtime = $' . ++$offset . ';';
-    } elsif ( $_ eq 'time-taken' ) {
-      $tmpline1 .= '([\d\.]+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq 'time-taken' ) {
+	$tmpline1 .= '([\d\.]+)';
+	$tmpline2 .= '
     $log_reqtime = $' . ++$offset . ' * 1000;';
-    } elsif ( $_ eq 'cs(User-Agent)'
-	     or $_ eq 'cs(Cookie)'
-	     or $_ eq 'cs(Referer)'
-	     or $_ eq 'sc(Referer)'
-	     or $_ eq 'cs(X-Forwarded-For)' )
-    {
-      $tmpline1 .= '\"[^\"]*\"';
-    } elsif ( $_ eq 'cached' ) {
-      $tmpline1 .= '(\d+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq 'cs(User-Agent)'
+	       or $_ eq 'cs(Cookie)'
+	       or $_ eq 'cs(Referer)'
+	       or $_ eq 'sc(Referer)'
+	       or $_ eq 'cs(X-Forwarded-For)' )
+      {
+	$tmpline1 .= '\"[^\"]*\"';
+      } elsif ( $_ eq 'cached' ) {
+	$tmpline1 .= '(\d+)';
+	$tmpline2 .= '
     $log_cached = $' . ++$offset . ';';
-    } elsif ( $_ eq 'x-transaction' ) {
-      $tmpline1 .= '(\w+\/[\d\-]+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq 'x-transaction' ) {
+	$tmpline1 .= '(\w+\/[\d\-]+)';
+	$tmpline2 .= '
     $log_status = $' . ++$offset . ';';
-      $log_status = 0;
-    } elsif ( $_ eq 'x-fill-proxy-ip' ) {
-      $tmpline1 .= '([\w\-\.]+)';
-      $tmpline2 .= '
+	$log_status = 0;
+      } elsif ( $_ eq 'x-fill-proxy-ip' ) {
+	$tmpline1 .= '([\w\-\.]+)';
+	$tmpline2 .= '
     $log_proxy_ip = $' . ++$offset . ';';
-    } elsif ( $_ eq 'x-origin-ip' ) {
-      $tmpline1 .= '([\w\-\.]+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq 'x-origin-ip' ) {
+	$tmpline1 .= '([\w\-\.]+)';
+	$tmpline2 .= '
     $log_origin_ip = $' . ++$offset . ';';
-    } elsif ( $_ eq 'x-hiercode' ) {
-      $tmpline1 .= '([\w\-\.\/]+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq 'x-hiercode' ) {
+	$tmpline1 .= '([\w\-\.\/]+)';
+	$tmpline2 .= '
     $log_hier = $' . ++$offset . ';';
-      $log_hier = 0;
-    } elsif ( $_ eq 'rs(Content-Type)' ) {
-      $tmpline1 .= '\"[^\"]*\"';
-    } else {
-      print STDERR "$0: I don't know this input format. Please check the
+	$log_hier = 0;
+      } elsif ( $_ eq 'rs(Content-Type)' ) {
+	$tmpline1 .= '\"[^\"]*\"';
+      } else {
+	print STDERR "$0: I don't know this input format. Please check the
 input. If you\'re sure that the following is NOT corrupt and the error also
 occurs with the recent version of Calamaris (see the README for pointers and
 known bugs) then report it with the following line to Calamaris-bug\@Cord.de.
 Thank You.\n\n$_\n\n";
-      exit(1);
+	exit(1);
+      }
     }
-  }
-  foreach $pattern ( qw(date time c-ip cs-method cs-uri sc-status sc-bytes
-			time-taken cached x-fill-proxy-ip x-origin-ip)
-		    )
-  {
-    unless ( grep $pattern, @fields ) {
-      print STDERR "$0: Your input file format is missing at least the field
+    foreach $pattern ( qw(date time c-ip cs-method cs-uri sc-status sc-bytes
+			  time-taken cached x-fill-proxy-ip x-origin-ip)
+		      )
+    {
+      unless ( grep $pattern, @fields ) {
+	print STDERR "$0: Your input file format is missing at least the field
 \'$pattern\'. I can\'t parse it. Sorry. If you think that this field isn't
 important to you, please report this error to Calamaris-bug\@Cord.de.
 Thank You.\n\n";
-      exit(1);
-    }
-  }
-  foreach $pattern (qw(cs-authname)) {
-    unless ( grep $pattern, @fields ) {
-      if ( $pattern eq 'cs-authname' ) {
-	$tmpline2 .= '
-  $log_ident = "-";';
+	exit(1);
       }
     }
-  }
-  $loop .= $tmpline1 . '.?$#)
-  {' . $tmpline2;
-  $loop .= '
-  $log_date = timegm($log_sec, $log_min, $log_hour, $log_day, $log_month - 1,
-		     $log_year - 1900);' unless defined $log_date;
-  $loop .= '
-  $log_status = "$log_cached/$log_code";' unless defined $log_status;
-  $loop .= '
-  if ($log_origin_ip ne \'-\') {
-    $log_hier = "DIRECT/$log_origin_ip";
-  } elsif ($log_proxy_ip ne \'-\') {
-    if ($log_cached eq \'0\') {
-      $log_hier = "PARENT_MISS/$log_proxy_ip";
-    } else {
-      $log_hier = "PARENT_HIT/$log_proxy_ip";
+    foreach $pattern (qw(cs-authname)) {
+      unless ( grep $pattern, @fields ) {
+	if ( $pattern eq 'cs-authname' ) {
+	  $tmpline2 .= '
+  $log_ident = "-";';
+	}
+      }
     }
-  } else {
-    $log_hier = "NONE/-";
-  }' unless defined $log_hier;
+    $loop .= $tmpline1 . '.?$#
+    )
+  {' . $tmpline2;
+    $loop .= '
+    $log_date = timegm(
+		     $log_sec, $log_min, $log_hour, $log_day, $log_month - 1,
+		     $log_year - 1900
+		     );' unless defined $log_date;
+    $loop .= '
+    $log_status = "$log_cached/$log_code";' unless defined $log_status;
+    $loop .= '
+    if ( $log_origin_ip ne \'-\' ) {
+      $log_hier = "DIRECT/$log_origin_ip";
+    } elsif ( $log_proxy_ip ne \'-\' ) {
+      if ( $log_cached eq \'0\' ) {
+	$log_hier = "PARENT_MISS/$log_proxy_ip";
+      } else {
+	$log_hier = "PARENT_HIT/$log_proxy_ip";
+      }
+    } else {
+      $log_hier = "NONE/-";
+    }' unless defined $log_hier;
     $loop .= '
   } else {';
-  while ( defined( $line = <> ) ) {
-    last unless $line =~ /^\s*#/;
-  }
+    while ( defined( $line = <> ) ) {
+      last unless $line =~ /^\s*#/;
+    }
   } elsif ( $opt_f eq 'nse' ) {
     @fields = split ( /\s+/, $line );
     $loop .= '
   use Time::Local;
-  if ($line =~
+  if ( $line =~
     m#^';
-  foreach (@fields) {
-    $tmpline1 .= '\s+' if ($tmpline1);
-    if ( $_ eq '[%SYSDATE%]' ) {
-      $tmpline1 .= '\[(\d+)/(\w+)/(\d+):(\d+):(\d+):(\d+)\s+\S+\]';
-      $tmpline2 .= '
+    foreach (@fields) {
+      $tmpline1 .= '\s+' if ($tmpline1);
+      if ( $_ eq '[%SYSDATE%]' ) {
+	$tmpline1 .= '\[(\d+)/(\w+)/(\d+):(\d+):(\d+):(\d+)\s+\S+\]';
+	$tmpline2 .= '
     $log_day = $' . ++$offset . ';
     $log_month = $' . ++$offset . ';
     $log_year = $' . ++$offset . ';
     $log_hour = $' . ++$offset . ';
     $log_min = $' . ++$offset . ';
     $log_sec = $' . ++$offset . ';';
-    } elsif ( $_ eq '%Ses->client.ip%' ) {
-      $tmpline1 .= '([\w\-\.]+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq '%Ses->client.ip%' ) {
+	$tmpline1 .= '([\w\-\.]+)';
+	$tmpline2 .= '
     $log_requester = $' . ++$offset . ';';
-    } elsif ( $_ eq '%Req->vars.pauth-user%' ) {
-      $tmpline1 .= '(\S+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq '%Req->vars.pauth-user%' ) {
+	$tmpline1 .= '(\S+)';
+	$tmpline2 .= '
     $log_ident = $' . ++$offset . ';';
-    } elsif ( $_ eq '%Req->vars.remote-status%'
-	     or $_ eq '%Req->vars.r2p-cl%'
-	     or $_ eq '%Req->vars.cli-status%'
-	     or $_ eq '%Req->vars.svr-status%'
-	     or $_ eq '%Req->vars.cch-status%' )
-    {
-      $tmpline1 .= '[\w\-\.]+';
-    } elsif ( $_ eq '"%Req->reqpb.proxy-request%"' ) {
-      $tmpline1 .= '\"(\w+)\s+([^\"]+)\s+\S+\"';
-      $tmpline2 .= '
+      } elsif ( $_ eq '%Req->vars.remote-status%'
+	       or $_ eq '%Req->vars.r2p-cl%'
+	       or $_ eq '%Req->vars.cli-status%'
+	       or $_ eq '%Req->vars.svr-status%'
+	       or $_ eq '%Req->vars.cch-status%' )
+      {
+	$tmpline1 .= '[\w\-\.]+';
+      } elsif ( $_ eq '"%Req->reqpb.proxy-request%"' ) {
+	$tmpline1 .= '\"(\w+)\s+([^\"]+)\s+\S+\"';
+	$tmpline2 .= '
     $log_method = $' . ++$offset . ';
     $log_url = $' . ++$offset . ';';
-    } elsif ( $_ eq '%Req->srvhdrs.clf-status%' ) {
-      $tmpline1 .= '([\d\-]+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq '%Req->srvhdrs.clf-status%' ) {
+	$tmpline1 .= '([\d\-]+)';
+	$tmpline2 .= '
     $log_code = $' . ++$offset . ';';
-    } elsif ( $_ eq '%Req->vars.p2c-cl%' ) {
-      $tmpline1 .= '([\d\-]+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq '%Req->vars.p2c-cl%' ) {
+	$tmpline1 .= '([\d\-]+)';
+	$tmpline2 .= '
     $log_size = $' . ++$offset . ';';
-    } elsif ( $_ eq '%Req->headers.content-length%'
-	     or $_ eq '%Req->vars.p2r-cl%'
-	     or $_ eq '%Req->vars.c2p-hl%'
-	     or $_ eq '%Req->vars.p2c-hl%'
-	     or $_ eq '%Req->vars.p2r-hl%'
-	     or $_ eq '%Req->vars.r2p-hl%' )
-    {
-      $tmpline1 .= '[\d\-]+';
-    } elsif ( $_ eq '%Req->vars.xfer-time%' ) {
-      $tmpline1 .= '([\d\.]+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq '%Req->headers.content-length%'
+	       or $_ eq '%Req->vars.p2r-cl%'
+	       or $_ eq '%Req->vars.c2p-hl%'
+	       or $_ eq '%Req->vars.p2c-hl%'
+	       or $_ eq '%Req->vars.p2r-hl%'
+	       or $_ eq '%Req->vars.r2p-hl%' )
+      {
+	$tmpline1 .= '[\d\-]+';
+      } elsif ( $_ eq '%Req->vars.xfer-time%' ) {
+	$tmpline1 .= '([\d\.]+)';
+	$tmpline2 .= '
     $log_reqtime = $' . ++$offset . ' * 1000;';
-    } elsif ( $_ eq '%route%' ) {
-      $tmpline1 .= '(\d+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq '%route%' ) {
+	$tmpline1 .= '(\d+)';
+	$tmpline2 .= '
     $log_cached = $' . ++$offset . ';';
-    } elsif ( $_ eq '%Req->vars.actual-route%' ) {
-      $tmpline1 .= '(\S+)';
-      $tmpline2 .= '
+      } elsif ( $_ eq '%Req->vars.actual-route%' ) {
+	$tmpline1 .= '(\S+)';
+	$tmpline2 .= '
     $log_hier = $' . ++$offset . ';
-  if ($log_hier =~ m#[\(\)]#) {
-    $log_hier =~ s#^(\w+)(\((\S+)\))?$#$1/$3#;
-    $log_status = \'TCP_MISS/-\';
-  } elsif ($log_hier =~ m#-#) {
-    $log_hier = $log_hier . \'/-\';
-    $log_status = \'TCP_HIT/-\';
-  } else {
-    $log_hier = $log_hier . \'/-\';
-    $log_status = \'TCP_MISS/-\';
-  }';
-    } elsif ( $_ eq '-' ) {
-      $tmpline1 .= '-';
+    if ( $log_hier =~ m#[\(\)]# ) {
+      $log_hier =~ s#^(\w+)(\((\S+)\))?$#$1/$3#;
+      $log_status = \'TCP_MISS/-\';
+    } elsif ( $log_hier =~ m#-# ) {
+      $log_hier = $log_hier . \'/-\';
+      $log_status = \'TCP_HIT/-\';
     } else {
-      print STDERR "$0: I don't know this input format. Please check the
+      $log_hier = $log_hier . \'/-\';
+      $log_status = \'TCP_MISS/-\';
+    }';
+      } elsif ( $_ eq '-' ) {
+	$tmpline1 .= '-';
+      } else {
+	print STDERR "$0: I don't know this input format. Please check the
 input. If you\'re sure that the following is NOT corrupt and the error also
 occurs with the recent version of Calamaris (see the README for pointers and
 known bugs) then report it with the following line to Calamaris-bug\@Cord.de.
 Thank You.\n\n$_\n\n";
-      exit(1);
+	exit(1);
+      }
     }
-  }
-  foreach $pattern ( qw(%Ses->client.ip% [%SYSDATE%]
-			"%Req->reqpb.proxy-request%" %Req->srvhdrs.clf-status%
-			%Req->vars.p2c-cl% %Req->vars.xfer-time%)
-		    )
-  {
-    unless ( grep $pattern, @fields ) {
-      print STDERR "$0: Your input file format is missing at least the field
+    foreach $pattern ( qw(%Ses->client.ip% [%SYSDATE%]
+			  %Req->reqpb.proxy-request% %Req->srvhdrs.clf-status%
+			  %Req->vars.p2c-cl% %Req->vars.xfer-time%)
+		      )
+    {
+      unless ( grep $pattern, @fields ) {
+	print STDERR "$0: Your input file format is missing at least the field
 \'$pattern\'. I can\'t parse it. Sorry. If you think that this field isn't
 important to you, please report this error to Calamaris-bug\@Cord.de.
 Thank You.\n\n";
-      exit(1);
-    }
-  }
-  foreach $pattern (qw(%Req->vars.pauth-user% %Req->vars.actual-route%)) {
-    unless ( grep /$pattern/, @fields ) {
-      if ( $pattern eq '%Req->vars.pauth-user%' ) {
-	$tmpline2 .= '
-  $log_ident = "-";';
-      } elsif ( $pattern eq '%Req->vars.actual-route%' ) {
-	$tmpline2 .= '
-  $log_hier = \'-/-\';
-  $log_status = \'-/-\';';
+	exit(1);
       }
     }
-  }
-  $loop .= $tmpline1 . '.?$#)
+    foreach $pattern (qw(%Req->vars.pauth-user% %Req->vars.actual-route%)) {
+      unless ( grep /$pattern/, @fields ) {
+	if ( $pattern eq '%Req->vars.pauth-user%' ) {
+	  $tmpline2 .= '
+  $log_ident = "-";';
+	} elsif ( $pattern eq '%Req->vars.actual-route%' ) {
+	  $tmpline2 .= '
+    $log_hier = \'-/-\';
+    $log_status = \'-/-\';';
+	}
+      }
+    }
+    $loop .= $tmpline1 . '.?$#
+    )
   {' . $tmpline2 . '
-  $monthcount=-1;
-  foreach $month (@months) {
-    $monthcount++;
-    last if ($month eq $log_month);
-  }
-  $log_date = timegm($log_sec, $log_min, $log_hour, $log_day, $monthcount,
-		     $log_year - 1900);
+    $monthcount = -1;
+    foreach $month (@months) {
+      $monthcount++;
+      last if ( $month eq $log_month );
+    }
+    $log_date = timegm(
+		       $log_sec, $log_min, $log_hour, $log_day, $monthcount,
+		       $log_year - 1900
+		       );
   } else {';
     while ( defined( $line = <> ) ) {
       last unless $line =~ /^\s*#/;
     }
   } else {
     print STDERR "$0: unknown value at -f -option: \"$opt_f\"\n\n$USAGE\n\n";
-  exit 1;
+    exit 1;
   }
   $loop .= '
     chomp($line);';
@@ -1088,12 +1108,12 @@ Thank You.\n\n";
     $urlhost = $urlprot;';
   $loop .= '
     $log_content = '
-      unless $opt_f eq 'squid-old'
-	or $opt_f eq 'elff'
-	or $opt_f eq 'nse';
+    unless $opt_f eq 'squid-old'
+      or $opt_f eq 'elff'
+      or $opt_f eq 'nse';
   $loop .= '
     $urlprot = \'<secure>\';
-    $urlext = \'.<secure>\'
+    $urlext = \'.<secure>\';
   }
   $urlhost =~ s#^.*@##o;
   $urlhost =~ s#[:\?].*$##o;
@@ -1111,9 +1131,9 @@ Thank You.\n\n";
     @list = split \'\.\', $urlhost;
     $urltld = $urlhost = pop @list;
     $urlhost = pop (@list) . \'.\' . $urlhost;';
-    $loop .= '
+  $loop .= '
     $urlhost = pop (@list) . \'.\' . $urlhost if $#list >= 0;' if $opt_3;
-    $loop .= '
+  $loop .= '
     $urlhost = pop (@list) . \'.\' . $urlhost
       if ( $urltld =~
 	  m#^(a[rtu]|br|c[no]|hk|i[dlm]|jp|kr|l[by]|m[oxy]|nz|p[elnry]|ru|sg|t[hrw]|u[aks]|ve|yu|za)$#o
@@ -1132,7 +1152,7 @@ Thank You.\n\n";
     $loop .= '
   $requester = getfqdn($log_requester);';
   }
-    $loop .= '
+  $loop .= '
   $requester = $log_ident . \'@\' . $requester if $log_ident ne \'-\';'
     if $opt_u;
   $loop .= '
@@ -1163,8 +1183,8 @@ Thank You.\n\n";
   $time_end = $log_date if $log_date > $time_end;';
   if ( defined $opt_p ) {
     $loop .= '
-  if (defined(@peak_all)) {
-    if ($log_date < $peak_all[$#peak_all]) {
+  if ( defined(@peak_all) ) {
+    if ( $log_date < $peak_all[$#peak_all] ) {
       $peak_warn =
 	\'Peak values are most likely wrong due to unsorted input!\';
       undef(@peak_all);
@@ -1174,51 +1194,51 @@ Thank You.\n\n";
 	$peak_tcp_sec_pointer = $peak_udp_min_pointer =
 	$peak_udp_sec_pointer = 0;
       chomp($line);
-      warn(\'unsorted input: "\' . $line . "\"\n") if $opt_v;
+      warn( \'unsorted input: "\' . $line . "\"\n" ) if $opt_v;
     }
   }';
     if ( $opt_p eq 'old' ) {
       $loop .= '
   $peak_all_sec_pointer++;
   $peak_all_min_pointer++;
-  unshift (@peak_all,$log_date);
-  $peak_all_sec_pointer-- while $peak_all[$peak_all_sec_pointer - 1] <
-    ($log_date - 1);
-  $peak_all_min_pointer-- while $peak_all[$peak_all_min_pointer - 1] <
-    ($log_date - 60);
-  pop(@peak_all) while $peak_all[$#peak_all] < ($log_date - 3600);
-  if ($peak_all_hour < @peak_all) {
+  unshift ( @peak_all, $log_date );
+  $peak_all_sec_pointer--
+    while $peak_all[ $peak_all_sec_pointer - 1 ] < ( $log_date - 1 );
+  $peak_all_min_pointer--
+    while $peak_all[ $peak_all_min_pointer - 1 ] < ( $log_date - 60 );
+  pop (@peak_all) while $peak_all[$#peak_all] < ( $log_date - 3600 );
+  if ( $peak_all_hour < @peak_all ) {
     $peak_all_hour = @peak_all;
     $peak_all_hour_time = $log_date - 3600;
   }
-  if ($peak_all_min < $peak_all_min_pointer) {
+  if ( $peak_all_min < $peak_all_min_pointer ) {
     $peak_all_min = $peak_all_min_pointer;
     $peak_all_min_time = $log_date - 60;
   }
-  if ($peak_all_sec < $peak_all_sec_pointer) {
+  if ( $peak_all_sec < $peak_all_sec_pointer ) {
     $peak_all_sec = $peak_all_sec_pointer;
     $peak_all_sec_time = $log_date - 1;
   }';
     } elsif ( $opt_p eq 'new' ) {
       $loop .= '
-  $date_hour = int(($log_date - ($log_reqtime / 1000)) / 3600) * 3600;
-  foreach $i (($date_hour / 3600) .. int($log_date / 3600)) {
-    $peak_all_hour{$i * 3600} = $peak_all_hour_size{$i * 3600} = 0
-      unless defined $peak_all_hour{$i * 3600};
-    $peak_all_hour{$i * 3600}++;
-    $peak_all_hour_size{$i * 3600} += $log_size / int($log_reqtime / 3600000 +
-						      1);
+  $date_hour = int( ( $log_date - ( $log_reqtime / 1000 ) ) / 3600 ) * 3600;
+  foreach $i ( ( $date_hour / 3600 ) .. int( $log_date / 3600 ) ) {
+    $peak_all_hour{ $i * 3600 } = $peak_all_hour_size{ $i * 3600 } = 0
+      unless defined $peak_all_hour{ $i * 3600 };
+    $peak_all_hour{ $i * 3600 }++;
+    $peak_all_hour_size{ $i * 3600 } +=
+      $log_size / int( $log_reqtime / 3600000 + 1 );
   }
   $peak_all_sec_pointer++;
-  unshift (@peak_all,$log_date);
-  $peak_all_sec_pointer-- while $peak_all[$peak_all_sec_pointer - 1] <
-    ($log_date - 1);
-  pop(@peak_all) while $peak_all[$#peak_all] < ($log_date - 60);
-  if ($peak_all_min < @peak_all) {
+  unshift ( @peak_all, $log_date );
+  $peak_all_sec_pointer--
+    while $peak_all[ $peak_all_sec_pointer - 1 ] < ( $log_date - 1 );
+  pop (@peak_all) while $peak_all[$#peak_all] < ( $log_date - 60 );
+  if ( $peak_all_min < @peak_all ) {
     $peak_all_min = @peak_all;
     $peak_all_min_time = $log_date - 60;
   }
-  if ($peak_all_sec < $peak_all_sec_pointer) {
+  if ( $peak_all_sec < $peak_all_sec_pointer ) {
     $peak_all_sec = $peak_all_sec_pointer;
     $peak_all_sec_time = $log_date - 1;
   }';
@@ -1257,12 +1277,12 @@ Thank You.\n\n";
     $loop .= '
     $peak_udp_sec_pointer++;
     $peak_udp_min_pointer++;
-    unshift (@peak_udp,$log_date);
-    $peak_udp_sec_pointer-- while $peak_udp[$peak_udp_sec_pointer - 1] <
-      ($log_date - 1);
-    $peak_udp_min_pointer-- while $peak_udp[$peak_udp_min_pointer - 1] <
-      ($log_date - 60);
-    pop @peak_udp while $peak_udp[$#peak_udp] < ($log_date - 3600);
+    unshift ( @peak_udp, $log_date );
+    $peak_udp_sec_pointer--
+      while $peak_udp[ $peak_udp_sec_pointer - 1 ] < ( $log_date - 1 );
+    $peak_udp_min_pointer--
+      while $peak_udp[ $peak_udp_min_pointer - 1 ] < ( $log_date - 60 );
+    pop @peak_udp while $peak_udp[$#peak_udp] < ( $log_date - 3600 );
     if ( $peak_udp_hour < @peak_udp ) {
       $peak_udp_hour = @peak_udp;
       $peak_udp_hour_time = $log_date - 3600;
@@ -1277,18 +1297,18 @@ Thank You.\n\n";
     }';
   } elsif ( $opt_p eq 'new' ) {
     $loop .= '
-    foreach $i (($date_hour / 3600) .. int($log_date / 3600)) {
-      $peak_udp_hour{$i * 3600} = $peak_udp_hour_size{$i * 3600} = 0
-	unless defined $peak_udp_hour{$i * 3600};
-      $peak_udp_hour{$i * 3600}++;
-      $peak_udp_hour_size{$i * 3600} += $log_size / int($log_reqtime / 3600000
-							+ 1);
+    foreach $i ( ( $date_hour / 3600 ) .. int( $log_date / 3600 ) ) {
+      $peak_udp_hour{ $i * 3600 } = $peak_udp_hour_size{ $i * 3600 } = 0
+	unless defined $peak_udp_hour{ $i * 3600 };
+      $peak_udp_hour{ $i * 3600 }++;
+      $peak_udp_hour_size{ $i * 3600 } +=
+	$log_size / int( $log_reqtime / 3600000 + 1 );
     }
     $peak_udp_sec_pointer++;
-    unshift (@peak_udp,$log_date);
-    $peak_udp_sec_pointer-- while $peak_udp[$peak_udp_sec_pointer - 1] <
-      ($log_date - 1);
-    pop @peak_udp while $peak_udp[$#peak_udp] < ($log_date - 60);
+    unshift ( @peak_udp, $log_date );
+    $peak_udp_sec_pointer--
+      while $peak_udp[ $peak_udp_sec_pointer - 1 ] < ( $log_date - 1 );
+    pop @peak_udp while $peak_udp[$#peak_udp] < ( $log_date - 60 );
     if ( $peak_udp_min < @peak_udp ) {
       $peak_udp_min = @peak_udp;
       $peak_udp_min_time = $log_date - 60;
@@ -1299,7 +1319,7 @@ Thank You.\n\n";
     }';
   }
   $loop .= '
-    if ( $log_hitfail =~ m#^UDP_HIT#o or $log_hitfail =~ m#^ICP_HIT#o ) {
+    if ( $log_hitfail =~ m#^(UDP|ICP)_HIT#o ) {
       $udp_hit++;
       $udp_hit_size += $log_size;
       $udp_hit_time += $log_reqtime;';
@@ -1337,9 +1357,9 @@ Thank You.\n\n";
     $tcp_time += $log_reqtime;';
   $loop .= '
     $perf_date =
-      ( int( ( $log_date + ' . "( $opt_T * 60 ) ) / ( 60 * $opt_P ) ) * 60 *
-		  $opt_P ) - ( $opt_T * 60 );" . '
-	      unless ( defined $perf_counter{$perf_date} ) {
+      ( int( ( $log_date + ' . "( $opt_T * 60 ) ) / ( 60 * $opt_P ) ) * 60 * $opt_P ) -
+      ( $opt_T * 60 );" . '
+    unless ( defined $perf_counter{$perf_date} ) {
       $perf_counter{$perf_date} = $perf_size{$perf_date} =
 	$perf_tcp_hit_size{$perf_date} = $perf_tcp_miss_size{$perf_date} =
 	$perf_hier_direct_size{$perf_date} =
@@ -1349,7 +1369,7 @@ Thank You.\n\n";
 	$perf_tcp_miss_time{$perf_date} = $perf_hier_direct_time{$perf_date} =
 	$perf_hier_sibling_time{$perf_date} =
 	$perf_hier_parent_time{$perf_date} = .0000000001;
-      }
+    }
     $perf_counter{$perf_date}++;
     $perf_size{$perf_date} += $log_size;
     $perf_time{$perf_date} += $log_reqtime;' if ($opt_P);
@@ -1367,7 +1387,7 @@ Thank You.\n\n";
       $tcp_distribution_time{$distribution} =
       $tcp_hit_distribution{$distribution} =
       $tcp_hit_distribution_size{$distribution} = 0
-	      unless defined $tcp_distribution{$distribution};
+      unless defined $tcp_distribution{$distribution};
     $tcp_distribution{$distribution}++;
     $tcp_distribution_size{$distribution} += $log_size;
     $tcp_distribution_time{$distribution} += $log_reqtime;' if ($opt_D);
@@ -1385,85 +1405,84 @@ Thank You.\n\n";
   $loop .= '
     $tcp_urlhost{$urlhost} = $tcp_urlhost_size{$urlhost} =
       $tcp_hit_urlhost{$urlhost} = 0
-	      unless defined $tcp_urlhost{$urlhost};
+      unless defined $tcp_urlhost{$urlhost};
     $tcp_urlhost{$urlhost}++;
     $tcp_urlhost_size{$urlhost} += $log_size;
     $tcp_urltld{$urltld} = $tcp_urltld_size{$urltld} =
       $tcp_hit_urltld{$urltld} = 0
-	      unless defined $tcp_urltld{$urltld};
+      unless defined $tcp_urltld{$urltld};
     $tcp_urltld{$urltld}++;
     $tcp_urltld_size{$urltld} += $log_size;' if ($opt_d);
   $loop .= '
     $tcp_urlprot{$urlprot} = $tcp_urlprot_size{$urlprot} =
       $tcp_hit_urlprot{$urlprot} = 0
-	      unless defined $tcp_urlprot{$urlprot};
+      unless defined $tcp_urlprot{$urlprot};
     $tcp_urlprot{$urlprot}++;
     $tcp_urlprot_size{$urlprot} += $log_size;' if ($opt_t);
-    if ( not defined $opt_p ) {
-    } elsif ( $opt_p eq 'old' ) {
-      $loop .= '
+  if ( not defined $opt_p ) {
+  } elsif ( $opt_p eq 'old' ) {
+    $loop .= '
     $peak_tcp_sec_pointer++;
     $peak_tcp_min_pointer++;
-    unshift (@peak_tcp, $log_date);
-    $peak_tcp_sec_pointer-- while $peak_tcp[$peak_tcp_sec_pointer - 1] <
-      ($log_date - 1);
-    $peak_tcp_min_pointer-- while $peak_tcp[$peak_tcp_min_pointer - 1] <
-      ($log_date - 60);
-    pop(@peak_tcp) while $peak_tcp[$#peak_tcp] < ($log_date - 3600);
-    if ($peak_tcp_hour < @peak_tcp) {
+    unshift ( @peak_tcp, $log_date );
+    $peak_tcp_sec_pointer--
+      while $peak_tcp[ $peak_tcp_sec_pointer - 1 ] < ( $log_date - 1 );
+    $peak_tcp_min_pointer--
+      while $peak_tcp[ $peak_tcp_min_pointer - 1 ] < ( $log_date - 60 );
+    pop (@peak_tcp) while $peak_tcp[$#peak_tcp] < ( $log_date - 3600 );
+    if ( $peak_tcp_hour < @peak_tcp ) {
       $peak_tcp_hour = @peak_tcp;
       $peak_tcp_hour_time = $log_date - 3600;
     }
-    if ($peak_tcp_min < $peak_tcp_min_pointer) {
+    if ( $peak_tcp_min < $peak_tcp_min_pointer ) {
       $peak_tcp_min = $peak_tcp_min_pointer;
       $peak_tcp_min_time = $log_date - 60;
     }
-    if ($peak_tcp_sec < $peak_tcp_sec_pointer) {
+    if ( $peak_tcp_sec < $peak_tcp_sec_pointer ) {
       $peak_tcp_sec = $peak_tcp_sec_pointer;
       $peak_tcp_sec_time = $log_date - 1;
     }';
-    } elsif ( $opt_p eq 'new' ) {
-      $loop .= '
-    foreach $i ($date_hour / 3600 .. int($log_date / 3600)) {
-      $peak_tcp_hour{$i * 3600} = $peak_tcp_hour_size{$i * 3600} = 0 unless
-      defined $peak_tcp_hour{$i * 3600};
-      $peak_tcp_hour{$i * 3600}++;
-      $peak_tcp_hour_size{$i * 3600} += $log_size / int($log_reqtime / 3600000
-							+ 1);
+  } elsif ( $opt_p eq 'new' ) {
+    $loop .= '
+    foreach $i ( $date_hour / 3600 .. int( $log_date / 3600 ) ) {
+      $peak_tcp_hour{ $i * 3600 } = $peak_tcp_hour_size{ $i * 3600 } = 0
+	unless defined $peak_tcp_hour{ $i * 3600 };
+      $peak_tcp_hour{ $i * 3600 }++;
+      $peak_tcp_hour_size{ $i * 3600 } +=
+	$log_size / int( $log_reqtime / 3600000	+ 1 );
     }
     $peak_tcp_sec_pointer++;
-    unshift (@peak_tcp, $log_date);
-    $peak_tcp_sec_pointer-- while $peak_tcp[$peak_tcp_sec_pointer - 1] <
-      ($log_date - 1);
-    pop(@peak_tcp) while $peak_tcp[$#peak_tcp] < ($log_date - 60);
-    if ($peak_tcp_min < @peak_tcp) {
+    unshift ( @peak_tcp, $log_date );
+    $peak_tcp_sec_pointer--
+      while $peak_tcp[ $peak_tcp_sec_pointer - 1 ] < ( $log_date - 1 );
+    pop (@peak_tcp) while $peak_tcp[$#peak_tcp] < ( $log_date - 60 );
+    if ( $peak_tcp_min < @peak_tcp ) {
       $peak_tcp_min = @peak_tcp;
       $peak_tcp_min_time = $log_date - 60;
     }
-    if ($peak_tcp_sec < $peak_tcp_sec_pointer) {
+    if ( $peak_tcp_sec < $peak_tcp_sec_pointer ) {
       $peak_tcp_sec = $peak_tcp_sec_pointer;
       $peak_tcp_sec_time = $log_date - 1;
     }';
-    }
+  }
   $loop .= '
     $tcp_content{$log_content} = $tcp_content_size{$log_content} =
       $tcp_hit_content{$log_content} = 0
       unless defined $tcp_content{$log_content};
     $tcp_content{$log_content}++;
     $tcp_content_size{$log_content} += $log_size;'
-      unless $opt_f eq 'squid-old'
-      or $opt_f eq 'elff'
-      or $opt_f eq 'nse';
+    unless $opt_f eq 'squid-old'
+    or $opt_f eq 'elff'
+    or $opt_f eq 'nse';
   $loop .= '
     $tcp_urlext{$urlext} = $tcp_urlext_size{$urlext} =
       $tcp_hit_urlext{$urlext} = 0
-	      unless defined $tcp_urlext{$urlext};
+      unless defined $tcp_urlext{$urlext};
     $tcp_urlext{$urlext}++;
     $tcp_urlext_size{$urlext} += $log_size;' if ($opt_t);
   if ( $opt_f eq 'elff' ) {
     $loop .= '
-    if ( $log_hitfail eq \'1\' or $log_hitfail =~ m#^HIT_#o or
-	$log_hitfail =~ m#^TCP_HIT#o ) {';
+    if ( $log_hitfail eq \'1\' or $log_hitfail =~ m#^(TCP_)?HIT_#o ) {';
   } else {
     $loop .= '
     if ( $log_hitfail =~ m#^TCP_\w*HIT#o ) {';
@@ -1482,8 +1501,8 @@ Thank You.\n\n";
       $tcp_hit{$log_hitfail}++;
       $tcp_hit_size{$log_hitfail} += $log_size;
       $tcp_hit_time{$log_hitfail} += $log_reqtime;'
-	if ($opt_s)
-	and $opt_f ne 'elff';
+    if ($opt_s)
+    and $opt_f ne 'elff';
   $loop .= '
       $tcp_hit_requester{$requester}++;
       $tcp_hit_requester_size{$requester} += $log_size;' if ($opt_r);
@@ -1499,16 +1518,16 @@ Thank You.\n\n";
       $tcp_hit_urltld{$urltld}++;' if ($opt_d);
   $loop .= '
       $tcp_hit_content{$log_content}++;'
-	unless $opt_f eq 'squid-old'
-	or $opt_f eq 'elff'
-	or $opt_f eq 'nse';
+    unless $opt_f eq 'squid-old'
+      or $opt_f eq 'elff'
+      or $opt_f eq 'nse';
   $loop .= '
       $tcp_hit_urlext{$urlext}++;
       $tcp_hit_urlprot{$urlprot}++;' if ($opt_t);
   $loop .= '
     } elsif ( $log_hier_method =~ m#EMPTY|NONE|NULL|^\-$#o
 	     or $log_hitfail =~ m#^ERR_#o )
-      {
+    {
       $tcp_miss_none++;
       $tcp_miss_none_size += $log_size;
       $tcp_miss_none_time += $log_reqtime;' if $opt_f ne 'elff';
@@ -1519,8 +1538,8 @@ Thank You.\n\n";
       $tcp_miss_none{$log_hitfail}++;
       $tcp_miss_none_size{$log_hitfail} += $log_size;
       $tcp_miss_none_time{$log_hitfail} += $log_reqtime;'
-	if ($opt_s)
-	and $opt_f ne 'elff';
+    if ($opt_s)
+    and $opt_f ne 'elff';
   $loop .= '
     } else {
       $tcp_miss++;
@@ -1536,8 +1555,8 @@ Thank You.\n\n";
       $tcp_miss{$log_hitfail}++;
       $tcp_miss_size{$log_hitfail} += $log_size;
       $tcp_miss_time{$log_hitfail} += $log_reqtime;'
-	if ($opt_s)
-	and $opt_f ne 'elff';
+    if ($opt_s)
+    and $opt_f ne 'elff';
   $loop .= '
       $tcp_miss_requester{$requester} = $tcp_miss_requester_size{$requester} =
 	0
@@ -1550,9 +1569,7 @@ Thank You.\n\n";
       $hier++;
       $hier_size += $log_size;
       $hier_time += $log_reqtime;
-      if ( $log_hier_method =~ m#DIRECT#o
-	  or $log_hier_method =~ m#SOURCE_FASTEST#o )
-      {
+      if ( $log_hier_method =~ m#DIRECT|SOURCE_FASTEST#o ) {
 	$hier_direct++;
 	$hier_direct_size += $log_size;
 	$hier_direct_time += $log_reqtime;';
@@ -1566,15 +1583,11 @@ Thank You.\n\n";
 	$hier_direct{$log_hier_method}++;
 	$hier_direct_size{$log_hier_method} += $log_size;
 	$hier_direct_time{$log_hier_method} += $log_reqtime;'
-	  if ($opt_s)
-	  and $opt_f ne 'elff';
+    if ($opt_s)
+      and $opt_f ne 'elff';
   $loop .= '
-      } elsif ( $log_hier_method =~ m#CARP#o
-	       or $log_hier_method =~ m#CACHE_DIGEST_\w*HIT#o
-	       or $log_hier_method =~ m#NEIGHBOR_\w*HIT#o
-	       or $log_hier_method =~ m#PARENT_\w*HIT#o
-	       or $log_hier_method =~ m#SIBLING_\w*HIT#o
-	       or $log_hier_method =~ m#SIBLING#o )
+      } elsif ( $log_hier_method =~
+	       m#CARP|(CACHE_DIGEST|NEIGHBOR|PARENT|SIBLING)_\w*HIT|SIBLING#o )
       {
 	$hier_sibling++;
 	$hier_sibling_size += $log_size;
@@ -1589,8 +1602,8 @@ Thank You.\n\n";
 	$hier_sibling{$log_hier_method}++;
 	$hier_sibling_size{$log_hier_method} += $log_size;
 	$hier_sibling_time{$log_hier_method} += $log_reqtime;'
-	  if ($opt_s)
-	  and $opt_f ne 'elff';
+    if ($opt_s)
+      and $opt_f ne 'elff';
   $loop .= '
 	$hier_neighbor{$log_hier_host} = $hier_neighbor_size{$log_hier_host} =
 	  $hier_neighbor_time{$log_hier_host} = 0
@@ -1610,16 +1623,9 @@ Thank You.\n\n";
 	$hier_neighbor_status_time{$log_hier_host}{$log_hier_method} +=
 	  $log_reqtime;' if ($opt_s);
   $loop .= '
-      } elsif ( $log_hier_method =~ m#ANY_PARENT#o
-	       or $log_hier_method =~ m#CLOSEST_PARENT#o
-	       or $log_hier_method =~ m#DEFAULT_PARENT#o
-	       or $log_hier_method =~ m#FIRST_UP_PARENT#o
-	       or $log_hier_method =~ m#PARENT_MISS#o
-	       or $log_hier_method =~ m#PASSTHROUGH_PARENT#o
-	       or $log_hier_method =~ m#ROUNDROBIN_PARENT#o
-	       or $log_hier_method =~ m#SINGLE_PARENT#o
-	       or $log_hier_method =~ m#PARENT#o
-	       or $log_hier_method =~ m#PROXY#o )
+      } elsif ( $log_hier_method =~
+	       m#(ANY|CLOSEST|DEFAULT|FIRST_UP|PASSTHROUGH|ROUNDROBIN|SINGLE)_PARENT|PARENT_MISS|PARENT|PROXY#o
+	       )
       {
 	$hier_parent++;
 	$hier_parent_size += $log_size;
@@ -1634,8 +1640,8 @@ Thank You.\n\n";
 	$hier_parent{$log_hier_method}++;
 	$hier_parent_size{$log_hier_method} += $log_size;
 	$hier_parent_time{$log_hier_method} += $log_reqtime;'
-	  if ($opt_s)
-	  and $opt_f ne 'elff';
+    if ($opt_s)
+      and $opt_f ne 'elff';
   $loop .= '
 	$hier_neighbor{$log_hier_host} = $hier_neighbor_size{$log_hier_host} =
 	  $hier_neighbor_time{$log_hier_host} = 0
@@ -1719,7 +1725,7 @@ if ($opt_w) {
 <html>
  <head>
   <title>${host_name}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.46 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.47 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
@@ -1765,7 +1771,7 @@ if ($opt_w) {
   }
   $out_head .= "  </ul>\n";
 } else {
-  print "\n${host_name}Proxy-Report ($date_start - $date_stop)\n";
+  $out_head .= "\n${host_name}Proxy-Report ($date_start - $date_stop)\n";
 }
 
 @format = ( 19, 8 );
@@ -2017,7 +2023,7 @@ if ( $udp == 0 ) {
 }
 
 outtitle(5);
-if ( $tcp_hit + $tcp_miss == 0 ) {
+if ( $tcp_hit + $tcp_miss + $tcp_miss_none == 0 ) {
   outline( 5, 'no matching requests' );
 } else {
   @format = ( 33, 9, '%', 8, '%', 4, 'kbs' );
@@ -2269,7 +2275,7 @@ if ( $hier == 0 ) {
 		 $hier_neighbor_status_size{$neighbor}{$status},
 		 $hier_neighbor_status_time{$neighbor}{$status}
 		 );
-      outline( 7, ' ' .  $status, $hier_neighbor_status{$neighbor}{$status},
+      outline( 7, ' ' . $status, $hier_neighbor_status{$neighbor}{$status},
 	      100 * $hier_neighbor_status{$neighbor}{$status} / $hier,
 	      kilomegagigatera( $hier_neighbor_status_size{$neighbor}{$status},
 			       $format[3] ),
@@ -2951,7 +2957,7 @@ if ($opt_S) {
 if ($opt_w) {
   print '  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.46 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002
+   $Revision: 2.47 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
