@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.29 1999-12-16 22:56:45 cord Exp $
+# $Id: calamaris,v 2.30 2000-05-13 20:03:11 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic for Squid and NetCache Native Log-files
 #
@@ -43,7 +43,14 @@
 #	Clare Lahiff (Clare.Lahiff@anu.edu.au)
 #	Toni Andjelkovic (toni@telecom.at)
 #	Chris Teakle (ccteakle@its.uq.edu.au)
-#	? 'Dancer' ? (dancer@zeor.simegen.com)
+#	Dancer Vesperman (dancer@zeor.simegen.com)
+#	Vincent ? (vincent@aib.net)
+#	Elrond ? (Elrond@Wunder-Nett.org)
+#	Holger Marzen (hm@sik-gmbh.de)
+#	Panagiotis Christias (P.Christias@noc.ntua.gr)
+#	Patrik Rak (patrik@ash.ein.cz)
+#	Steve Snyder (swsnyder@home.com)
+#	Michael Smith (good_guy93@hotmail.com)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -52,7 +59,7 @@
 
 # (If you modify and want to publish it under the name 'Calamaris', please ask
 # me. I don't want to confuse the 'audience' with many different versions of
-# the same name and/or Version number. (This is not part of the license, it 
+# the same name and/or Version number. (This is not part of the license, it
 # is only a favour i asked of you.))
 
 # This program is distributed in the hope that it will be useful, but WITHOUT
@@ -72,16 +79,17 @@
 
 # If you have to remove this, read the README!
 require 5.002;
-
-use vars qw($opt_a $opt_b $opt_c $opt_d $opt_f $opt_h $opt_H $opt_i $opt_l
-	    $opt_m $opt_n $opt_o $opt_O $opt_p $opt_P $opt_r $opt_s $opt_t
-	    $opt_u $opt_w $opt_z);
+use vars qw($opt_a $opt_b $opt_c $opt_C $opt_d $opt_f $opt_h $opt_H $opt_i
+	    $opt_l $opt_m $opt_n $opt_o $opt_O $opt_p $opt_P $opt_r $opt_s
+	    $opt_t $opt_T $opt_u $opt_v $opt_V $opt_w $opt_z);
 use Getopt::Std;
 use Sys::Hostname;
 
-getopts('ab:cd:f:hH:i:l:mno:Op:P:r:st:uwz');
+getopts('ab:cCd:f:hH:i:l:mno:Op:P:r:st:TuvVwz');
 
-$COPYRIGHT='Calamaris $Revision: 2.29 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
+$VERSION='Calamaris $Revision: 2.30 $';
+
+$COPYRIGHT='Copyright (C) 1997, 1998, 1999, 2000 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
 welcome to redistribute it under certain conditions.  See source for details.
 Calamaris-Homepage: http://Calamaris.Cord.de/';
@@ -105,13 +113,17 @@ Reports:
 
 Input Format:
 -f type	format 	(sets the type of input logfiles)
-		squid = Native-Logfile derived from Squid V1.1.beta26-V2.x 
+		auto = tries to guess the input format
+		(This will be the Default in a later release.)
+		squid = Native-Logfile derived from Squid V1.1.beta26-V2.x
 		(This is the Default)
 		squid-mime = Native-Logfile with log_mime_hdrs enabled derived
 			from Squid V1.1.beta26-V2.x
-		squid-old = Native-Logfile derived from Squid 
+		squid-old = Native-Logfile derived from Squid
 			V1.1.alpha1-V1.1.beta25
 		nc = Squid-style Logfiles derived from NetCache V???
+		its = Logfiles derived from Inktomi Traffic Server
+
 
 Output Format: (Default is plain text)
 -m	mail	(mail format)
@@ -125,23 +137,29 @@ Caching:
 -o file	output-file (output-datafile for caching, can be the same as -i)
 
 Misc:
--b n	benchmark (prints a hash-sign (#) to stderr for each n lines processed)
 -H name Host-name (a name for the Output, -H \'lookup\' issues a lookup for
 		   the current host)
 -n	no-lookup (don\'t look IP-Numbers up)
 -O	Order	(changes the sort order in the reports to request size,
 		 default is sorting by number of requests)
+-T	Time	(adjust the Performance-Report)
+-c	case	(switch to case-insensitive (useful for extensions-report))
 -u	user	(use ident information if available)
 -z	zero	(no input via stdin)
 
--c	copyright (prints the copyright)
+-b n	benchmark (prints a hash-sign (#) to stderr for each n lines processed)
+-v	verbose (print information what Calamaris is doing. Useful for
+		 debugging.)
+
+-C	copyright (prints the copyright)
 -h	help	(prints out this message)
+-V	Version (prints version-info)';
 
-';
+print($USAGE, "\n\n", $COPYRIGHT, "\n") if ($opt_h);
+print($COPYRIGHT, "\n") if ($opt_C);
+print($VERSION, "\n\n", $COPYRIGHT, "\n\n") if ($opt_V);
 
-print($USAGE, $COPYRIGHT, "\n") if ($opt_h);
-print($COPYRIGHT, "\n") if ($opt_c);
-exit 0 if (($opt_h) or ($opt_c));
+exit 0 if (($opt_h) or ($opt_C) or ($opt_V));
 
 if ($opt_b and $opt_b < 1) {
   print(STDERR "$0: wrong value at -b -option: \"$opt_b\"\n");
@@ -170,6 +188,8 @@ if ($opt_a) {
   $opt_r = -1 unless $opt_r;
   $opt_t = 20 unless $opt_t;
 }
+
+$opt_T = 0 unless ($opt_T);
 
 # initialize variables
 $counter = $hier = $hier_direct = $hier_direct_size = $hier_direct_time =
@@ -484,40 +504,93 @@ if ($opt_i) {
 }
 
 unless ($opt_z) {
+  $line = <>;
+  if (defined $opt_f and $opt_f eq 'auto') {
+
+    if ($line =~
+	m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+$#)
+    {
+      $opt_f = 'squid';
+      print(STDERR "guessing... Squid Native Log V1.1.beta26-V2.x-format\n\twithout log_mime_hdrs enabled.\n") if ($opt_v);
+    } elsif ($line =~
+	m#^\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+$#)
+    {
+      $opt_f = 'its';
+      print(STDERR "guessing... Inktomi Traffic Server Native Log.\n") if ($opt_v);
+    } elsif ($line =~
+	     m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+\s+\[.*\]\s+\[.*\]$#)
+    {
+      $opt_f = 'squid-mime';
+      print(STDERR "guessing... Squid Native Log V1.1.beta26-V2.x with log_mime_hdrs enabled.\n") if ($opt_v);
+    } elsif ($line =~
+	     m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+$#)
+    {
+      $opt_f = 'squid-old';
+      print(STDERR "guessing... Squid Native Log V1.1.alpha1-V1.1.beta25\n") if ($opt_v);
+
+    } elsif ($line =~
+	     m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+(\S|; c)+\s+\S+$#) {
+      $opt_f = 'nc';
+      print(STDERR "guessing... NetCache Native Log\n") if ($opt_v);
+    } elsif ($line =~
+	     m#^[\w\-\.]+\s+\S+\s+\S+\s+\[.+\]\s+\"\w+\s+\S+\s+\S+\"\s+\d+\s+\d+\s+\S+(\s+\[.*\]\s+\[.*\])?$#)
+    {
+      print(STDERR "$0: The first line of the input looks to me as if you
+switched 'emulate_httpd_log' to on. I can't parse that format. Please read 
+the README on this.\n\n");
+      exit(1);
+    } else {
+      print(STDERR "$0: I don't know this input format. Please check the 
+input. If you\'re sure that the following line is NOT corrupt and the error
+also occurs with the recent version of Calamaris (see the README for pointers
+and known bugs) then report it with the following line to
+Calamaris-bug\@Cord.de. Thank You.\n\n$line\n\n");
+      exit(1);
+    }
+  }
   print(STDERR "print a hash-sign for each $opt_b lines:\n") if ($opt_b);
   $loop = '
-while (<>) {';
-if (not defined $opt_f or $opt_f eq 'squid') {
+for (; $line; $line = <>) {';
+  if (not defined $opt_f or $opt_f eq 'squid') {
   $loop .= '
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
-   $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) = split;
+   $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) =
+    split(/\s+/, $line);
   if (not defined $foo or not defined $log_content or $foo ne \'\' or
-      $log_content eq \'\' or $log_reqtime lt 0 or 
+      $log_content eq \'\' or $log_reqtime lt 0 or
       $log_date !~ m#^\d+\.\d{3}$#) {';
 } elsif ($opt_f eq 'squid-mime') {
   $loop .= '
-  s/ \[[^\[\]]*\]//g;
+  $line =~ s/ \[[^\[\]]*\]//g;
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
-   $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) = split;
+   $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) =
+    split(/\s+/, $line);
   if (not defined $foo or not defined $log_content or $foo ne \'\' or
-      $log_content eq \'\' or $log_reqtime lt 0 or 
+      $log_content eq \'\' or $log_reqtime lt 0 or
       $log_date !~ m#^\d+\.\d{3}$#) {';
+} elsif ($opt_f eq 'its') {
+  $loop .= '
+  ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
+   $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) =
+    split(/\s+/, $line);
+  if (not defined $foo or not defined $log_content or $foo ne \'\' or
+      $log_content eq \'\' or $log_reqtime lt 0 or $log_date !~ m#^\d+$#) {';
 } elsif ($opt_f eq 'squid-old') {
   $loop .= '
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
-   $log_method, $log_url, $log_ident, $log_hier, $foo) = split;
+   $log_method, $log_url, $log_ident, $log_hier, $foo) = split(/\s+/, $line);
   $log_content = \'-\';
   unless (not defined $foo or not defined $log_hier or $foo ne \'\' or
-      	  $log_hier eq \'\' or $log_reqtime lt 0 or 
+      	  $log_hier eq \'\' or $log_reqtime lt 0 or
 	  $log_date !~ m#^\d+\.\d{3}$#) {';
 } elsif ($opt_f eq 'nc') {
   $loop .= '
-  s#\; c#\;_c#og; # Hack to handle buggy logfiles of NetCache V3.2.x
+  $line =~ s#\; c#\;_c#og; # Hack to handle buggy logfiles of NetCache V3.2.x
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
    $log_method, $log_url, $log_ident, $log_hier, $log_content, $log_abort,
-   $foo) = split;
+   $foo) = split(/\s+/, $line);
   if (not defined $foo or not defined $log_abort or $foo ne \'\' or
-      $log_abort eq \'\' or $log_reqtime lt 0 or 
+      $log_abort eq \'\' or $log_reqtime lt 0 or
       $log_date !~ m#^\d+\.\d{3}$#) {';
 } else {
   print(STDERR "$0: unknown value at -f -option: \"$opt_f\"\n");
@@ -525,13 +598,14 @@ if (not defined $opt_f or $opt_f eq 'squid') {
 }
   $loop .= '
     chomp;
-    warn (\'invalid line: "\' . $_ . "\"\n");
+    warn (\'invalid line: "\' . $line . "\"\n");
     $invalid++;
     next;
   }
   $log_reqtime = .1 if $log_reqtime == 0;
   ($log_hitfail, $log_code) = split \'/\', $log_status;
   $log_size = .0000000001 if $log_size == 0;
+  $log_url =~ s/\?.*$/?/;
   @url = split m#[/\\\]#o, $log_url;
   ($urlprot, $urlhost, $urlext) = (@url)[0,2,$#url];
   $urlext = \'.<none>\' if $#url <= 2;
@@ -551,7 +625,10 @@ if (not defined $opt_f or $opt_f eq 'squid') {
   $urlhost =~ tr/A-Z/a-z/;
   @urlext = split \'\.\', $urlext;
   $urlext = (@urlext)[$#urlext];
-  $urlext = \'<none>\' if $#urlext <= 0;
+  $urlext = \'<none>\' if $#urlext <= 0;';
+  $loop .= '
+  $urlext =~ tr/A-Z/a-z/;' if $opt_c;
+  $loop .= '
   if ($urlhost =~ m#^(([0-9][0-9]{0,2}\.){3})[0-9][0-9]{0,2}$#o) {
     $urlhost = $1 . \'*\';
     $urltld = \'<unresolved>\';
@@ -577,7 +654,7 @@ if (not defined $opt_f or $opt_f eq 'squid') {
   $requester = getfqdn($log_requester);';
   }
     $loop .= '
-  $requester = $log_ident . \'@\' . $requester if $log_ident ne \'-\';' if 
+  $requester = $log_ident . \'@\' . $requester if $log_ident ne \'-\';' if
     $opt_u;
   $loop .= '
   ($log_hier_method, $log_hier_host) = (split \'/\', $log_hier)[0,1];
@@ -739,7 +816,7 @@ if (not defined $opt_f or $opt_f eq 'squid') {
     $tcp_size += $log_size;
     $tcp_time += $log_reqtime;';
   $loop .= '
-    $perf_date = int($log_date / (60 * ' . "$opt_P)) * 60 * $opt_P;" . '
+    $perf_date = (int(($log_date + ' . "($opt_T * 60 )) / (60 * $opt_P)) * 60 * $opt_P) - ($opt_T * 60);" . '
     unless (defined $perf_counter{$perf_date}) {
       $perf_counter{$perf_date} = $perf_size{$perf_date} =
 	$perf_tcp_hit_size{$perf_date} = $perf_tcp_miss_size{$perf_date} =
@@ -984,7 +1061,7 @@ if (not defined $opt_f or $opt_f eq 'squid') {
 	$hier_neighbor_status_time{$log_hier_host}{$log_hier_method} +=
 	  $log_reqtime;' if ($opt_s);
   $loop .= '
-      } else { chomp($log_hier_method); 
+      } else { chomp($log_hier_method);
 	unless (defined $errormsg) {
 	  print(STDERR "
 Please check the following error(s). If you\'re sure that the offending line(s)
@@ -996,7 +1073,7 @@ thousands of similar errors.  use Calamaris-bug\@Cord.de. Thank You.
 	}
 	warn("
 unknown log_hier_method: \"$log_hier_method\" found in line $counter of input:
- $_");
+ $line");
       }
     }
   }
@@ -1036,7 +1113,7 @@ if ($opt_w) {
 <html>
  <head>
   <title>${hostname}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.29 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.30 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
@@ -1104,8 +1181,8 @@ if (not defined $opt_p) {
   outheader('prt', ' sec', 'peak begins at', ' min', 'peak begins at', ' hour',
             'peak begins at');
   outseperator();
-  outline('UDP', $peak_udp_sec, convertdate($peak_udp_sec_time),
-          $peak_udp_min, convertdate($peak_udp_min_time), $peak_udp_hour,
+  outline('UDP', $peak_udp_sec, convertdate($peak_udp_sec_time), 
+	  $peak_udp_min, convertdate($peak_udp_min_time), $peak_udp_hour,
           convertdate($peak_udp_hour_time));
   outline('TCP', $peak_tcp_sec, convertdate($peak_tcp_sec_time),
           $peak_tcp_min, convertdate($peak_tcp_min_time), $peak_tcp_hour,
@@ -1188,241 +1265,266 @@ if (not defined $opt_p) {
 if ($counter == 0) {
   outtitle('Incoming requests by method: none', 3);
 } else {
-  @format=(33,8,'%',9,'%',4,'kbs');
+  @format=(33,9,'%',8,'%',4,'kbs');
   outtitle('Incoming requests by method', 3);
   outstart();
-  outheader('method',' request','% ','  kByte','% ',' sec',' kB/sec');
+  outheader('method',' request','% ','  Byte','% ',' sec',' kB/sec');
   outseperator();
   foreach $method (sort {${"method$sortorder"}{$b} <=>
 			 ${"method$sortorder"}{$a}} keys(%method)) {
     writecache(C, $method, $method{$method}, $method_size{$method},
 	       $method_time{$method});
     outline($method, $method{$method}, 100 * $method{$method} / $counter,
-	    $method_size{$method} / 1024, 100 * $method_size{$method} / $size,
+	    kilomegagigatera($method_size{$method}, $format[3]),
+	    100 * $method_size{$method} / $size,
 	    $method_time{$method} / (1000 * $method{$method}),
 	    $method_size{$method} / (1.024 * $method_time{$method}));
   }
   outseperator();
-  outline(Sum, $counter, 100, $size / 1024, 100, $time / ($counter * 1000),
-	  $size / (1.024 * $time));
+  outline(Sum, $counter, 100, kilomegagigatera($size, $format[3]), 100,
+	  $time / ($counter * 1000), $size / (1.024 * $time));
   outstop();
 }
 
 if ($udp == 0) {
   outtitle('Incoming UDP-requests by status: none', 4);
 } else {
-  @format=(33,8,'%',9,'%',4,'kbs');
+  @format=(33,9,'%',8,'%',4,'kbs');
   outtitle('Incoming UDP-requests by status', 4);
   outstart();
-  outheader('status',' request','% ','  kByte','% ','msec',' kB/sec');
+  outheader('status',' request','% ','  Byte','% ','msec',' kB/sec');
   outseperator();
   if ($udp_hit == 0) {
     outline(HIT,0,0,0,0,0,0);
   } else {
-    outline(HIT, $udp_hit, 100 * $udp_hit / $udp, $udp_hit_size / 1024, 100 *
-	    $udp_hit_size / $udp_size, $udp_hit_time / $udp_hit, $udp_hit_size
-	    / (1.024 * $udp_hit_time));
+    outline(HIT, $udp_hit, 100 * $udp_hit / $udp, 
+	    kilomegagigatera($udp_hit_size, $format[3]),
+	    100 * $udp_hit_size / $udp_size, $udp_hit_time / $udp_hit,
+	    $udp_hit_size / (1.024 * $udp_hit_time));
     foreach $hitfail (sort {${"udp_hit$sortorder"}{$b} <=>
 			    ${"udp_hit$sortorder"}{$a}} keys(%udp_hit)) {
       writecache(D, $hitfail, $udp_hit{$hitfail}, $udp_hit_size{$hitfail},
 		 $udp_hit_time{$hitfail});
-      outline(' ' . $hitfail, $udp_hit{$hitfail}, 100 * $udp_hit{$hitfail} /
-	      $udp, $udp_hit_size{$hitfail} / 1024, 100 *
-	      $udp_hit_size{$hitfail} / $udp_size, $udp_hit_time{$hitfail} /
-	      $udp_hit{$hitfail}, $udp_hit_size{$hitfail} /
-	      (1.024 * $udp_hit_time{$hitfail}));
+
+      outline(' ' . $hitfail, $udp_hit{$hitfail},
+	      100 * $udp_hit{$hitfail} / $udp,
+	      kilomegagigatera($udp_hit_size{$hitfail}, $format[3]),
+	      100 * $udp_hit_size{$hitfail} / $udp_size,
+	      $udp_hit_time{$hitfail} / $udp_hit{$hitfail},
+	      $udp_hit_size{$hitfail} / (1.024 * $udp_hit_time{$hitfail}));
     }
   }
   if ($udp_miss == 0) {
     outline(MISS,0,0,0,0,0,0);
   } else {
-    outline(MISS, $udp_miss, 100 * $udp_miss / $udp, $udp_miss_size / 1024,
+    outline(MISS, $udp_miss, 100 * $udp_miss / $udp,
+	    kilomegagigatera($udp_miss_size, $format[3]),
 	    100 * $udp_miss_size / $udp_size, $udp_miss_time / $udp_miss,
 	    $udp_miss_size / (1.024 * $udp_miss_time));
     foreach $hitfail (sort {${"udp_miss$sortorder"}{$b} <=>
 			    ${"udp_miss$sortorder"}{$a}} keys(%udp_miss)) {
       writecache(E, $hitfail, $udp_miss{$hitfail}, $udp_miss_size{$hitfail},
 		 $udp_miss_time{$hitfail});
-      outline(' ' . $hitfail, $udp_miss{$hitfail}, 100 * $udp_miss{$hitfail} /
-	      $udp, $udp_miss_size{$hitfail} / 1024, 100 *
-	      $udp_miss_size{$hitfail} / $udp_size, $udp_miss_time{$hitfail} /
-	      $udp_miss{$hitfail}, $udp_miss_size{$hitfail} /
-	      (1.024 * $udp_miss_time{$hitfail}));
+      outline(' ' . $hitfail, $udp_miss{$hitfail},
+	      100 * $udp_miss{$hitfail} / $udp,
+	      kilomegagigatera($udp_miss_size{$hitfail}, $format[3]),
+	      100 * $udp_miss_size{$hitfail} / $udp_size,
+	      $udp_miss_time{$hitfail} / $udp_miss{$hitfail},
+	      $udp_miss_size{$hitfail} / (1.024 * $udp_miss_time{$hitfail}));
     }
   }
   outseperator();
-  outline(Sum, $udp, ' ', $udp_size / 1024, ' ', $udp_time / $udp, $udp_size /
-	  (1.024 * $udp_time));
+  outline(Sum, $udp, ' ', kilomegagigatera($udp_size, $format[3]), ' ',
+	  $udp_time / $udp, $udp_size / (1.024 * $udp_time));
   outstop();
 }
 
 if ($tcp == 0) {
   outtitle('Incoming TCP-requests by status: none', 5);
 } else {
-  @format=(33,8,'%',9,'%',4,'kbs');
+  @format=(33,9,'%',8,'%',4,'kbs');
   outtitle('Incoming TCP-requests by status', 5);
   outstart();
-  outheader('status',' request','% ','  kByte','% ',' sec',' kB/sec');
+  outheader('status',' request','% ','  Byte','% ',' sec',' kB/sec');
   outseperator();
   if ($tcp_hit == 0) {
     outline(HIT,0,0,0,0,0,0);
   } else {
-    outline(HIT, $tcp_hit, 100 * $tcp_hit / $tcp, $tcp_hit_size / 1024, 100 *
-	    $tcp_hit_size / $tcp_size, $tcp_hit_time / (1000 * $tcp_hit),
+    outline(HIT, $tcp_hit, 100 * $tcp_hit / $tcp,
+	    kilomegagigatera($tcp_hit_size, $format[3]),
+	    100 * $tcp_hit_size / $tcp_size,
+	    $tcp_hit_time / (1000 * $tcp_hit),
 	    $tcp_hit_size / (1.024 * $tcp_hit_time));
     foreach $hitfail (sort {${"tcp_hit$sortorder"}{$b} <=>
 			    ${"tcp_hit$sortorder"}{$a}} keys(%tcp_hit)) {
       writecache(F, $hitfail, $tcp_hit{$hitfail}, $tcp_hit_size{$hitfail},
 		 $tcp_hit_time{$hitfail});
-      outline(' ' . $hitfail, $tcp_hit{$hitfail}, 100 * $tcp_hit{$hitfail} /
-	      $tcp, $tcp_hit_size{$hitfail} / 1024, 100 *
-	      $tcp_hit_size{$hitfail} / $tcp_size, $tcp_hit_time{$hitfail} /
-	      (1000 * $tcp_hit{$hitfail}), $tcp_hit_size{$hitfail} /
-	      (1.024 * $tcp_hit_time{$hitfail}));
+      outline(' ' . $hitfail, $tcp_hit{$hitfail},
+	      100 * $tcp_hit{$hitfail} / $tcp,
+	      kilomegagigatera($tcp_hit_size{$hitfail}, $format[3]),
+	      100 * $tcp_hit_size{$hitfail} / $tcp_size,
+	      $tcp_hit_time{$hitfail} / (1000 * $tcp_hit{$hitfail}),
+	      $tcp_hit_size{$hitfail} / (1.024 * $tcp_hit_time{$hitfail}));
     }
   }
   if ($tcp_miss == 0) {
     outline(MISS,0,0,0,0,0,0);
   } else {
-    outline(MISS, $tcp_miss, 100 * $tcp_miss / $tcp, $tcp_miss_size / 1024,
-	    100 * $tcp_miss_size / $tcp_size, $tcp_miss_time / (1000 *
-	    $tcp_miss), $tcp_miss_size / (1.024 * $tcp_miss_time));
+    outline(MISS, $tcp_miss, 100 * $tcp_miss / $tcp,
+	    kilomegagigatera($tcp_miss_size, $format[3]),
+	    100 * $tcp_miss_size / $tcp_size,
+	    $tcp_miss_time / (1000 * $tcp_miss),
+	    $tcp_miss_size / (1.024 * $tcp_miss_time));
     foreach $hitfail (sort {${"tcp_miss$sortorder"}{$b} <=>
 			    ${"tcp_miss$sortorder"}{$a}} keys(%tcp_miss)) {
       writecache(G, $hitfail, $tcp_miss{$hitfail}, $tcp_miss_size{$hitfail},
 		 $tcp_miss_time{$hitfail});
-      outline(' ' . $hitfail, $tcp_miss{$hitfail}, 100 * $tcp_miss{$hitfail} /
-	      $tcp, $tcp_miss_size{$hitfail} / 1024, 100 *
-	      $tcp_miss_size{$hitfail} / $tcp_size, $tcp_miss_time{$hitfail} /
-	      (1000 * $tcp_miss{$hitfail}), $tcp_miss_size{$hitfail} / (1.024
-	      * $tcp_miss_time{$hitfail}));
+      outline(' ' . $hitfail, $tcp_miss{$hitfail},
+	      100 * $tcp_miss{$hitfail} / $tcp,
+	      kilomegagigatera($tcp_miss_size{$hitfail}, $format[3]),
+	      100 * $tcp_miss_size{$hitfail} / $tcp_size,
+	      $tcp_miss_time{$hitfail} / (1000 * $tcp_miss{$hitfail}),
+	      $tcp_miss_size{$hitfail} / (1.024 * $tcp_miss_time{$hitfail}));
     }
   }
   if ($tcp_miss_none == 0) {
     outline(ERROR,0,0,0,0,0,0);
   } else {
     outline(ERROR, $tcp_miss_none, 100 * $tcp_miss_none / $tcp,
-	    $tcp_miss_none_size / 1024, 100 * $tcp_miss_none_size / $tcp_size,
-	    $tcp_miss_none_time / (1000 * $tcp_miss_none), $tcp_miss_none_size
-	    / (1.024 * $tcp_miss_none_time));
+	    kilomegagigatera($tcp_miss_none_size, $format[3]),
+	    100 * $tcp_miss_none_size / $tcp_size,
+	    $tcp_miss_none_time / (1000 * $tcp_miss_none),
+	    $tcp_miss_none_size / (1.024 * $tcp_miss_none_time));
     foreach $hitfail (sort {${"tcp_miss_none$sortorder"}{$b} <=>
 			    ${"tcp_miss_none$sortorder"}{$a}}
 		      keys(%tcp_miss_none)) {
       writecache(H, $hitfail, $tcp_miss_none{$hitfail},
 		 $tcp_miss_none_size{$hitfail}, $tcp_miss_none_time{$hitfail});
-      outline(' ' .  $hitfail, $tcp_miss_none{$hitfail}, 100 *
-	      $tcp_miss_none{$hitfail} / $tcp, $tcp_miss_none_size{$hitfail} /
-	      1024, 100 * $tcp_miss_none_size{$hitfail} / $tcp_size,
+      outline(' ' .  $hitfail, $tcp_miss_none{$hitfail},
+	      100 * $tcp_miss_none{$hitfail} / $tcp,
+	      kilomegagigatera($tcp_miss_none_size{$hitfail}, $format[3]),
+	      100 * $tcp_miss_none_size{$hitfail} / $tcp_size,
 	      $tcp_miss_none_time{$hitfail} / (1000 *
-	      $tcp_miss_none{$hitfail}), $tcp_miss_none_size{$hitfail} /
-	      (1.024 * $tcp_miss_none_time{$hitfail}));
+					       $tcp_miss_none{$hitfail}),
+	      $tcp_miss_none_size{$hitfail} / (1.024 *
+					       $tcp_miss_none_time{$hitfail}));
     }
   }
   outseperator();
-  outline(Sum, $tcp, ' ', $tcp_size / 1024, ' ', $tcp_time / (1000 * $tcp),
-	  $tcp_size / (1.024 * $tcp_time));
+  outline(Sum, $tcp, ' ', kilomegagigatera($tcp_size, $format[3]), ' ',
+	  $tcp_time / (1000 * $tcp), $tcp_size / (1.024 * $tcp_time));
   outstop();
 }
 
 if ($hier == 0) {
   outtitle('Outgoing requests by status: none', 6);
 } else {
-  @format=(33,8,'%',9,'%',4,'kbs');
+  @format=(33,9,'%',8,'%',4,'kbs');
   outtitle('Outgoing requests by status', 6);
   outstart();
-  outheader('status',' request','% ','  kByte','% ',' sec',' kB/sec');
+  outheader('status',' request','% ','  Byte','% ',' sec',' kB/sec');
   outseperator();
   if ($hier_direct == 0) {
     outline('DIRECT',0,0,0,0,0,0);
   } else {
-    outline('DIRECT Fetch from Source', $hier_direct, 100 * $hier_direct /
-	    $hier, $hier_direct_size / 1024, 100 * $hier_direct_size /
-	    $hier_size, $hier_direct_time / (1000 * $hier_direct),
+    outline('DIRECT Fetch from Source', $hier_direct,
+	    100 * $hier_direct / $hier, kilomegagigatera($hier_direct_size,
+							 $format[3]),
+	    100 * $hier_direct_size / $hier_size,
+	    $hier_direct_time / (1000 * $hier_direct),
 	    $hier_direct_size / (1.024 * $hier_direct_time));
     foreach $hitfail (sort {${"hier_direct$sortorder"}{$b} <=>
 			    ${"hier_direct$sortorder"}{$a}}
 		      keys(%hier_direct)) {
       writecache(I, $hitfail, $hier_direct{$hitfail},
 		 $hier_direct_size{$hitfail}, $hier_direct_time{$hitfail});
-      outline(' ' . $hitfail, $hier_direct{$hitfail}, 100 *
-	      $hier_direct{$hitfail} / $hier, $hier_direct_size{$hitfail} /
-	      1024, 100 * $hier_direct_size{$hitfail} / $hier_size,
+      outline(' ' . $hitfail, $hier_direct{$hitfail},
+	      100 * $hier_direct{$hitfail} / $hier,
+	      kilomegagigatera($hier_direct_size{$hitfail}, $format[3]),
+	      100 * $hier_direct_size{$hitfail} / $hier_size,
 	      $hier_direct_time{$hitfail} / (1000 * $hier_direct{$hitfail}),
 	      $hier_direct_size{$hitfail} / (1.024 *
-	      $hier_direct_time{$hitfail}));
+					     $hier_direct_time{$hitfail}));
     }
   }
   if ($hier_sibling == 0) {
     outline('SIBLING',0,0,0,0,0,0);
   } else {
-    outline('HIT on Sibling or Parent Cache', $hier_sibling, 100 *
-	    $hier_sibling / $hier, $hier_sibling_size / 1024, 100 *
-	    $hier_sibling_size / $hier_size, $hier_sibling_time / (1000 *
-	    $hier_sibling), $hier_sibling_size / (1.024 *
-	    $hier_sibling_time));
+    outline('HIT on Sibling or Parent Cache', $hier_sibling,
+	    100 * $hier_sibling / $hier, kilomegagigatera($hier_sibling_size,
+							  $format[3]),
+	    100 * $hier_sibling_size / $hier_size,
+	    $hier_sibling_time / (1000 * $hier_sibling),
+	    $hier_sibling_size / (1.024 * $hier_sibling_time));
     foreach $hitfail (sort {${"hier_sibling$sortorder"}{$b} <=>
 			    ${"hier_sibling$sortorder"}{$a}}
 		      keys(%hier_sibling)) {
       writecache(J, $hitfail, $hier_sibling{$hitfail},
 		 $hier_sibling_size{$hitfail}, $hier_sibling_time{$hitfail});
-      outline(' ' . $hitfail, $hier_sibling{$hitfail}, 100 *
-	      $hier_sibling{$hitfail} / $hier, $hier_sibling_size{$hitfail} /
-	      1024, 100 * $hier_sibling_size{$hitfail} / $hier_size,
+      outline(' ' . $hitfail, $hier_sibling{$hitfail},
+	      100 * $hier_sibling{$hitfail} / $hier,
+	      kilomegagigatera($hier_sibling_size{$hitfail}, $format[3]),
+	      100 * $hier_sibling_size{$hitfail} / $hier_size,
 	      $hier_sibling_time{$hitfail} / (1000 * $hier_sibling{$hitfail}),
 	      $hier_sibling_size{$hitfail} / (1.024 *
-	      $hier_sibling_time{$hitfail}));
+					      $hier_sibling_time{$hitfail}));
     }
   }
   if ($hier_parent == 0) {
     outline('PARENT',0,0,0,0,0,0);
   } else {
-    outline('FETCH from Parent Cache', $hier_parent, 100 * $hier_parent /
-	    $hier, $hier_parent_size / 1024, 100 * $hier_parent_size /
-	    $hier_size, $hier_parent_time / (1000 * $hier_parent),
+    outline('FETCH from Parent Cache', $hier_parent,
+	    100 * $hier_parent / $hier, kilomegagigatera($hier_parent_size,
+							 $format[3]),
+	    100 * $hier_parent_size / $hier_size,
+	    $hier_parent_time / (1000 * $hier_parent),
 	    $hier_parent_size / (1.024 * $hier_parent_time));
     foreach $hitfail (sort {${"hier_parent$sortorder"}{$b} <=>
 			    ${"hier_parent$sortorder"}{$a}}
 		      keys(%hier_parent)) {
       writecache(K, $hitfail, $hier_parent{$hitfail},
 		 $hier_parent_size{$hitfail}, $hier_parent_time{$hitfail});
-      outline(' ' . $hitfail, $hier_parent{$hitfail}, 100 *
-	      $hier_parent{$hitfail} / $hier, $hier_parent_size{$hitfail} /
-	      1024, 100 * $hier_parent_size{$hitfail} / $hier_size,
+      outline(' ' . $hitfail, $hier_parent{$hitfail},
+	      100 * $hier_parent{$hitfail} / $hier,
+	      kilomegagigatera($hier_parent_size{$hitfail}, $format[3]),
+	      100 * $hier_parent_size{$hitfail} / $hier_size,
 	      $hier_parent_time{$hitfail} / (1000 * $hier_parent{$hitfail}),
 	      $hier_parent_size{$hitfail} / (1.024 *
-	      $hier_parent_time{$hitfail}));
+					     $hier_parent_time{$hitfail}));
     }
   }
   outseperator();
-  outline(Sum, $hier, ' ', $hier_size / 1024, ' ', $hier_time /
-	  (1000 * $hier), $hier_size / (1.024 * $hier_time));
+  outline(Sum, $hier, ' ', kilomegagigatera($hier_size, $format[3]), ' ',
+	  $hier_time / (1000 * $hier), $hier_size / (1.024 * $hier_time));
   outstop();
 }
 
 if ($tcp_miss == 0) {
   outtitle('Outgoing requests by destination: none', 7);
 } else {
-  @format=(33,8,'%',9,'%',4,'kbs');
+  @format=(33,9,'%',8,'%',4,'kbs');
   outtitle('Outgoing requests by destination', 7);
   outstart();
-  outheader('neighbor type',' request','% ',' kByte','% ',' sec', ' kB/sec');
+  outheader('neighbor type',' request','% ',' Byte','% ',' sec', ' kB/sec');
   outseperator();
-  outline(DIRECT, $hier_direct, 100 * $hier_direct / $hier, $hier_direct_size
-	  / 1024, 100 * $hier_direct_size / $hier_size, $hier_direct_time /
-	  (1000 * $hier_direct), $hier_direct_size / (1.024 *
-	  $hier_direct_time)) unless $hier_direct == 0;
+  outline(DIRECT, $hier_direct, 100 * $hier_direct / $hier,
+	  kilomegagigatera($hier_direct_size, $format[3]),
+	  100 * $hier_direct_size / $hier_size,
+	  $hier_direct_time / (1000 * $hier_direct),
+	  $hier_direct_size / (1.024 * $hier_direct_time)) unless
+  $hier_direct == 0;
   foreach $neighbor (sort {${"hier_neighbor$sortorder"}{$b} <=>
 			   ${"hier_neighbor$sortorder"}{$a}}
 		     keys(%hier_neighbor)) {
     writecache(L, $neighbor, $hier_neighbor{$neighbor},
-	       $hier_neighbor_size{$neighbor},
-	       $hier_neighbor_time{$neighbor});
-    outline($neighbor, $hier_neighbor{$neighbor}, 100 *
-	    $hier_neighbor{$neighbor} / $hier, $hier_neighbor_size{$neighbor}
-	    / 1024, 100 * $hier_neighbor_size{$neighbor} / $hier_size,
+	       $hier_neighbor_size{$neighbor}, $hier_neighbor_time{$neighbor});
+    outline($neighbor, $hier_neighbor{$neighbor},
+	    100 * $hier_neighbor{$neighbor} / $hier,
+	    kilomegagigatera($hier_neighbor_size{$neighbor}, $format[3]),
+	    100 * $hier_neighbor_size{$neighbor} / $hier_size,
 	    $hier_neighbor_time{$neighbor} / (1000 * $hier),
 	    $hier_neighbor_size{$neighbor} / (1.024 *
-	    $hier_neighbor_time{$neighbor}));
+					      $hier_neighbor_time{$neighbor}));
     foreach $status (sort {${"hier_neighbor_status$sortorder"}{$neighbor}{$b}
 			   <=>
 			   ${"hier_neighbor_status$sortorder"}{$neighbor}{$a}}
@@ -1431,30 +1533,32 @@ if ($tcp_miss == 0) {
 		 $hier_neighbor_status{$neighbor}{$status},
 		 $hier_neighbor_status_size{$neighbor}{$status},
 		 $hier_neighbor_status_time{$neighbor}{$status});
-      outline(' ' .  $status, $hier_neighbor_status{$neighbor}{$status}, 100 *
-	      $hier_neighbor_status{$neighbor}{$status} / $hier,
-	      $hier_neighbor_status_size{$neighbor}{$status} / 1024, 100 *
-	      $hier_neighbor_status_size{$neighbor}{$status} / $hier_size,
-	      $hier_neighbor_status_time{$neighbor}{$status} / (1000 *
-	      $hier_neighbor_status{$neighbor}{$status}),
-	      $hier_neighbor_status_size{$neighbor}{$status} / (1.024 *
-	      $hier_neighbor_status_time{$neighbor}{$status}));
+      outline(' ' .  $status, $hier_neighbor_status{$neighbor}{$status},
+	      100 * $hier_neighbor_status{$neighbor}{$status} / $hier,
+	      kilomegagigatera($hier_neighbor_status_size{$neighbor}{$status},
+			       $format[3]),
+	      100 * $hier_neighbor_status_size{$neighbor}{$status} /
+	      $hier_size,
+	      $hier_neighbor_status_time{$neighbor}{$status} /
+	      (1000 * $hier_neighbor_status{$neighbor}{$status}),
+	      $hier_neighbor_status_size{$neighbor}{$status} /
+	      (1.024 * $hier_neighbor_status_time{$neighbor}{$status}));
     }
   }
   outseperator();
-  outline(Sum, $hier, ' ', $hier_size / 1024, ' ', $hier_time / (1000 * $hier),
-	  $hier_size / (1.024 * $hier_time));
+  outline(Sum, $hier, ' ', kilomegagigatera($hier_size, $format[3]), ' ',
+	  $hier_time / (1000 * $hier), $hier_size / (1.024 * $hier_time));
   outstop();
 }
 
 if ($opt_d) {
-  @format=(39,8,'%',9,'%','%');
+  @format=(39,9,'%',8,'%','%');
   if ($tcp == 0) {
     outtitle('Request-destinations: none', 8);
   } else {
     outtitle('Request-destinations by 2ndlevel-domain', 8);
     outstart();
-    outheader('destination',' request','% ','  kByte','% ','hit-%');
+    outheader('destination',' request','% ','  Byte','% ','hit-%');
     outseperator();
     @counter = keys %tcp_urlhost;
     $other_urlhost = $#counter + 1;
@@ -1472,24 +1576,26 @@ if ($opt_d) {
       $other_hit -= $tcp_hit_urlhost{$urlhost};
       writecache(N, $urlhost, $tcp_urlhost{$urlhost},
 		 $tcp_urlhost_size{$urlhost}, $tcp_hit_urlhost{$urlhost});
-      outline($urlhost, $tcp_urlhost{$urlhost}, 100 * $tcp_urlhost{$urlhost} /
-	      $tcp, $tcp_urlhost_size{$urlhost} / 1024, 100 *
-	      $tcp_urlhost_size{$urlhost} / $tcp_size, 100 *
-	      $tcp_hit_urlhost{$urlhost} / $tcp_urlhost{$urlhost});
+      outline($urlhost, $tcp_urlhost{$urlhost},
+	      100 * $tcp_urlhost{$urlhost} / $tcp,
+	      kilomegagigatera($tcp_urlhost_size{$urlhost}, $format[3]),
+	      100 * $tcp_urlhost_size{$urlhost} / $tcp_size,
+	      100 * $tcp_hit_urlhost{$urlhost} / $tcp_urlhost{$urlhost});
       last if (--$other_count == 0 and $other != 1);
     }
     if ($other) {
       writecache(N, '<other>', $other, $other_size, $other_hit);
       outline('other: ' . $other_urlhost . ' 2nd-level-domains', $other,
-	      100 * $other / $tcp, $other_size / 1024, 100 * $other_size /
-	      $tcp_size, 100 * $other_hit / $other);
+	      100 * $other / $tcp, kilomegagigatera($other_size, $format[3]),
+	      100 * $other_size / $tcp_size, 100 * $other_hit / $other);
     }
     outseperator();
-    outline(Sum, $tcp, 100, $tcp_size / 1024, 100, 100 * $tcp_hit / $tcp);
+    outline(Sum, $tcp, 100, kilomegagigatera($tcp_size, $format[3]), 100,
+	    100 * $tcp_hit / $tcp);
     outstop();
     outtitle('Request-destinations by toplevel-domain', 9);
     outstart();
-    outheader('destination',' request','% ','  kByte','% ','hit-%');
+    outheader('destination',' request','% ','  Byte','% ','hit-%');
     outseperator();
     @counter = keys %tcp_urltld;
     $other_tld = $#counter + 1;
@@ -1507,20 +1613,21 @@ if ($opt_d) {
       $other_hit -= $tcp_hit_urltld{$urltld};
       writecache(O, $urltld, $tcp_urltld{$urltld}, $tcp_urltld_size{$urltld},
 		 $tcp_hit_urltld{$urltld});
-      outline($urltld, $tcp_urltld{$urltld}, 100 * $tcp_urltld{$urltld} /
-	      $tcp, $tcp_urltld_size{$urltld} / 1024, 100 *
-	      $tcp_urltld_size{$urltld} / $tcp_size, 100 *
-	      $tcp_hit_urltld{$urltld} / $tcp_urltld{$urltld});
+      outline($urltld, $tcp_urltld{$urltld}, 100 * $tcp_urltld{$urltld} / $tcp,
+	      kilomegagigatera($tcp_urltld_size{$urltld}, $format[3]),
+	      100 * $tcp_urltld_size{$urltld} / $tcp_size,
+	      100 * $tcp_hit_urltld{$urltld} / $tcp_urltld{$urltld});
       last if (--$other_count == 0 and $other != 1);
     }
     if ($other) {
       writecache(O, '<other>', $other, $other_size, $other_hit);
-      outline('other: ' . $other_tld . ' top-level-domains', $other, 100 *
-	      $other / $tcp, $other_size / 1024, 100 * $other_size /
-	      $tcp_size, 100 * $other_hit / $other);
+      outline('other: ' . $other_tld . ' top-level-domains', $other,
+	      100 * $other / $tcp, kilomegagigatera($other_size, $format[3]),
+	      100 * $other_size / $tcp_size, 100 * $other_hit / $other);
     }
     outseperator();
-    outline(Sum, $tcp, 100, $tcp_size / 1024, 100, 100 * $tcp_hit / $tcp);
+    outline(Sum, $tcp, 100, kilomegagigatera($tcp_size, $format[3]), 100,
+	    100 * $tcp_hit / $tcp);
     outstop();
   }
 }
@@ -1529,23 +1636,25 @@ if ($opt_t) {
   if ($tcp == 0) {
     outtitle('TCP-Request-protocol: none', 10);
   } else {
-    @format=(39,8,'%',9,'%','%');
+    @format=(39,9,'%',8,'%','%');
     outtitle('TCP-Request-protocol', 10);
     outstart();
-    outheader('protocol',' request','% ','  kByte','% ','hit-%');
+    outheader('protocol',' request','% ','  Byte','% ','hit-%');
     outseperator();
     foreach $urlprot (sort {${"tcp_urlprot$sortorder"}{$b} <=>
 			    ${"tcp_urlprot$sortorder"}{$a}}
 		      keys(%tcp_urlprot)) {
       writecache(P, $urlprot, $tcp_urlprot{$urlprot},
 		 $tcp_urlprot_size{$urlprot}, $tcp_hit_urlprot{$urlprot});
-      outline($urlprot, $tcp_urlprot{$urlprot}, 100 * $tcp_urlprot{$urlprot} /
-	      $tcp, $tcp_urlprot_size{$urlprot} / 1024, 100 *
-	      $tcp_urlprot_size{$urlprot} / $tcp_size, 100 *
-	      $tcp_hit_urlprot{$urlprot} / $tcp_urlprot{$urlprot});
+      outline($urlprot, $tcp_urlprot{$urlprot},
+	      100 * $tcp_urlprot{$urlprot} / $tcp,
+	      kilomegagigatera($tcp_urlprot_size{$urlprot}, $format[3]),
+	      100 * $tcp_urlprot_size{$urlprot} / $tcp_size,
+	      100 * $tcp_hit_urlprot{$urlprot} / $tcp_urlprot{$urlprot});
     }
     outseperator();
-    outline(Sum, $tcp, 100, $tcp_size / 1024, 100, 100 * $tcp_hit / $tcp);
+    outline(Sum, $tcp, 100, kilomegagigatera($tcp_size, $format[3]), 100,
+	    100 * $tcp_hit / $tcp);
     outstop();
   }
   if ($tcp == 0) {
@@ -1553,7 +1662,7 @@ if ($opt_t) {
   } else {
     outtitle('Requested content-type', 11);
     outstart();
-    outheader('content-type',' request','% ','  kByte','% ','hit-%');
+    outheader('content-type',' request','% ','  Byte','% ','hit-%');
     outseperator();
     @counter = keys %tcp_content;
     $other_content = $#counter + 1;
@@ -1571,20 +1680,22 @@ if ($opt_t) {
       $other_hit -= $tcp_hit_content{$content};
       writecache(Q, $content, $tcp_content{$content},
 		 $tcp_content_size{$content}, $tcp_hit_content{$content});
-      outline($content, $tcp_content{$content}, 100 * $tcp_content{$content} /
-	      $tcp, $tcp_content_size{$content} / 1024, 100 *
-	      $tcp_content_size{$content} / $tcp_size, 100 *
-	      $tcp_hit_content{$content} / $tcp_content{$content});
+      outline($content, $tcp_content{$content},
+	      100 * $tcp_content{$content} / $tcp,
+	      kilomegagigatera($tcp_content_size{$content}, $format[3]),
+	      100 * $tcp_content_size{$content} / $tcp_size,
+	      100 * $tcp_hit_content{$content} / $tcp_content{$content});
       last if (--$other_count == 0 and $other != 1);
     }
     if ($other) {
       writecache(Q, '<other>', $other, $other_size, $other_hit);
-      outline('other: '. $other_content . ' content-types', $other, 100 *
-	      $other / $tcp, $other_size / 1024, 100 * $other_size /
-	      $tcp_size, 100 * $other_hit / $other);
+      outline('other: '. $other_content . ' content-types', $other,
+	      100 * $other / $tcp, kilomegagigatera($other_size, $format[3]),
+	      100 * $other_size / $tcp_size, 100 * $other_hit / $other);
     }
     outseperator();
-    outline(Sum, $tcp, 100, $tcp_size / 1024, 100, 100 * $tcp_hit / $tcp);
+    outline(Sum, $tcp, 100, kilomegagigatera($tcp_size, $format[3]), 100,
+	    100 * $tcp_hit / $tcp);
     outstop();
   }
   if ($tcp == 0) {
@@ -1592,7 +1703,7 @@ if ($opt_t) {
   } else {
     outtitle('Requested extensions', 12);
     outstart();
-    outheader('extensions',' request','% ','  kByte','% ','hit-%');
+    outheader('extensions',' request','% ','  Byte','% ','hit-%');
     outseperator();
     @counter = keys %tcp_urlext;
     $other_urlext = $#counter + 1;
@@ -1609,32 +1720,33 @@ if ($opt_t) {
       $other_hit -= $tcp_hit_urlext{$urlext};
       writecache(R, $urlext, $tcp_urlext{$urlext}, $tcp_urlext_size{$urlext},
 		 $tcp_hit_urlext{$urlext});
-      outline($urlext, $tcp_urlext{$urlext}, 100 * $tcp_urlext{$urlext} /
-	      $tcp, $tcp_urlext_size{$urlext} / 1024, 100 *
-	      $tcp_urlext_size{$urlext} / $tcp_size, 100 *
-	      $tcp_hit_urlext{$urlext} / $tcp_urlext{$urlext});
+      outline($urlext, $tcp_urlext{$urlext}, 100 * $tcp_urlext{$urlext} / $tcp,
+	      kilomegagigatera($tcp_urlext_size{$urlext}, $format[3]),
+	      100 * $tcp_urlext_size{$urlext} / $tcp_size,
+	      100 * $tcp_hit_urlext{$urlext} / $tcp_urlext{$urlext});
       last if (--$other_count == 0 and $other != 1);
     }
     if ($other) {
       writecache(R, '<other>', $other, $other_size, $other_hit);
-      outline('other: '. $other_urlext . ' extensions', $other, 100 * $other /
-	      $tcp, $other_size / 1024, 100 * $other_size / $tcp_size,
-	      100 * $other_hit / $other);
+      outline('other: '. $other_urlext . ' extensions', $other,
+	      100 * $other / $tcp, kilomegagigatera($other_size, $format[3]),
+	      100 * $other_size / $tcp_size, 100 * $other_hit / $other);
     }
     outseperator();
-    outline(Sum, $tcp, 100, $tcp_size / 1024, 100, 100 * $tcp_hit / $tcp);
+    outline(Sum, $tcp, 100, kilomegagigatera($tcp_size, $format[3]), 100,
+	    100 * $tcp_hit / $tcp);
     outstop();
   }
 }
 
 if ($opt_r) {
-  @format=(33,8,'%',9,'%',4,'kbs');
+  @format=(33,9,'%',8,'%',4,'kbs');
   if ($udp == 0) {
     outtitle('Incoming UDP-requests by host: none', 13);
   } else {
     outtitle('Incoming UDP-requests by host', 13);
     outstart();
-    outheader('host',' request','hit-%','  kByte','hit-%','msec',' kB/sec');
+    outheader('host',' request','hit-%','  Byte','hit-%','msec',' kB/sec');
     outseperator();
     foreach $requester (sort {${"udp_requester$sortorder"}{$b} <=>
 			      ${"udp_requester$sortorder"}{$a}}
@@ -1644,18 +1756,21 @@ if ($opt_r) {
 		 $udp_requester_time{$requester},
 		 $udp_hit_requester{$requester},
 		 $udp_hit_requester_size{$requester});
-      outline($requester, $udp_requester{$requester}, 100 *
-	      $udp_hit_requester{$requester} / $udp_requester{$requester},
-	      $udp_requester_size{$requester} / 1024, 100 *
-	      $udp_hit_requester_size{$requester} /
-	      $udp_requester_size{$requester}, $udp_requester_time{$requester}
-	      / $udp_requester{$requester}, $udp_requester_size{$requester} /
-	      (1.024 * $udp_requester_time{$requester}));
+      outline($requester, $udp_requester{$requester},
+	      100 * $udp_hit_requester{$requester} /
+		$udp_requester{$requester},
+	      kilomegagigatera($udp_requester_size{$requester}, $format[3]),
+	      100 * $udp_hit_requester_size{$requester} /
+		$udp_requester_size{$requester},
+	      $udp_requester_time{$requester} / $udp_requester{$requester},
+	      $udp_requester_size{$requester} /
+		(1.024 * $udp_requester_time{$requester}));
     }
     outseperator();
-    outline(Sum, $udp, 100 * $udp_hit / $udp, $udp_size / 1024, 100 *
-	    $udp_hit_size / $udp_size, $udp_time / $udp, $udp_size / (1.024 *
-	    $udp_time));
+    outline(Sum, $udp, 100 * $udp_hit / $udp, kilomegagigatera($udp_size,
+							       $format[3]),
+	    100 * $udp_hit_size / $udp_size, $udp_time / $udp, 
+	    $udp_size / (1.024 * $udp_time));
     outstop();
   }
 
@@ -1664,7 +1779,7 @@ if ($opt_r) {
   } else {
     outtitle('Incoming TCP-requests by host', 14);
     outstart();
-    outheader('host',' request','hit-%','  kByte','hit-%','sec',' kB/sec');
+    outheader('host',' request','hit-%','  Byte','hit-%','sec',' kB/sec');
     outseperator();
     @counter = keys %tcp_requester;
     $other_requester = $#counter + 1;
@@ -1689,28 +1804,32 @@ if ($opt_r) {
 		 $tcp_requester_time{$requester},
 		 $tcp_hit_requester{$requester},
 		 $tcp_hit_requester_size{$requester});
-      outline($requester, $tcp_requester{$requester}, 100 *
-	      $tcp_hit_requester{$requester} / $tcp_requester{$requester},
-	      $tcp_requester_size{$requester} / 1024, 100 *
-	      $tcp_hit_requester_size{$requester} /
-	      $tcp_requester_size{$requester}, $tcp_requester_time{$requester}
-	      / (1000 * $tcp_requester{$requester}),
-	      $tcp_requester_size{$requester} / (1.024 *
-	      $tcp_requester_time{$requester}));
+      outline($requester, $tcp_requester{$requester},
+	      100 * $tcp_hit_requester{$requester} /
+		$tcp_requester{$requester},
+	      kilomegagigatera($tcp_requester_size{$requester}, $format[3]),
+	      100 * $tcp_hit_requester_size{$requester} /
+		$tcp_requester_size{$requester},
+	      $tcp_requester_time{$requester} / (1000 *
+						 $tcp_requester{$requester}),
+	      $tcp_requester_size{$requester} /
+		(1.024 * $tcp_requester_time{$requester}));
       last if(--$other_count == 0 and $other != 1);
     }
     if ($other) {
       writecache(T, '<other>', $other, $other_size, $other_time, $other_hit,
 		 $other_hit_size);
-      outline('other: ' . $other_requester . ' requesting hosts', $other, 100
-	      * $other_hit / $other, $other_size / 1024, 100 * $other_hit_size
-	      / $other_size, $other_time / (1000 * $tcp), $other_size / (1.024
-	      * $tcp_time));
+      outline('other: ' . $other_requester . ' requesting hosts', $other,
+	      100 * $other_hit / $other, kilomegagigatera($other_size,
+							  $format[3]),
+	      100 * $other_hit_size / $other_size, $other_time / (1000 * $tcp),
+	      $other_size / (1.024 * $tcp_time));
     }
     outseperator();
-    outline(Sum, $tcp, 100 * $tcp_hit / $tcp, $tcp_size / 1024, 100 *
-	    $tcp_hit_size / $tcp_size, $tcp_time / (1000 * $tcp), $tcp_size /
-	    (1.024 * $tcp_time));
+    outline(Sum, $tcp, 100 * $tcp_hit / $tcp, kilomegagigatera($tcp_size,
+							       $format[3]),
+	    100 * $tcp_hit_size / $tcp_size, $tcp_time / (1000 * $tcp),
+	    $tcp_size / (1.024 * $tcp_time));
     outstop();
   }
 }
@@ -1719,11 +1838,11 @@ if ($opt_P) {
   if ($tcp == 0) {
     outtitle("Performance in $opt_P minute steps: no matching requests", 15);
   } else {
-    @format=(15,8,6,'kbs','kbs','kbs','kbs','kbs','kbs');
+    @format=(15,9,5,'kbs','kbs','kbs','kbs','kbs','kbs');
     outtitle("Performance in $opt_P minute steps", 15); outstart();
     outheader('', '', '', 'incomin', '   hit', '  miss', ' direct', 'sibling',
 	      ' fetch');
-    outheader('date', ' request', ' MByte', ' kB/sec', ' kB/sec', ' kB/sec',
+    outheader('date', ' request', ' Byte', ' kB/sec', ' kB/sec', ' kB/sec',
 	      ' kB/sec', ' kB/sec', ' kB/sec');
     outseperator();
     foreach $perf_date (sort {$a <=> $b} keys(%perf_counter)) {
@@ -1740,7 +1859,7 @@ if ($opt_P) {
 		 $perf_hier_parent_size{$perf_date},
 		 $perf_hier_parent_time{$perf_date});
       outline(substr(convertdate($perf_date),0,15), $perf_counter{$perf_date},
-	      $perf_size{$perf_date} / 1048576,
+	      kilomegagigatera($perf_size{$perf_date}, $format[2]),
 	      removezerotimes($perf_size{$perf_date}, $perf_time{$perf_date}),
 	      removezerotimes($perf_tcp_hit_size{$perf_date},
 			      $perf_tcp_hit_time{$perf_date}),
@@ -1754,7 +1873,7 @@ if ($opt_P) {
 			      $perf_hier_parent_time{$perf_date}));
     }
     outseperator();
-    outline('overall', $tcp, $tcp_size / 1048576,
+    outline('overall', $tcp, kilomegagigatera($tcp_size, $format[2]),
 	    removezerotimes($tcp_size, $tcp_time),
 	    removezerotimes($tcp_hit_size, $tcp_hit_time),
 	    removezerotimes($tcp_miss_size, $tcp_miss_time),
@@ -1769,7 +1888,7 @@ close(CACHE);
 if ($opt_w) {
   print('  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.29 $, Copyright &copy; 1997, 1998, 1999
+   $Revision: 2.30 $, Copyright &copy; 1997, 1998, 1999, 2000
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
@@ -1781,7 +1900,23 @@ if ($opt_w) {
 } else {
   print("\n\n");
   print("-- \n") if ($opt_m);
-  print("$COPYRIGHT\n");
+  print("$VERSION\n$COPYRIGHT\n");
+}
+
+sub kilomegagigatera {
+  my ($value) = shift(@_);
+  my ($length) = shift(@_);
+  if ($value > 10 ** ($length + 8)) {
+    return int(($value / 1024 ** 4) + .5) . 'T';
+  } elsif ($value > 10 ** ($length + 5)) {
+    return int(($value / 1024 ** 3) + .5) . 'G';
+  } elsif ($value > 10 ** ($length + 2)) {
+    return int(($value / 1024 ** 2) + .5) . 'M';
+  } elsif ($value > 10 ** ($length)) {
+    return int(($value / 1024) + .5) . 'K';
+  } else {
+    return $value;
+  }
 }
 
 sub removezerotimes {
