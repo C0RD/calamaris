@@ -26,7 +26,6 @@ Which software can produce Calamaris-parseable Logfiles?
 * Novell Internet Caching System (http://www.novell.com/products/ics/)
 * Netscape/iplanet Web Proxy Server
   (http://www.iplanet.com/downloads/download/detail_14_13.html)
-* NetApp NetCache V
 
 Where to get Calamaris?
 -----------------------
@@ -71,6 +70,7 @@ How to use it?
   + Squid V1.1.beta26-V2.x Native logfiles
   + Squid V1.1.beta26-V2.x Native logfiles with log_mime_hdrs enabled
   + NetCache V??? Squid-style Logfiles
+  + NetCache V5.x Default Logfile-Format (Extended Logfile-Format)
   + Inktomi Traffic Server V??? Logfiles
   + OOPS V??? Native logfiles
   + Extended Logfile-Format
@@ -209,6 +209,9 @@ it to the wish-list below :-)
 
 * add a n-level requester report. (suggested by Jarkko Saloranta <jjs@kpo.fi>)
 
+* add a timerange-option to better filter out intersting events from the log.
+  (suggested by Steffen Sledz <sledz@zone42.org>)
+
 * build graphics (hope i remember who suggested this first, the mail must be
   somewhere in my work-mailbox ;-) (This is a thing for Calamaris v3, if i
   ever going to write it. there are nice gd-libs in Perl ;-)
@@ -217,6 +220,7 @@ it to the wish-list below :-)
   faster language: Feel Free! (But respect the GNU-License) It would be nice
   if you drop me a line about it, I'll mention it below. And please please
   please don't use the name 'Calamaris' for it without asking me!
+
 
 Is there anything else?
 -----------------------
@@ -253,4 +257,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.30 2001-03-24 21:27:48 cord Exp $
+$Id: README,v 2.31 2002-01-17 19:46:57 cord Exp $
