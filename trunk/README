@@ -99,10 +99,13 @@ Are there known bugs or other problems?
 * If you parse NetCache logfiles with Calamaris, it seems that you can run
   into trouble. I've looked for information on the logfile-format from the
   vendor, but it seems that they don't give info to people who don't want to
-  tell them their name and address.  So, if someone can provide me with that
-  info, I'll try to put it into Calamaris, if not... (I've seen that NetCache
-  produces broken logfiles with different counts of fields, is that a buggy
-  version?)
+  tell them their name and address.  
+
+  HELP REQUEST: If someone can provide me info about NetCache Logfiles or send
+  me a few(! I've only a 28k8 Dialup) lines of a NetCache Logfiles, along with
+  the NetCache version number.  I'll try to put it into Calamaris. (I've seen
+  that NetCache produces broken logfiles with different counts of fields, is
+  that a buggy version?)
 
 * If you want to parse more than one logfile (i.e. from the 'logfilerotate')
   or want to use more than one input-cache-file you have to put them in
@@ -141,11 +144,14 @@ But if you have an idea what is still missing in a software for parsing
 proxy logfiles, let me know. --> Calamaris@Cord.de. I'll will build it in, or
 add it to the wish-list below :-)
 
-* rewrite peak-measurement. The current calculation method is very time
-  intensive and slows down Calamaris by 30 or more percent, but it is faster
-  than the old way. However: i'm not really satisfied with it. So if someone
-  has an idea how to build an efficient AND fast method to work it out... let
-  me know!
+* rewrite peak-measurement. The new calculation method is very time intensive
+  and slows down Calamaris by 30 or more percent, but it is faster than the
+  old way. However: i'm not really satisfied with it, so i put it out of the
+  -a -option. You'll have to add a '-p (old|new)' -option to get
+  old or new peak-statistic. 
+
+  HELP REQUEST: If someone has an idea how to build an efficient AND fast
+  method to work it out... let me know!
 
 * try 'use integer'. This can result in a less memory-hungry, but faster
   version of Calamaris. (idea by Gerold Meerkoetter)
@@ -206,4 +212,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.16 1999-02-03 22:27:26 cord Exp $
+$Id: README,v 2.17 1999-02-04 22:18:32 cord Exp $
