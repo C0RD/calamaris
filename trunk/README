@@ -24,7 +24,8 @@ Which software can produce Calamaris-parseable Logfiles?
 * Oops! proxy server V??? (http://zipper.paco.net/~igor/oops.eng/)
 * Compaq Tasksmart (http://www.compaq.com/tasksmart/)
 * Novell Internet Caching System (http://www.novell.com/products/ics/)
-
+* Netscape/iplanet Web Proxy Server
+  (http://www.iplanet.com/downloads/download/detail_14_13.html)
 
 Where to get Calamaris?
 -----------------------
@@ -115,12 +116,22 @@ Are there known bugs or other problems?
 * I added input-file guessing to Calamaris. This is probably buggy, but as
   nobody reported a problem yet, i switched it to the default. To get the old
   default back you have to add '-f squid' on the invocation line. However: if
-  all works correct you should not notice any difference to the old behaviour.
+  all works correct you shouldn't notice any difference to the old behaviour.
 
 * I fixed a bug regarding caching of Performance-Data. This breaks old
   Calamaris-Cache-Files... I put a workaround in, which allows to parse old
   and new cachefiles. But you will loose the 'Cache-Hits'-value from old files
   in the Performance-Report.  It is set to '-' in the output.
+
+* If you reuse a cache-file, which is not created with 
+  '-d -1 -r -1 -t -1 -R -1' the number of 'others' is likely wrong everywhere. 
+  (reported by Clare Lahiff (clare@tarboosh.anu.edu.au))
+
+  If i store the number of 'others' somewhere i still don't know which data is
+  ment there, and in the next run (if i sum up) the number of others is to
+  high (if the number of occurances is below the treshold) or the summed up
+  data misses the occurences of the last run (if the number of occurances is
+  above the treshold). i think i can't fix this...
 
 * If you want to parse more than one logfile (i.e. from the 'logfilerotate')
   or want to use more than one input-cache-file you have to put them in
@@ -231,4 +242,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.28 2000-09-14 17:08:36 cord Exp $
+$Id: README,v 2.29 2000-10-27 13:48:37 cord Exp $
