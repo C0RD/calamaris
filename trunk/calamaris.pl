@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 2.5 1998-10-10 18:51:48 cord Exp $
+# $Id: calamaris.pl,v 2.6 1998-10-12 18:41:17 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Log-files
 #
@@ -66,7 +66,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 2.5 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 2.6 $, Copyright (C) 1997, 1998 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -147,14 +147,11 @@ $counter = $hier = $hier_direct = $hier_direct_size = $hier_direct_time =
   = $peak_tcp_min = $peak_tcp_min_time = $peak_tcp_sec = $peak_tcp_sec_time =
   $peak_udp_hour = $peak_udp_hour_time = $peak_udp_min = $peak_udp_min_time =
   $peak_udp_sec = $peak_udp_sec_time = $size = $tcp = $tcp_hit = $tcp_hit_size
-  = $tcp_hit_time = $tcp_miss = $tcp_miss_direct = $tcp_miss_direct_size =
-  $tcp_miss_direct_time = $tcp_miss_neighbor_hit = $tcp_miss_neighbor_hit_size
-  = $tcp_miss_neighbor_hit_time = $tcp_miss_neighbor_miss =
-  $tcp_miss_neighbor_miss_size = $tcp_miss_neighbor_miss_time = $tcp_miss_none
-  = $tcp_miss_none_size = $tcp_miss_none_time = $tcp_miss_size =
-  $tcp_miss_time = $tcp_size = $tcp_time = $time = $time_end = $time_run =
-  $udp = $udp_hit = $udp_hit_size = $udp_hit_time = $udp_miss = $udp_miss_size
-  = $udp_miss_time = $udp_size = $udp_time = 0;
+  = $tcp_hit_time = $tcp_miss = $tcp_miss_none = $tcp_miss_none_size =
+  $tcp_miss_none_time = $tcp_miss_size = $tcp_miss_time = $tcp_size =
+  $tcp_time = $time = $time_end = $time_run = $udp = $udp_hit = $udp_hit_size
+  = $udp_hit_time = $udp_miss = $udp_miss_size = $udp_miss_time = $udp_size =
+  $udp_time = 0;
 $time_begin = 9999999999;
 
 if ($opt_i) {
@@ -701,37 +698,6 @@ unless ($opt_z) {
 	  $tcp_miss_requester{$requester}++;
 	  $tcp_miss_requester_size{$requester} += $log_size;
 	}
-	if ($log_hier_method =~ /(DIRECT|SOURCE_FASTEST)/o) {
-	  $tcp_miss_direct++;
-	  $tcp_miss_direct_size += $log_size;
-	  $tcp_miss_direct_time += $log_reqtime;
-	} elsif ($log_hier_method =~ /(CACHE_DIGEST|PARENT|SIBLING|NEIGHBOR)\w+HIT/o) {
-	  $tcp_miss_neighbor_hit++;
-	  $tcp_miss_neighbor_hit_time += $log_reqtime;
-	  $tcp_miss_neighbor_hit_size += $log_size;
-	  $tcp_miss_neighbor_hit{$log_hier_host} =
-	    $tcp_miss_neighbor_hit_size{$log_hier_host} =
-	    $tcp_miss_neighbor_hit_time{$log_hier_host} = 0 unless defined
-	    $tcp_miss_neighbor_hit{$log_hier_host};
-	  $tcp_miss_neighbor_hit{$log_hier_host}++;
-	  $tcp_miss_neighbor_hit_size{$log_hier_host} += $log_size;
-	  $tcp_miss_neighbor_hit_time{$log_hier_host} += $log_reqtime;
-	} elsif ($log_hier_method =~
-		 /(CARP|PARENT_MISS|(CLOSEST|DEFAULT|FIRST_UP|SINGLE|PASSTHROUGH|ROUNDROBIN)_PARENT)/o) {
-	  $tcp_miss_neighbor_miss++;
-	  $tcp_miss_neighbor_miss_size += $log_size;
-	  $tcp_miss_neighbor_miss_time += $log_reqtime;
-	  $tcp_miss_neighbor{$log_hier_host} =
-	    $tcp_miss_neighbor_miss_size{$log_hier_host} =
-	    $tcp_miss_neighbor_miss_time{$log_hier_host} = 0 unless defined
-	    $tcp_miss_neighbor{$log_hier_host};
-	  $tcp_miss_neighbor_miss{$log_hier_host}++;
-	  $tcp_miss_neighbor_miss_size{$log_hier_host} += $log_size;
-	  $tcp_miss_neighbor_miss_time{$log_hier_host} += $log_reqtime;
-	} else {
-	  warn("unknown log_hier_method: \"$log_hier_method\"
-	    Please report this to Calamaris-bug\@Cord.de\n");
-	}
       }
       if ($log_hier_method ne 'NONE') {
 	$hier++;
@@ -855,12 +821,6 @@ writecache(A, $time_begin, $time_end, $counter, $size, $time, $invalid,
 	   $hier_time, $hier_direct, $hier_direct_size, $hier_direct_time,
 	   $hier_sibling, $hier_sibling_size, $hier_sibling_time,
 	   $hier_parent, $hier_parent_size, $hier_parent_time);
-writecache(B, $peak_udp_sec, $peak_udp_sec_time, $peak_udp_min,
-	   $peak_udp_min_time, $peak_udp_hour, $peak_udp_hour_time,
-	   $peak_tcp_sec, $peak_tcp_sec_time, $peak_tcp_min,
-	   $peak_tcp_min_time, $peak_tcp_hour, $peak_tcp_hour_time,
-	   $peak_all_sec, $peak_all_sec_time, $peak_all_min,
-	   $peak_all_min_time, $peak_all_hour, $peak_all_hour_time);
 $date_start = convertdate($time_begin);
 $date_stop = convertdate($time_end);
 
@@ -914,6 +874,12 @@ outstop();
 
 @format=(3,4,18,5,18,7,18);
 if ($opt_p) {
+  writecache(B, $peak_udp_sec, $peak_udp_sec_time, $peak_udp_min,
+	   $peak_udp_min_time, $peak_udp_hour, $peak_udp_hour_time,
+	   $peak_tcp_sec, $peak_tcp_sec_time, $peak_tcp_min,
+	   $peak_tcp_min_time, $peak_tcp_hour, $peak_tcp_hour_time,
+	   $peak_all_sec, $peak_all_sec_time, $peak_all_min,
+	   $peak_all_min_time, $peak_all_hour, $peak_all_hour_time);
   outtitle('Incoming request peak per protocol', 2);
   outstart();
   outheader('prt', ' sec', 'peak begins at', ' min', 'peak begins at', ' hour',
@@ -1146,8 +1112,8 @@ if ($tcp_miss == 0) {
   outseperator();
   outline(DIRECT, $hier_direct, 100 * $hier_direct / $hier, $hier_direct_size
 	  / 1024, 100 * $hier_direct_size / $hier_size, $hier_direct_time /
-	  (1000 * $hier_direct), 1000 * $hier_direct_size /
-	  (1024 * $hier_direct_time)) unless $tcp_miss_direct == 0;
+	  (1000 * $hier_direct), 1000 * $hier_direct_size / (1024 *
+	  $hier_direct_time)) unless $hier_direct == 0;
   foreach $neighbor (sort {$hier_neighbor{$b} <=> $hier_neighbor{$a}}
 		     keys(%hier_neighbor)) {
     writecache(L, $neighbor, $hier_neighbor{$neighbor},
@@ -1464,9 +1430,8 @@ if ($opt_P) {
 	       $perf_hier_sibling_time{$perf_date},
 	       $perf_hier_parent_size{$perf_date},
 	       $perf_hier_parent_time{$perf_date});
-    outline(substr(convertdate($perf_date),0,15),
-	    $perf_counter{$perf_date},
-	    $perf_size{$perf_date} / 1024^24,
+    outline(substr(convertdate($perf_date),0,15), $perf_counter{$perf_date},
+	    $perf_size{$perf_date} / (1024 * 1024),
 	    removezerotimes($perf_size{$perf_date}, $perf_time{$perf_date}),
 	    removezerotimes($perf_tcp_hit_size{$perf_date},
 	    $perf_tcp_hit_time{$perf_date}),
@@ -1480,8 +1445,8 @@ if ($opt_P) {
 	    $perf_hier_parent_time{$perf_date}));
   }
   outseperator();
-  outline('overall', $counter, $size / 1024^2, removezerotimes($size, $time),
-	  removezerotimes($tcp_hit_size, $tcp_hit_time),
+  outline('overall', $counter, $size / (1024 * 1024), removezerotimes($size,
+	  $time), removezerotimes($tcp_hit_size, $tcp_hit_time),
 	  removezerotimes($tcp_miss_size, $tcp_miss_time),
 	  removezerotimes($hier_direct_size, $hier_direct_time),
 	  removezerotimes($hier_sibling_size, $hier_sibling_time),
