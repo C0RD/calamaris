@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.35 2000-09-14 17:15:58 cord Exp $
+# $Id: calamaris,v 2.36 2000-09-18 17:20:18 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
@@ -57,6 +57,7 @@
 #	Antonio Casado Rodríguez (acasado@ualm.es)
 #	Pavol Adamec (pavol_adamec@tempest.sk)
 #	Ram Cherukuri (ram@edgix.com)
+#	Steven Snyder (Steven_Snyder@3com.com)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -87,13 +88,13 @@
 require 5.002;
 use vars qw($opt_a $opt_b $opt_c $opt_C $opt_d $opt_f $opt_h $opt_H $opt_i
 	    $opt_l $opt_m $opt_n $opt_o $opt_O $opt_p $opt_P $opt_r $opt_R
-	    $opt_s $opt_t $opt_T $opt_u $opt_v $opt_V $opt_w $opt_z);
+	    $opt_s $opt_t $opt_T $opt_u $opt_U $opt_v $opt_V $opt_w $opt_z);
 use Getopt::Std;
 use Sys::Hostname;
 
-getopts('ab:cCd:f:hH:i:l:mno:Op:P:r:R:st:T:uvVwz');
+getopts('ab:cCd:f:hH:i:l:mno:Op:P:r:R:st:T:uU:vVwz');
 
-$VERSION='Calamaris $Revision: 2.35 $';
+$VERSION='Calamaris $Revision: 2.36 $';
 
 $COPYRIGHT='Copyright (C) 1997, 1998, 1999, 2000 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
@@ -139,6 +140,8 @@ Output Format: (Default is plain text)
 -w	web	(HTML format, can be combined with -m)
 -l string logo	(add this string to the head of the report. works only in
 		 combination with -w)
+-U string Unit  (define the Unit for the Byte-values, else it will be auto)
+		K(ilo), M(ega), G(iga), T(era)
 
 Caching:
 -i file	input-file (input-datafile for caching, to add many files separate
@@ -179,6 +182,11 @@ if ($opt_b and $opt_b < 1) {
   exit 1;
 } else {
   $|=1;
+}
+
+if ($opt_U and not $opt_U =~ m#^[KMGT]$#) {
+  print(STDERR "$0: wrong value at -U -option: \"$opt_U\"\n\n$USAGE\n\n");
+  exit 1;
 }
 
 if ($opt_H) {
@@ -1453,7 +1461,7 @@ if ($opt_w) {
 <html>
  <head>
   <title>${hostname}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.35 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.36 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
@@ -2382,7 +2390,7 @@ close(CACHE);
 if ($opt_w) {
   print('  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.35 $, Copyright &copy; 1997, 1998, 1999, 2000
+   $Revision: 2.36 $, Copyright &copy; 1997, 1998, 1999, 2000
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
@@ -2400,13 +2408,13 @@ if ($opt_w) {
 sub kilomegagigatera {
   my ($value) = shift(@_);
   my ($length) = shift(@_);
-  if ($value > 10 ** ($length + 8)) {
+  if ($value > 10 ** ($length + 8) or $opt_U eq 'T') {
     return int(($value / 1024 ** 4) + .5) . 'T';
-  } elsif ($value > 10 ** ($length + 5)) {
+  } elsif ($value > 10 ** ($length + 5) or $opt_U eq 'G') {
     return int(($value / 1024 ** 3) + .5) . 'G';
-  } elsif ($value > 10 ** ($length + 2)) {
+  } elsif ($value > 10 ** ($length + 2) or $opt_U eq 'M') {
     return int(($value / 1024 ** 2) + .5) . 'M';
-  } elsif ($value > 10 ** ($length)) {
+  } elsif ($value > 10 ** ($length) or $opt_U eq 'K') {
     return int(($value / 1024) + .5) . 'K';
   } else {
     return $value;
