@@ -1,4 +1,4 @@
-.TH CALAMARIS 1 "$Date: 1999-01-22 21:02:51 $" Handmade "Calamaris Manual"
+.TH CALAMARIS 1 "$Date: 1999-02-04 22:30:37 $" Handmade "Calamaris Manual"
 
 .SH NAME
 calamaris \- generate statistic out of log files from Squid or relatives
@@ -31,7 +31,7 @@ and gives a few examples.
 all: extracts all reports available,
 .I "-a"
 equals
-.I "-d 20 -p -P 60 -r -1 -s -t 20" .
+.I "-d 20 -P 60 -r -1 -s -t 20" .
 
 .TP
 .I "-d" n
@@ -39,11 +39,15 @@ domain report: switches the top level and the second level report on.  The
 data is derived from the URL.  The output is limited by n.  (-1 is unlimited)
 
 .TP
-.I "-p"
+.I "-p" type
 peak report: Measures the peaks of the 
 .B Squid
 usage in requests per second, per minute and per hour.  It reports peaks for
-TCP, UDP and ALL requests.
+TCP, UDP and ALL requests. If set to
+.I 'old'
+these values were calculated with the old slow method, if set to
+.I 'new'
+the new faster (but still slow) method is used. 
 
 .TP
 .I "-P" n
@@ -64,6 +68,18 @@ and makes the status reports more verbose.
 .I "-t" n
 type report: switches the content type and the file extension report on.  The
 output is limited by n.  (-1 is unlimited)
+
+.SS Input Format
+.TP
+.I "-f" type
+format: sets the type of input logfiles. The Default is Native-Logfile derived
+from Squid V1.1.beta26-V2.x. if set to 
+.I 'old' 
+.B Calamaris 
+expects Native-Logfile derived from Squid V1.1.alpha1-V1.1.beta25, if set to 
+.I 'nc1' or
+.I 'nc2'
+it expects Logfiles from Netcache. (Please read the README on this.)
 
 .SS Output Format
 Standard output format is plain
@@ -209,9 +225,9 @@ Cord Beermann.
 
 .SH VERSION
 
-Version of this manpage: $Id: calamaris.1,v 1.6 1999-01-22 21:02:51 cord Exp $
+Version of this manpage: $Id: calamaris.1,v 1.7 1999-02-04 22:30:37 cord Exp $
 
-It describes the usage of Calamaris V2.16 and later.
+It describes the usage of Calamaris V2.19 and later.
 
 Information about new releases, mailing lists, and other related issues
 can be found from the 
