@@ -103,10 +103,10 @@ Are there known bugs or other problems?
   and think about it, before using Calamaris to be the 'Big Brother':
 
   - If you don't trust your users than there is something more wrong than
-  the loss of productivity.
+    the loss of productivity.
   - Squid has some nice acl-mechanisms. If you think that your users don't
-  use the net properly, don't let them use it. (You can also open the net at
-  specific times or tp specific sites, if you want.)
+    use the net properly, don't let them use it. (You can also open the net
+    at specific times or tp specific sites, if you want.)
 
   If you still want to use Calamaris that way, let your vict^Wusers know
   that they'll be monitored. (in Germany you have to let them know!)
@@ -141,13 +141,22 @@ Are there known bugs or other problems?
   software for that available, i.e. my shrimp.pl. This also applies for the
   Common-style Logfiles which NetCache produces.
 
+* If you use Calamaris at unix-epoch-date 2147483648 or later (~19.Jan 2038)
+  you might get wrong dates on 32bit-systems.  (I just added this to delight
+  the people who really read this ;-) and to make a statement on this... on
+  Y2K they found many systems which wasn't expected to run in that year. If
+  you read this while checking if this package is Y2K038-compatible, then
+  this is probably a really old system ;-)
+  Y2038-Statement: Calamaris is as buggy as the used perl-version.
+
 * It is written in Perl. Yea, Perl is a great language for something like this
   (also it is the only one I'm able to write something like this in ;-).
   Calamaris was first intended as demo for what i expect from a statistical
   software. (OK, it is fun to write it, and it is even more fun to recognize
   that many people use the script). For my Caches with about 150MB logfile per
   week it is OK, but for those people on a heavy loaded Parent-cache it is
-  possibly to slow.
+  possibly to slow.  How does it perform with the perlcc coming in Perl5.6 or
+  Perl6?
 
 
 What will happen next?
@@ -221,4 +230,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.26 2000-06-24 12:44:30 cord Exp $
+$Id: README,v 2.27 2000-09-02 20:34:54 cord Exp $
