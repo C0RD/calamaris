@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.13 1998-11-16 21:44:36 cord Exp $
+# $Id: calamaris,v 2.14 1998-12-05 10:42:08 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic for Squid and NetCache Native Log-files
 #
@@ -32,6 +32,7 @@
 #	Gary Lindstrom (gplindstrom@exodus.nnc.edu)
 #	Jost Krieger (Jost.Krieger@ruhr-uni-bochum.de)
 #	Gerd Michael Hoffmann <Hoffmann@dvgw.de>
+#	Gerold Meerkoetter (gerold@noc.fh-lippe.de)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -67,7 +68,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:OpP:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 2.13 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 2.14 $, Copyright (C) 1997, 1998 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -169,9 +170,8 @@ if ($opt_i) {
       chomp;
       @cache = split 'µ';
       $x = shift(@cache);
-      unless ($x) {
-	next;
-      } elsif ($x eq A and $#cache == 39) {
+      next unless ($x);
+      if ($x eq A and $#cache == 39) {
 	$time_begin = $cache[0] if $cache[0] < $time_begin;
 	$time_end = $cache[1] if $cache[1] > $time_end;
 	$counter += $cache[2];
@@ -890,9 +890,9 @@ writecache(A, $time_begin, $time_end, $counter, $size, $time, $invalid,
 $date_start = convertdate($time_begin);
 $date_stop = convertdate($time_end);
 
-print("Content-Type: text/html; charset=us-ascii
-Content-Transfer-Encoding: 7bit\n") if ($opt_m and $opt_w);
-printf("Subject:%sProxy-Report (%s - %s)\n\n", $hostname, $date_start,
+print("MIME-Version: 1.0\n", "Content-Type: text/html; charset=us-ascii\n",
+      "Content-Transfer-Encoding: 7bit\n") if ($opt_m and $opt_w);
+printf("Subject: %sProxy-Report (%s - %s)\n\n", $hostname, $date_start,
        $date_stop) if ($opt_m);
 if ($opt_w) {
   print("<html><head><title>Proxy-Report</title></head><body>\n");
