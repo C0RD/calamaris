@@ -37,6 +37,8 @@ found at http://overtone.org/rpms/
 Philipp Frauenfelder (pfrauenf@debian.org) has build a Debian Package, which
 can be found in the slink (Debian 2.1) tree.
 
+Dima Sivachenko (demon@gpad.ac.ru) made a port for FreeBSD, which can be found
+at http://www.freebsd.org/ports/
 
 How to use it?
 --------------
@@ -72,96 +74,8 @@ How to use it?
     are chronologically ordered (oldest file first), else some reports can
     return wrong values.
 
-  You can alter Calamaris' behaviour with switches.  There are four groups of
-  switches:
-
-  Reports-switches:
-
-    without these switches you get a brief report of incoming and outgoing
-    requests.
-
-    -a	    all. switch all available reports on. This is equivalent to 
-	    -d 20 -p -P 60 -r -1 -s -t 20
-
-    -d n    domain-report. It switches the top-level- and the
-	    second-level-domainreport on. The data is derived from the URL.
-	    The output is limited by the number n. (-1 is unlimited)
-
-    -p	    peak-report.  Measure the peaks of the Squid usage in requests per
-	    second, minute and hour. It reports peaks for TCP, UDP and ALL
-	    requests. This option makes Calamaris 30% or more slower.
-
-    -P n    performance-report.  It shows the throughput of TCP-Requests for
-	    every n minutes.
-
-    -r n    requester-report. It switches the UDP- and TCP-Requester-Reports
-	    on. The output is limited by the number n. (-1 is unlimited)
-
-    -s	    status-report. This switch alters the default behaviour of
-	    Calamaris and makes the status-reports more verbose.
-
-    -t n    type-report. It switches the content-type- and the
-	    file-extension-report on. The output is limited by the number n.
-	    (-1 is unlimited)
-
-  Output-switches:
-
-    without these switches you'll get a plain ASCII output with 80 chars
-    width.
-
-    -m	    mail-output. It adds a Subject-Header to the beginning of the
-	    report, so you can pipe the output into a simple mail-program.
-
-    -w      web-report. All output is given in HTML format with HTML tables.
-	    Combined with the -m-option you can also send mail in HTML format.
-	    *urgs*!
-
-  Caching-switches:
-
-    -i file input-file. You can reuse cache-file generated with the -o-option,
-	    to add old data to a new report. You can also add many cache-files
-	    by separating them with a ':'.
-
-	    NOTE: If you use more than one cache-file, make sure that they are
-	      chronological ordered (oldest file first), else some reports can
-	      return wrong values.
-
-    -o file output-file. The file defined contains the processed data. You can
-	    reuse this file in a later run with the -i-option. The output-file
-	    can be the same as a input-file. It will be overwritten with the
-	    new data. The cached data is altered by the report-switches above.
-
-	    NOTE: It is not recommended to change the switches between runs
-	      if you use cache-files, else you can get some strange
-	      measurements.
-
-  Misc-switches:
-
-    -b n    benchmark. a switch for the impatient. ;-) It prints a # for 
-	    every n parsed lines.
-
-    -H name Host-name. This names the output on the Title/Subject of the
-	    output. If set to 'lookup' Calamaris looks up the host-name of the
-	    current machine and puts that name in.
-
-    -n	    no lookup. Switch the IP-number-lookup for the requesters off. 
-
-    -O	    order. Normally Calamaris sorts all reports by the number of the
-	    requests, with this switch you can change the sort order for all 
-	    reports to request-size.
-
-    -u	    user. Switches the usage of eventually available ident-information
-	    for requester-reports on. WARNING: This breaks the privacy of your
-	    users!
-
-    -z	    zero. Switch reading of the Standard-Input off. You can use this
-	    to merge many cache-files to one (see -i and -o) or to generate a
-	    report out of a cache-file.
-
-    -c	    copyright. Prints out the copyright of Calamaris.
-
-    -h	    help. Prints a brief description of command-line-options.
-
+  You can alter Calamaris' behaviour with switches. Start calamris with '-h'
+  or check the manpage.
 
   You should also take a look at the EXAMPLES-File, for
   'Real-Life'-usage-examples of Calamaris.
@@ -268,7 +182,7 @@ times faster than the Perl-variant.  check
 http://statistics.www-cache.dfn.de/Projects/seafood/ for this.
 
 more Squid-logfile-Analysers can be found via the Squid-Home-page at
-http://squid.nlanr.net/
+http://squid.nlanr.net/Squid/Scripts/
 
 A description of the Squid-Logfiles can be found at
 http://squid.nlanr.net/Squid/FAQ/FAQ-6.html.
@@ -292,4 +206,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.15 1999-01-22 21:06:57 cord Exp $
+$Id: README,v 2.16 1999-02-03 22:27:26 cord Exp $
