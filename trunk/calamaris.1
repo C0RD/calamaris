@@ -1,4 +1,4 @@
-.TH CALAMARIS 1 "$Date: 1999-05-11 18:22:25 $" Handmade "Calamaris Manual"
+.TH CALAMARIS 1 "$Date: 2000-05-13 20:06:45 $" Handmade "Calamaris Manual"
 
 .SH NAME
 calamaris \- generate statistic out of log files from 
@@ -76,6 +76,15 @@ output is limited by n.  (-1 is unlimited)
 .TP
 .I -f type
 format: sets the type of input logfiles. If set to
+
+.I 'auto'
+.B Calamaris
+tries to guess the input file format.  This will be the Default
+in a later release.
+
+.B Note:
+If the first line of your input file is corrupted, Calamaris will
+stop with an error.
 
 .I 'squid'
 .B Calamaris 
@@ -155,11 +164,6 @@ measurements.
 .SS Misc
 
 .TP
-.I -b n
-benchmark: A switch for the impatient as it prints a '#' for every n parsed
-lines.
-
-.TP
 .I -H name
 host name: The name for the title or subject of the output.  If set to
 .I 'lookup'
@@ -174,6 +178,15 @@ no lookup: Switches the IP lookup for the requesters off.
 .I -O
 order: Changes the sort order in the reports to request size, default is
 sorting by number of requests.
+
+.TP
+.I -T
+Time: Adjust the Performancereport for non GMT-Timezoners.
+
+.TP
+.I -c
+case: Switch to case-insensitive. This is useful for the
+'Requested extensions' report.
 
 .TP
 .I -u
@@ -193,13 +206,28 @@ and
 or to generate a report out of cache files.
 
 .TP
-.I -c
-copyright: Prints the copyright information of
+.I -b n
+benchmark: A switch for the impatient as it prints a '#' for every n parsed
+lines.
+
+.TP
+.I -v
+verbose: print more information about what is Calamaris is doing
+and beleiving.
+
+.TP
+.I -C
+Copyright: Prints the copyright information of
 .BR Calamaris .
 
 .TP
 .I -h
 help: Prints a brief description of the command line options.
+
+.TP
+.I -V
+Version: Prints out the Version-Number.
+
 .SH EXAMPLES
 
 .TP
@@ -248,9 +276,9 @@ Cord Beermann.
 
 .SH VERSION
 
-Version of this manpage: $Id: calamaris.1,v 1.11 1999-05-11 18:22:25 cord Exp $
+Version of this manpage: $Id: calamaris.1,v 1.12 2000-05-13 20:06:45 cord Exp $
 
-It describes the usage of Calamaris V2.25 and later.
+It describes the usage of Calamaris V2.30 and later.
 
 Information about new releases, mailing lists, and other related issues
 can be found from the 
