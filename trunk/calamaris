@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.49 2002-06-05 17:31:21 cord Exp $
+# $Id: calamaris,v 2.50 2002-06-10 19:46:55 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
@@ -73,6 +73,7 @@
 #	Mark Güthling (privat@mague-pcservice.de)
 #	Sergey Zarubin (serge-home@yandex.ru)
 #	Helge Oldach (calamaris@oldach.net)
+#	Michael R. Schwarzbach (spg@fs.tum.de)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -144,8 +145,14 @@ if ($opt_H) {
 }
 
 if ($opt_N) {
-  if ( $opt_N < 2 and $opt_N ne 'f' ) {
-    print STDERR "$0: wrong value at -N -option: \"$opt_N\"\n\n";
+  if ( $opt_N != -1 and $opt_N < 2 ) {
+    ## REmove this in 2003
+    if ( $opt_N eq 'f' ) {
+      print STDERR "$0: wrong value at -N -option: \"$opt_N\".
+	use -N -1 instead.\n\n";
+    } else {
+      print STDERR "$0: wrong value at -N -option: \"$opt_N\"\n\n";
+    }
     $usage_err = 1;
   }
 }
@@ -174,13 +181,13 @@ $opt_r = $opt_R unless $opt_r;
 
 $P = $opt_P ? $opt_P : '60';
 
-if ( $opt_N > 2 ) {
+if ( $opt_N == -1 or $opt_N > 2 ) {
   if ( $opt_N == 3 ) {
     $N = '3rd';
-  } elsif ( $opt_N =~ m#\d+#o ) {
-    $N = $opt_N . 'th';
-  } else {
+  } elsif ( $opt_N == -1 ) {
     $N = 'all';
+  } else {
+    $N = $opt_N . 'th';
   }
 } else {
   $N = '2nd';
@@ -199,7 +206,7 @@ if ( $opt_N > 2 ) {
 	    'Distribution Histogram', "Performance in $P minute steps"
 	    );
 
-$VERSION='Calamaris $Revision: 2.49 $';
+$VERSION='Calamaris $Revision: 2.50 $';
 
 $COPYRIGHT = 'Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
@@ -279,7 +286,7 @@ Misc:
 -O	Order	(changes the sort order in the reports to request size,
 		 default is sorting by number of requests)
 -N n	N-level (change all 2nd-level-reports to N-level-reports. N can be
-		 any number from 2 up. f means full report.) (*)
+		 any number from 2 up. -1 means full report.)
 -T n	Time	(adjust the Performance-Report in minutes)
 -c	case	(switch to case-insensitive (useful for extensions-report))
 -u	user	(use ident information if available) (*)
@@ -677,42 +684,42 @@ unless ($opt_z) {
   while ( defined( $line = <> ) ) {
     if ( not defined $opt_f or $opt_f eq 'auto' ) {
       if ( $line =~
-	  m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+$#
+	  m#^\d+\.\d+\s+\d+\s+[\w\-\.:]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+$#
 	  )
       {
 	$opt_f = 'squid';
 	print STDERR "guessing... using '-f squid'\n" if ($opt_v);
 	last;
       } elsif ( $line =~
-	       m#^\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+$#
+	       m#^\d+\s+\d+\s+[\w\-\.:]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+$#
 	       )
       {
 	$opt_f = 'its';
 	print STDERR "guessing... using '-f its'\n" if ($opt_v);
 	last;
       } elsif ( $line =~
-	       m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+\s+\[.*\]\s+\[.*\]$#
+	       m#^\d+\.\d+\s+\d+\s+[\w\-\.:]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+\s+\[.*\]\s+\[.*\]$#
 	       )
       {
 	$opt_f = 'squid-mime';
 	print STDERR "guessing... using '-f squid-mime'\n" if ($opt_v);
 	last;
       } elsif ( $line =~
-	  m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+\s+\S+\s*$#
+	  m#^\d+\.\d+\s+\d+\s+[\w\-\.:]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+\s+\S+\s*$#
 	       )
       {
 	$opt_f = 'squid-smartfilter';
 	print STDERR "guessing... using '-f squid-smartfilter'\n" if ($opt_v);
 	last;
       } elsif ( $line =~
-	       m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+$#
+	       m#^\d+\.\d+\s+\d+\s+[\w\-\.:]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+$#
 	       )
       {
 	$opt_f = 'squid-old';
 	print STDERR "guessing... using '-f squid-old'\n" if ($opt_v);
 	last;
       } elsif ( $line =~
-	       m#^\d+\.\d+\s+\d+\s+[\w\-\.]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+(\S|; c)+\s+\S+$#
+	       m#^\d+\.\d+\s+\d+\s+[\w\-\.:]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+(\S|; c)+\s+\S+$#
 	       )
       {
 	$opt_f = 'nc';
@@ -727,7 +734,7 @@ unless ($opt_z) {
 	print STDERR "guessing... using '-f nse'\n" if ($opt_v);
 	last;
       } elsif ( $line =~
-	       m#^[\w\-\.]+\s+\S+\s+\S+\s+\[.+\]\s+\"\w+\s+\S+\s+\S+\"\s+\d+\s+\d+\s+\S+(\s+\[.*\]\s+\[.*\])?$#
+	       m#^[\w\-\.:]+\s+\S+\s+\S+\s+\[.+\]\s+\"\w+\s+\S+\s+\S+\"\s+\d+\s+\d+\s+\S+(\s+\[.*\]\s+\[.*\])?$#
 	       )
       {
 	print STDERR "$0: The first line of the input looks to me as if you
@@ -855,7 +862,7 @@ for ( ; $line ; $line = <> ) {';
     $log_date = $' . ++$offset . ';';
 	$log_date = 0;
       } elsif ( $_ eq 'c-ip' ) {
-	$tmpline1 .= '([\w\-\.]+)';
+	$tmpline1 .= '([\w\-\.:]+)';
 	$tmpline2 .= '
     $log_requester = $' . ++$offset . ';';
       } elsif ( $_ eq 'cs-authname'
@@ -1006,7 +1013,7 @@ Thank You.\n\n";
     $log_min = $' . ++$offset . ';
     $log_sec = $' . ++$offset . ';';
       } elsif ( $_ eq '%Ses->client.ip%' ) {
-	$tmpline1 .= '([\w\-\.]+)';
+	$tmpline1 .= '([\w\-\.:]+)';
 	$tmpline2 .= '
     $log_requester = $' . ++$offset . ';';
       } elsif ( $_ eq '%Req->vars.pauth-user%' ) {
@@ -1162,13 +1169,13 @@ Thank You.\n\n";
   $loop .= '
   if ( $urlhost =~ m#^(([0-9][0-9]{0,2}\.){3})[0-9][0-9]{0,2}$#o ) {';
   $loop .= '
-    $urlhost = $1 . \'*\';' unless $opt_N eq 'f';
+    $urlhost = $1 . \'*\';' unless $opt_N == -1;
   $loop .= '
     $urltld = \'<unresolved>\';
   } elsif ( $urlhost =~ m#^(.*\.([^\.]+\.)?)?([^\.]+\.([^\.]+))\.?$#o ) {
     @list = split \'\.\', $urlhost;
     $urltld = pop @list;';
-  if ( $opt_N ne 'f' ) {
+  if ( $opt_N != -1 ) {
     $loop .= '
     $urlhost = $urltld;';
     for ( $i = $opt_N ; $i != 1 ; $i-- ) {
@@ -1769,7 +1776,7 @@ if ( $opt_w or $opt_W ) {
 <html>
  <head>
   <title>${host_name}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.49 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.50 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
@@ -2988,7 +2995,7 @@ if ($opt_S) {
 if ( $opt_w or $opt_W ) {
   print '  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.49 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002
+   $Revision: 2.50 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
@@ -3034,10 +3041,10 @@ sub removezerotimes {
 
 sub getfqdn {
   my ($host) = @_;
-  if ( $host =~ m#^([^@]+@)?(([0-9][0-9]{0,2}\.){3}[0-9][0-9]{0,2}$)#o ) {
-    $hostcache{$2} = addtonam($2) unless defined $hostcache{$2};
-    return $1 . $hostcache{$2} if defined $1;
-    return $hostcache{$2};
+  if ( $host =~ m#^([^@]+@)?(::ffff:)?(([0-9][0-9]{0,2}\.){3}[0-9][0-9]{0,2}$)#o ) {
+    $hostcache{$3} = addtonam($3) unless defined $hostcache{$3};
+    return $1 . $hostcache{$3} if defined $1;
+    return $hostcache{$3};
   } else {
     return $host;
   }
