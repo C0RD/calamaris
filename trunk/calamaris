@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.48 2002-05-29 20:10:51 cord Exp $
+# $Id: calamaris,v 2.49 2002-06-05 17:31:21 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
@@ -71,6 +71,8 @@
 #	Philipp Frauenfelder (philipp.frauenfelder@swissonline.ch)
 #	Alexey Markov (markov@crpi.ru)
 #	Mark Güthling (privat@mague-pcservice.de)
+#	Sergey Zarubin (serge-home@yandex.ru)
+#	Helge Oldach (calamaris@oldach.net)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -102,11 +104,11 @@ require 5.002;
 use vars qw($opt_3 $opt_a $opt_b $opt_c $opt_C $opt_d $opt_D $opt_f $opt_h
 	    $opt_H $opt_i $opt_l $opt_L $opt_m $opt_n $opt_N $opt_o $opt_O
 	    $opt_p $opt_P $opt_r $opt_R $opt_s $opt_S $opt_t $opt_T $opt_u
-	    $opt_U $opt_v $opt_V $opt_w $opt_z);
+	    $opt_U $opt_v $opt_V $opt_w $opt_W $opt_z);
 use Getopt::Std;
 use Sys::Hostname;
 
-getopts('3ab:cCd:D:f:hH:i:l:LmnN:o:Op:P:r:R:sS:t:T:uU:vVwz');
+getopts('3ab:cCd:D:f:hH:i:l:LmnN:o:Op:P:r:R:sS:t:T:uU:vVwWz');
 
 if ( $opt_b and $opt_b < 1 ) {
   print STDERR "$0: wrong value at -b -option: \"$opt_b\"\n\n";
@@ -197,7 +199,7 @@ if ( $opt_N > 2 ) {
 	    'Distribution Histogram', "Performance in $P minute steps"
 	    );
 
-$VERSION='Calamaris $Revision: 2.48 $';
+$VERSION='Calamaris $Revision: 2.49 $';
 
 $COPYRIGHT = 'Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
@@ -247,6 +249,7 @@ Input Format:
 Output Format: (Default is plain text)
 -m	mail	(mail format)
 -w	web	(HTML format, can be combined with -m)
+-W	Web	(HTML format without HTML-headers)
 -l string logo	(add this string to the head of the report. works only in
 		 combination with -w)
 -U string Unit  (define the Unit for the Byte-values, else it will be auto)
@@ -1136,7 +1139,7 @@ Thank You.\n\n";
     $urlprot = $urlhost = \'<error>\';
   }
   $urlext = \'.<dynamic>\'
-    if ( $urlext =~ m#[\?;&\$,!@=|]#o or $log_method eq \'POST\' );
+    if ( $urlext =~ m#[\?;&\$,!@=|%]#o or $log_method eq \'POST\' );
   unless ( defined $urlhost ) {
     $urlhost = $urlprot;';
   $loop .= '
@@ -1168,7 +1171,7 @@ Thank You.\n\n";
   if ( $opt_N ne 'f' ) {
     $loop .= '
     $urlhost = $urltld;';
-    for ( $i = $opt_N; $i != 1 ; $i-- ) {
+    for ( $i = $opt_N ; $i != 1 ; $i-- ) {
       $loop .= '
     $urlhost = pop (@list) . \'.\' . $urlhost if $#list >= 0;';
     }
@@ -1759,19 +1762,19 @@ Content-Transfer-Encoding: 7bit
 $out_head .=
   "Subject: ${host_name}Proxy Report ($date_start - $date_stop)\n\n"
   if ($opt_m);
-if ($opt_w) {
+if ( $opt_w or $opt_W ) {
   $out_head .=
     "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"
 	\"http://www.w3.org/TR/REC-html40/loose.dtd\">
 <html>
  <head>
   <title>${host_name}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.48 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.49 $' . "\">
  </head>
  <body bgcolor=\"#FFFFFF\">
   <table border=\"0\">
-   <tr>\n";
-  $out_head .= "    <td>$opt_l</td>\n" if ($opt_l);
+   <tr>\n" if ($opt_w);
+  $out_head .= "    <td>$opt_l</td>\n" if ( $opt_l and $opt_w );
   $out_head .= "    <td>
      <h1><a name=\"top\">${host_name}Proxy Report</a></h1>
      <p>$date_start - $date_stop</p>
@@ -1779,7 +1782,9 @@ if ($opt_w) {
    </tr>
   </table>
   <hr>
-  <ul>\n";
+  <ul>\n" if ($opt_w);
+  $out_head .= "<p>$date_start - $date_stop</p>
+  <ul>\n" if ($opt_W);
 
   if ($opt_S) {
     foreach ( split ( ",", $opt_S ) ) {
@@ -1816,7 +1821,6 @@ if ($opt_w) {
 }
 
 @format = ( 19, 8 );
-outtitle(0);
 outstart(0);
 outline( 0, 'lines parsed:', $counter );
 outline( 0, 'invalid lines:', $invalid );
@@ -1856,7 +1860,6 @@ if ( not defined $opt_p ) {
 	     $peak_all_sec, $peak_all_sec_time, $peak_all_min,
 	     $peak_all_min_time, $peak_all_hour, $peak_all_hour_time
 	     );
-  outtitle(1);
   outstart(1);
   outheader(
 	    1, 'prt', ' sec', 'peak begins at', ' min', 'peak begins at',
@@ -1921,7 +1924,6 @@ if ( not defined $opt_p ) {
 	     $peak_all_hour_size{$peak_all_hour_size_time},
 	     $peak_all_hour_size_time
 	     );
-  outtitle(1);
   outstart(1);
   outheader(
 	    1, 'prt', ' sec', 'peak begins at', ' min', 'peak begins at',
@@ -1949,7 +1951,6 @@ if ( not defined $opt_p ) {
 	  );
   outstop(1);
   @format = ( 5, 8, 18 );
-  outtitle(2);
   outstart(2);
   outheader( 2, 'proto', ' kB/hour', 'peak begins at' );
   outseperator(2);
@@ -1963,12 +1964,11 @@ if ( not defined $opt_p ) {
   outstop(2);
 }
 
-outtitle(3);
+@format = ( 33, 9, '%', 8, '%', 4, 'kbs' );
+outstart(3);
 if ( $counter == 0 ) {
   outline( 3, 'no matching requests' );
 } else {
-  @format = ( 33, 9, '%', 8, '%', 4, 'kbs' );
-  outstart(3);
   outheader( 3, 'method', ' request', '% ', '  Byte', '% ', ' sec',
 	    ' kB/sec' );
   outseperator(3);
@@ -1991,15 +1991,14 @@ if ( $counter == 0 ) {
   outseperator(3);
   outline( 3, 'Sum', $counter, 100, kilomegagigatera( $size, $format[3] ),
 	  100, $time / ( $counter * 1000 ), $size / ( 1.024 * $time ) );
-  outstop(3);
 }
+outstop(3);
 
-outtitle(4);
+@format = ( 33, 9, '%', 8, '%', 4, 'kbs' );
+outstart(4);
 if ( $udp == 0 ) {
   outline( 4, 'no matching requests' );
 } else {
-  @format = ( 33, 9, '%', 8, '%', 4, 'kbs' );
-  outstart(4);
   outheader( 4, 'status', ' request', '% ', '  Byte', '% ', 'msec',
 	    ' kB/sec' );
   outseperator(4);
@@ -2060,15 +2059,14 @@ if ( $udp == 0 ) {
   outseperator(4);
   outline( 4, 'Sum', $udp, ' ', kilomegagigatera( $udp_size, $format[3] ),
 	  ' ', $udp_time / $udp, $udp_size / ( 1.024 * $udp_time ) );
-  outstop(4);
 }
+outstop(4);
 
-outtitle(5);
+@format = ( 33, 9, '%', 8, '%', 4, 'kbs' );
+outstart(5);
 if ( $tcp_hit + $tcp_miss + $tcp_miss_none == 0 ) {
   outline( 5, 'no matching requests' );
 } else {
-  @format = ( 33, 9, '%', 8, '%', 4, 'kbs' );
-  outstart(5);
   outheader( 5, 'status', ' request', '% ', '  Byte', '% ', ' sec',
 	    ' kB/sec' );
   outseperator(5);
@@ -2163,15 +2161,14 @@ if ( $tcp_hit + $tcp_miss + $tcp_miss_none == 0 ) {
   outline( 5, 'Sum', $tcp, ' ', kilomegagigatera( $tcp_size, $format[3] ),
 	  ' ', $tcp_time / ( 1000 * $tcp ), $tcp_size / ( 1.024 * $tcp_time )
 	  );
-  outstop(5);
 }
+outstop(5);
 
-outtitle(6);
+@format = ( 33, 9, '%', 8, '%', 4, 'kbs' );
+outstart(6);
 if ( $hier == 0 ) {
   outline( 6, 'no matching requests' );
 } else {
-  @format = ( 33, 9, '%', 8, '%', 4, 'kbs' );
-  outstart(6);
   outheader( 6, 'status', ' request', '% ', '  Byte', '% ', ' sec',
 	    ' kB/sec' );
   outseperator(6);
@@ -2267,15 +2264,14 @@ if ( $hier == 0 ) {
   outseperator(6);
   outline( 6, 'Sum', $hier, ' ', kilomegagigatera( $hier_size, $format[3] ),
 	  ' ', $hier_time / ( 1000 * $hier ), $hier_size / ( 1.024 * $hier_time ) );
-  outstop(6);
 }
+outstop(6);
 
-outtitle(7);
+@format = ( 33, 9, '%', 8, '%', 4, 'kbs' );
+outstart(7);
 if ( $hier == 0 ) {
   outline( 7, 'no matching requests' );
 } else {
-  @format = ( 33, 9, '%', 8, '%', 4, 'kbs' );
-  outstart(7);
   outheader( 7, 'neighbor type', ' request', '% ', '  Byte', '% ', ' sec',
 	    ' kB/sec' );
   outseperator(7);
@@ -2332,16 +2328,16 @@ if ( $hier == 0 ) {
   outline( 7, 'Sum', $hier, ' ', kilomegagigatera( $hier_size, $format[3] ),
 	  ' ', $hier_time / ( 1000 * $hier ), $hier_size / ( 1.024 * $hier_time )
 	  );
-  outstop(7);
 }
+outstop(7);
 
 if ($opt_d) {
   @format = ( 39, 9, '%', 8, '%', '%' );
-  outtitle(8);
+  outstart(8);
   if ( $tcp == 0 ) {
     outline( 8, 'no matching requests' );
+    outstop(8);
   } else {
-    outstart(8);
     outheader( 8, 'destination', ' request', '% ', '  Byte', '% ', 'hit-%' );
     outseperator(8);
     @counter = keys %tcp_urlhost;
@@ -2386,7 +2382,6 @@ if ($opt_d) {
 	    100, 100 * $tcp_hit / $tcp );
     outstop(8);
 
-    outtitle(9);
     outstart(9);
     outheader( 9, 'destination', ' request', '% ', '  Byte', '% ', 'hit-%' );
     outseperator(9);
@@ -2435,12 +2430,11 @@ if ($opt_d) {
 }
 
 if ($opt_t) {
-  outtitle(10);
+  @format = ( 39, 9, '%', 8, '%', '%' );
+  outstart(10);
   if ( $tcp == 0 ) {
     outline( 10, 'no matching requests' );
   } else {
-    @format = ( 39, 9, '%', 8, '%', '%' );
-    outstart(10);
     outheader( 10, 'protocol', ' request', '% ', '  Byte', '% ', 'hit-%' );
     outseperator(10);
     foreach $urlprot ( sort {
@@ -2463,14 +2457,13 @@ if ($opt_t) {
     outseperator(10);
     outline( 10, 'Sum', $tcp, 100, kilomegagigatera( $tcp_size, $format[3] ),
 	    100, 100 * $tcp_hit / $tcp );
-    outstop(10);
   }
+  outstop(10);
   if ( defined(%tcp_content) ) {
-    outtitle(11);
+    outstart(11);
     if ( $tcp == 0 ) {
       outline( 11, 'no matching requests' );
     } else {
-      outstart(11);
       outheader( 11, 'content-type', ' request', '% ', '  Byte', '% ',
 		'hit-%' );
       outseperator(11);
@@ -2516,14 +2509,13 @@ if ($opt_t) {
       outline( 11, 'Sum', $tcp, 100,
 	      kilomegagigatera( $tcp_size, $format[3] ), 100,
 	      100 * $tcp_hit / $tcp );
-      outstop(11);
     }
+    outstop(11);
   }
-  outtitle(12);
+  outstart(12);
   if ( $tcp == 0 ) {
     outline( 12, 'no matching requests' );
   } else {
-    outstart(12);
     outheader( 12, 'extensions', ' request', '% ', '  Byte', '% ', 'hit-%' );
     outseperator(12);
     @counter = keys %tcp_urlext;
@@ -2566,17 +2558,16 @@ if ($opt_t) {
     outseperator(12);
     outline( 12, 'Sum', $tcp, 100, kilomegagigatera( $tcp_size, $format[3] ),
 	    100, 100 * $tcp_hit / $tcp );
-    outstop(12);
   }
+  outstop(12);
 }
 
 if ($opt_r) {
   @format = ( 33, 9, '%', 8, '%', 4, 'kbs' );
-  outtitle(13);
+  outstart(13);
   if ( $udp == 0 ) {
     outline( 13, 'no matching requests' );
   } else {
-    outstart(13);
     if ($opt_R) {
       outheader(
 		13, 'host / target', ' request', 'hit-%', '  Byte', 'hit-%',
@@ -2712,13 +2703,13 @@ if ($opt_r) {
 	    100 * $udp_hit_size / $udp_size, $udp_time / $udp,
 	    $udp_size / ( 1.024 * $udp_time )
 	    );
-    outstop(13);
   }
-  outtitle(14);
+  outstop(13);
+
+  outstart(14);
   if ( $tcp == 0 ) {
     outline( 14, 'no matching requests' );
   } else {
-    outstart(14);
     if ($opt_R) {
       outheader(
 		14, 'host / target', ' request', 'hit-%', '  Byte', 'hit-%',
@@ -2855,17 +2846,16 @@ if ($opt_r) {
 	    100 * $tcp_hit_size / $tcp_size, $tcp_time / ( 1000 * $tcp ),
 	    $tcp_size / ( 1.024 * $tcp_time )
 	    );
-    outstop(14);
   }
+  outstop(14);
 }
 
 if ($opt_D) {
-  outtitle(15);
+  @format = ( 33, 9, '%', 8, '%', 4, 'kbs' );
+  outstart(15);
   if ( $tcp == 0 ) {
     outline( 15, 'no matching requests' );
   } else {
-    @format = ( 33, 9, '%', 8, '%', 4, 'kbs' );
-    outstart(15);
     outheader( 15, 'object-size (bytes)', ' request', 'hit-%', '  Byte',
 	      'hit-%', 'sec', ' kB/sec' );
     outseperator(15);
@@ -2898,17 +2888,16 @@ if ($opt_D) {
 	    100 * $tcp_hit_size / $tcp_size, $tcp_time / ( 1000 * $tcp ),
 	    $tcp_size / ( 1.024 * $tcp_time )
 	    );
-    outstop(15);
   }
+  outstop(15);
 }
 
 if ($opt_P) {
-  outtitle(16);
+  @format = ( 15, 9, 5, 'kbs', 'kbs', 'kbs', 'kbs', 'kbs', 'kbs' );
+  outstart(16);
   if ( $tcp == 0 ) {
     outline( 16, 'no matching requests' );
   } else {
-    @format = ( 15, 9, 5, 'kbs', 'kbs', 'kbs', 'kbs', 'kbs', 'kbs' );
-    outstart(16);
     outheader(
 	      16, '', '', '', 'incomin', '   hit', '  miss', ' direct',
 	      'sibling', ' fetch'
@@ -2972,8 +2961,8 @@ if ($opt_P) {
 	    removezerotimes( $hier_sibling_size, $hier_sibling_time ),
 	    removezerotimes( $hier_parent_size, $hier_parent_time )
 	    );
-    outstop(16);
   }
+  outstop(16);
 }
 
 close(CACHE);
@@ -2984,8 +2973,9 @@ if ($opt_S) {
   print $out_body{'E'} if defined $out_body{'E'};
   foreach $index ( split ( ",", $opt_S ) ) {
     if ( not defined( $out_body{$index} ) ) {
-      outtitle($index);
+      outstart($index);
       outline( $index, 'no matching requests' );
+      outstop($index);
     }
     print $out_body{$index};
   }
@@ -2995,18 +2985,21 @@ if ($opt_S) {
   }
 }
 
-if ($opt_w) {
+if ( $opt_w or $opt_W ) {
   print '  <hr>
   <address><a href="http://Calamaris.Cord.de/">Calamaris</a>
-   $Revision: 2.48 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002
+   $Revision: 2.49 $, Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
   <p>Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you
    are welcome to redistribute it under certain conditions.  See source for
    details.
   </p>
- </body>
+';
+  if ($opt_w) {
+    print ' </body>
 </html>', "\n";
+  }
 } else {
   print "\n\n";
   print "-- \n" if ($opt_m);
@@ -3085,16 +3078,6 @@ sub convertdate {
   }
 }
 
-sub outtitle {
-  my $index = shift (@_);
-  if ($opt_w) {
-    $out_body{$index} .= "  <hr>
-  <h2><a name=\"$index\">$reports[$index]</a></h2>\n";
-  } else {
-    $out_body{$index} .= "\n# $reports[$index]\n";
-  }
-}
-
 sub outref {
   my $name = shift (@_);
   $out_head .= "   <li><a href=\"#$name\">$reports[$name]</a>\n";
@@ -3102,17 +3085,23 @@ sub outref {
 
 sub outstart {
   my $index = shift (@_);
-  $out_body{$index} .= "  <table border=\"1\">\n" if ($opt_w);
+  if ( $opt_w or $opt_W ) {
+    $out_body{$index} .= "  <hr>
+  <h2><a name=\"$index\">$reports[$index]</a></h2>
+  <table border=\"1\">\n";
+  } else {
+    $out_body{$index} .= "\n# $reports[$index]\n";
+  }
 }
 
 sub outheader {
   my $index = shift (@_);
   my $print;
   my $no = 0;
-  $out_body{$index} .= "   <tr>\n" if ($opt_w);
+  $out_body{$index} .= "   <tr>\n" if ( $opt_w or $opt_W );
   foreach (@_) {
     $p = $_;
-    if ($opt_w) {
+    if ( $opt_w or $opt_W ) {
       $p =~ s# +# #go;
       $p =~ s#(^ | $)##go;
       $p = '&nbsp;' if ( $p eq '' );
@@ -3131,7 +3120,7 @@ sub outheader {
     }
     $no++;
   }
-  $out_body{$index} .= '   </tr>' if ($opt_w);
+  $out_body{$index} .= '   </tr>' if ( $opt_w or $opt_W );
   $out_body{$index} .= "\n";
 }
 
@@ -3139,10 +3128,10 @@ sub outline {
   my $index = shift (@_);
   my $print;
   my $no = 0;
-  $out_body{$index} .= "   <tr>\n" if ($opt_w);
+  $out_body{$index} .= "   <tr>\n" if ( $opt_w or $opt_W );
   foreach (@_) {
-    $print  = $_;
-    if ($opt_w) {
+    $print = $_;
+    if ( $opt_w or $opt_W ) {
       $print =~ s# +# #go;
       $print =~ s# $##go;
       $print =~ s#<#\&lt\;#go;
@@ -3174,7 +3163,7 @@ sub outline {
       if ( $no == 0 ) {
 	if ( length($print) > $format[$no] ) {
 	  $out_body{$index} .=
-	    sprintf( "$print\n" . ' ' x $format[$no] . ' ' );
+	    sprintf( $print . "\n" . ' ' x $format[$no] . ' ' );
 	} else {
 	  $out_body{$index} .=
 	    sprintf( $print . ' ' x ( $format[$no] - length($print) ) . ' ' );
@@ -3204,16 +3193,16 @@ sub outline {
     }
     $no++;
   }
-  $out_body{$index} .= '   </tr>' if ($opt_w);
+  $out_body{$index} .= '   </tr>' if ( $opt_w or $opt_W );
   $out_body{$index} .= "\n";
 }
 
 sub outseperator {
   my $index = shift (@_);
   my $print;
-  $out_body{$index} .= "   <tr>\n" if ($opt_w);
+  $out_body{$index} .= "   <tr>\n" if ( $opt_w or $opt_W );
   foreach $print (@format) {
-    if ($opt_w) {
+    if ( $opt_w or $opt_W ) {
       $out_body{$index} .= "    <td></td>\n";
     } elsif ( $print eq '%' ) {
       $out_body{$index} .= sprintf( '-' x 6 . ' ' );
@@ -3223,13 +3212,13 @@ sub outseperator {
       $out_body{$index} .= sprintf( '-' x $print . ' ' );
     }
   }
-  $out_body{$index} .= '   </tr>' if ($opt_w);
+  $out_body{$index} .= '   </tr>' if ( $opt_w or $opt_W );
   $out_body{$index} .= "\n";
 }
 
 sub outstop {
   my $index = shift (@_);
-  if ($opt_w) {
+  if ( $opt_w or $opt_W ) {
     $out_body{$index} .= "  </table>\n";
     $out_body{$index} .= "  <p><a href=\"#top\">Back to Top</a></p>\n";
   }
