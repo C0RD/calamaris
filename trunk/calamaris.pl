@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris.pl,v 1.115 1998-07-19 11:41:46 cord Exp $
+# $Id: calamaris.pl,v 1.116 1998-08-12 21:04:00 cord Exp $
 #
 # DESCRIPTION: calamaris.pl - statistic for Squid and NetCache Native Logfiles.
 #
@@ -24,6 +24,7 @@
 #	Kris Boulez (kris@belbone.be)
 #	Mark Visser (mark@snt.utwente.nl)
 #	Gary Palmer (gjp@erols.com)
+#	Stefan Watermann (stefan@metronet.de)
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -122,7 +123,7 @@ use Sys::Hostname;
 
 getopts('ab:cd:hH:i:mno:pr:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 1.115 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 1.116 $, Copyright (C) 1997, 1998 Cord Beermann.
 calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -302,8 +303,8 @@ unless ($opt_z) {
     ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
      $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) =
       split;
-    if (not defined $foo or not defined $log_content or $foo ne '' or
-	$log_content eq '' ) {
+    if (not defined $foo or not defined $log_content or
+	($foo ne '' and $foo ne '-') or $log_content eq '' ) {
       chomp;
       warn ('invalid line: "' . $_ . "\"\n");
       $invalid++;
