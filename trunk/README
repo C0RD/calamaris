@@ -112,6 +112,11 @@ How to use it?
 Are there known bugs or other problems?
 ---------------------------------------
 
+* RedHat 8.0 has set the LANG-Variable to en_US.UTF-8, which caused Calamaris
+  to crash, maybe due to a perl-bug. (Investigation needed). You can
+  workaround this problem by unsetting LANG. Please see
+  https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=77437 .
+
 * Calamaris can't resolve IPv6-IPs to DNS-Names yet. If you can tell me how i
   can do it in perl, let me know ;-)
 
@@ -172,7 +177,8 @@ Are there known bugs or other problems?
   people spy-ware. Even if they fix that problem, i would not add a report to
   give an overview about the usage of the Categories. (see first point of this
   chapter.) A workaround for these broken Log-files is:
-  awk '{print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11}' access.log |calamaris
+  awk '{print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10}' access.log |calamaris
+  (Calamaris will recognize the Logfiles as normal Squid-Logs)
 
 * Squid doesn't log outgoing UDP-Requests, so i can't put them into the
   statistics without parsing squid.conf and the cache.log-file. (Javier Puche
@@ -230,9 +236,6 @@ it to the wish-list below :-)
 * try 'use integer'. This can result in a less memory-hungry, but faster
   version of Calamaris. (idea by Gerold Meerkoetter)
 
-* add a time-range-option to better filter out interesting events from the log.
-  (suggested by Steffen Sledz <sledz@zone42.org>)
-
 * build graphics (hope i remember who suggested this first, the mail must be
   somewhere in my work-mailbox ;-) (This is a thing for Calamaris v3, if i
   ever going to write it. there are nice gd-libs in Perl ;-)
@@ -278,4 +281,4 @@ far :-)
 Version of the README
 ---------------------
 
-$Id: README,v 2.38 2002-08-28 16:54:56 cord Exp $
+$Id: README,v 2.39 2002-11-23 17:37:58 cord Exp $
