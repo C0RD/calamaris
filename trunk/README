@@ -10,6 +10,8 @@ to check the Squid-users-Mailinglist) 97. Since then it is used by people all
 around the world, and i decided to build a new improved verion of it.
 Calamaris V2 is a nearly complete rewrite, with changed and more reports.
 
+It works with Logfiles from Squid V1.1.x and later.
+
 There is also the possibility to parse Logfiles from NetCache. (but see 'Bugs
 and Shortcomings' on this.)
 
@@ -246,4 +248,4 @@ not clear or whatever. You are welcome :-)
 Version of the README
 ---------------------
 
-$Id: README,v 1.4 1998-09-30 17:33:02 cord Exp $
+$Id: README,v 1.5 1998-09-30 17:46:21 cord Exp $
