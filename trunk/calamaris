@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.17 1999-01-22 21:05:59 cord Exp $
+# $Id: calamaris,v 2.18 1999-02-04 22:29:36 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic for Squid and NetCache Native Log-files
 #
@@ -61,15 +61,15 @@
 
 require 5;
 
-use vars qw($opt_a $opt_b $opt_c $opt_d $opt_h $opt_H $opt_i $opt_m $opt_n
-	    $opt_o $opt_O $opt_p $opt_P $opt_r $opt_s $opt_t $opt_u $opt_w
-	    $opt_z);
+use vars qw($opt_a $opt_b $opt_c $opt_d $opt_f $opt_h $opt_H $opt_i $opt_m
+	    $opt_n $opt_o $opt_O $opt_p $opt_P $opt_r $opt_s $opt_t $opt_u
+	    $opt_w $opt_z);
 use Getopt::Std;
 use Sys::Hostname;
 
-getopts('ab:cd:hH:i:mno:OpP:r:st:uwz');
+getopts('ab:cd:f:hH:i:mno:Op:P:r:st:uwz');
 
-$COPYRIGHT='calamaris $Revision: 2.17 $, Copyright (C) 1997, 1998 Cord Beermann.
+$COPYRIGHT='calamaris $Revision: 2.18 $, Copyright (C) 1997, 1998, 1999 Cord Beermann.
 Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software,
 and you are welcome to redistribute it under certain conditions.
 See source for details.
@@ -80,16 +80,25 @@ $USAGE='Usage: cat log | ' . $0 . ' [switches]
 
 Reports:
 -a	all	(extracts all reports available,
-		 -a equals -d 20 -p -P 60 -r -1 -s -t 20)
+		 -a equals -d 20 -P 60 -r -1 -s -t 20)
 -d n	domain	(show n Top-level and n second-level destinations,
 		 -1 = unlimited)
--p	peak	(measure peak requests) (this slows Calamaris significantly
-					 (>30%) down.)
+-p type	peak	(measure peak requests)
+		old = make old request-peak mesurement
+		new = make new request&byte-peak measurement
+		(both slow Calamaris significantly down.)
 -P n	Performance (show throughput data for every n minutes)
 -r n	requester (show n Requesters, -1 = unlimited)
 -s	status	(show verbose status reports)
 -t n	type	(show n content-type, n extensions and requested protocols,
 		 -1 = unlimited)
+
+Input Format:
+-f type	format 	(sets the type of input logfiles)
+	(Default is Native-Logfile derived from Squid V1.1.beta26-V2.x)
+	old = Native-Logfile derived from Squid V1.1.alpha1-V1.1.beta25
+	nc1 = Netcache-Logfiles of V???
+	nc2 = Netcache-Logfiles of V???
 
 Output Format: (Default is plain text)
 -m	mail	(mail format)
@@ -119,6 +128,7 @@ die($USAGE, $COPYRIGHT) if ($opt_h);
 die($COPYRIGHT) if ($opt_c);
 
 if ($opt_b and $opt_b < 1) {
+  warn("$0: wrong value at -b -option: \"$opt_b\"\n");
   die($USAGE);
 } else {
   $|=1;
@@ -139,7 +149,6 @@ $sortorder = '_size' if ($opt_O);
 
 if ($opt_a) {
   $opt_s = 1;
-  $opt_p = 1;
   $opt_P = 60 unless $opt_P;
   $opt_d = 20 unless $opt_d;
   $opt_r = -1 unless $opt_r;
@@ -458,11 +467,44 @@ if ($opt_i) {
 unless ($opt_z) {
   print("print a hash for each $opt_b lines:\n") if ($opt_b);
   $loop = '
-while (<>) {
+while (<>) {';
+if (not defined $opt_f or $opt_f eq '') {
+  $loop .= '
   ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
    $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) = split;
-  if (not defined $foo or not defined $log_content or $foo ne m#^-?$#o or
-      $log_content eq \'\' or $log_reqtime lt 0) {
+  if (not defined $foo or not defined $log_content or $foo ne \'\' or
+      $log_content eq \'\' or $log_reqtime lt 0) {';
+} elsif ($opt_f eq 'old') {
+  $loop .= '
+  ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
+   $log_method, $log_url, $log_ident, $log_hier, $foo) = split;
+  if (not defined $foo or not defined $log_hier or $foo ne \'\' or
+      $log_hier eq \'\' or $log_reqtime lt 0) {
+    $log_content = \'-\';';
+} elsif ($opt_f eq 'nc1') {
+  $loop .= '
+  if (m#^([^ ]+) - - \[([^\[\]]+)\] \"([^ \"]+) ([^ \"]+)\" ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)$#) {
+    $log_requester = $1;
+    $log_date = $2;
+    $log_method = $3;
+    $log_url = $4;
+    $log_status = $5;
+    $log_size = $6;
+    $log_reqtime = $7;
+    $log_hier = $8;
+    $log_ident = $log_content = \'-\';
+  } else {';
+} elsif ($opt_f eq 'nc2') {
+  $loop .= '
+  ($log_date, $log_reqtime, $log_requester, $log_status, $log_size,
+   $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo) = split;
+  if (not defined $foo or not defined $log_content or $foo ne \'-\' or
+      $log_content eq \'\' or $log_reqtime lt 0) {';
+} else {
+  warn("$0: unknown value at -f -option: \"$opt_f\"\n");
+  die($USAGE);
+}
+  $loop .= '
     chomp;
     warn (\'invalid line: "\' . $_ . "\"\n");
     $invalid++;
@@ -496,9 +538,9 @@ while (<>) {
     @list = split \'\.\', $urlhost;
     $urltld = $urlhost = \'.\' . pop @list;
     $urlhost = \'.\' . pop(@list) . $urlhost;
-    $urlhost = \'.\' . pop(@list) . $urlhost if ($urltld =~
-						 m#^\.(a[rtu]|br|c[no]|hk|i[dlm]|jp|kr|l[by]|m[oxy]|nz|p[elnry]|ru|sg|t[hrw]|u[aks]|ve|yu|za)$#o
-						 and $#list >= 0);
+    $urlhost = \'.\' . pop(@list) . $urlhost if
+      ($urltld =~ m#^\.(a[rtu]|br|c[no]|hk|i[dlm]|jp|kr|l[by]|m[oxy]|nz|p[elnry]|ru|sg|t[hrw]|u[aks]|ve|yu|za)$#o
+       and $#list >= 0);
     $urlhost = \'*\' . $urlhost;
     $urltld = \'*\' . $urltld;
   } elsif ($urlhost =~ m#([!a-z0-9\.\-]|\.\.)#o) {
@@ -532,7 +574,31 @@ while (<>) {
   $method_time{$log_method} += $log_reqtime;
   $time_begin = $log_date if $log_date < $time_begin;
   $time_end = $log_date if $log_date > $time_end;';
-  $loop .= '
+  if (not defined $opt_p) {
+  } elsif ($opt_p eq 'old') {
+    $loop .= '
+  $peak_all_sec_pointer++;
+  $peak_all_min_pointer++;
+  unshift(@peak_all,$log_date);
+  $peak_all_sec_pointer-- while $peak_all[$peak_all_sec_pointer - 1] <
+    ($log_date - 1);
+  $peak_all_min_pointer-- while $peak_all[$peak_all_min_pointer - 1] <
+    ($log_date - 60);
+  pop(@peak_all) while $peak_all[$#peak_all] < ($log_date - 3600);
+  if ($peak_all_hour < @peak_all) {
+    $peak_all_hour = @peak_all;
+    $peak_all_hour_time = $log_date - 3600;
+  }
+  if ($peak_all_min < $peak_all_min_pointer) {
+    $peak_all_min = $peak_all_min_pointer;
+    $peak_all_min_time = $log_date - 60;
+  }
+  if ($peak_all_sec < $peak_all_sec_pointer) {
+    $peak_all_sec = $peak_all_sec_pointer;
+    $peak_all_sec_time = $log_date - 1;
+  }';
+  } elsif ($opt_p eq 'new') {
+    $loop .= '
   $date_hour = int(($log_date - ($log_reqtime / 1000)) / 3600) * 3600;
   foreach $i (($date_hour / 3600) .. int($log_date / 3600)) {
     $peak_all_hour{$i * 3600} = $peak_all_hour_size{$i * 3600} = 0 unless
@@ -553,7 +619,11 @@ while (<>) {
   if ($peak_all_sec < $peak_all_sec_pointer) {
     $peak_all_sec = $peak_all_sec_pointer;
     $peak_all_sec_time = $log_date - 1;
-  }' if ($opt_p);
+  }';
+  } else {
+    warn("$0: unknown value at -p -option: \"$opt_p\"\n");
+    die($USAGE);
+  }
   $loop .= '
   if (($log_method eq \'ICP_QUERY\') or ($log_status =~ m#^ICP#o)) {
     $udp++;
@@ -567,7 +637,31 @@ while (<>) {
     $udp_requester{$requester}++;
     $udp_requester_size{$requester} += $log_size;
     $udp_requester_time{$requester} += $log_reqtime;' if ($opt_r);
-  $loop .= '
+  if (not defined $opt_p) {
+  } elsif ($opt_p eq 'old') {
+    $loop .= '
+    $peak_udp_sec_pointer++;
+    $peak_udp_min_pointer++;
+    unshift(@peak_udp,$log_date);
+    $peak_udp_sec_pointer-- while $peak_udp[$peak_udp_sec_pointer - 1] <
+      ($log_date - 1);
+    $peak_udp_min_pointer-- while $peak_udp[$peak_udp_min_pointer - 1] <
+      ($log_date - 60);
+    pop @peak_udp while $peak_udp[$#peak_udp] < ($log_date - 3600);
+    if ($peak_udp_hour < @peak_udp) {
+      $peak_udp_hour = @peak_udp;
+      $peak_udp_hour_time = $log_date - 3600;
+    }
+    if ($peak_udp_min < $peak_udp_min_pointer) {
+      $peak_udp_min = $peak_udp_min_pointer;
+      $peak_udp_min_time = $log_date - 60;
+    }
+    if ($peak_udp_sec < $peak_udp_sec_pointer) {
+      $peak_udp_sec = $peak_udp_sec_pointer;
+      $peak_udp_sec_time = $log_date - 1;
+    }';
+  } elsif ($opt_p eq 'new') {
+    $loop .= '
     foreach $i (($date_hour / 3600) .. int($log_date / 3600)) {
       $peak_udp_hour{$i * 3600} = $peak_udp_hour_size{$i * 3600} = 0 unless
 	defined $peak_udp_hour{$i * 3600};
@@ -587,7 +681,8 @@ while (<>) {
     if ($peak_udp_sec < $peak_udp_sec_pointer) {
       $peak_udp_sec = $peak_udp_sec_pointer;
       $peak_udp_sec_time = $log_date - 1;
-    }' if ($opt_p);
+    }';
+  }
   $loop .= '
     if ($log_hitfail =~ m#^UDP_HIT#o or $log_hitfail =~ m#^ICP_HIT#o) {
       $udp_hit++;
@@ -657,7 +752,31 @@ while (<>) {
       $tcp_hit_urlprot{$urlprot} = 0 unless defined $tcp_urlprot{$urlprot};
     $tcp_urlprot{$urlprot}++;
     $tcp_urlprot_size{$urlprot} += $log_size;' if ($opt_t);
-  $loop .= '
+    if (not defined $opt_p) {
+    } elsif ($opt_p eq 'old') {
+      $loop .= '
+    $peak_tcp_sec_pointer++;
+    $peak_tcp_min_pointer++;
+    unshift(@peak_tcp, $log_date);
+    $peak_tcp_sec_pointer-- while $peak_tcp[$peak_tcp_sec_pointer - 1] <
+      ($log_date - 1);
+    $peak_tcp_min_pointer-- while $peak_tcp[$peak_tcp_min_pointer - 1] <
+      ($log_date - 60);
+    pop(@peak_tcp) while $peak_tcp[$#peak_tcp] < ($log_date - 3600);
+    if ($peak_tcp_hour < @peak_tcp) {
+      $peak_tcp_hour = @peak_tcp;
+      $peak_tcp_hour_time = $log_date - 3600;
+    }
+    if ($peak_tcp_min < $peak_tcp_min_pointer) {
+      $peak_tcp_min = $peak_tcp_min_pointer;
+      $peak_tcp_min_time = $log_date - 60;
+    }
+    if ($peak_tcp_sec < $peak_tcp_sec_pointer) {
+      $peak_tcp_sec = $peak_tcp_sec_pointer;
+      $peak_tcp_sec_time = $log_date - 1;
+    }';
+    } elsif ($opt_p eq 'new') {
+      $loop .= '
     foreach $i ($date_hour / 3600 .. int($log_date / 3600)) {
       $peak_tcp_hour{$i * 3600} = $peak_tcp_hour_size{$i * 3600} = 0 unless
       defined $peak_tcp_hour{$i * 3600};
@@ -677,7 +796,8 @@ while (<>) {
     if ($peak_tcp_sec < $peak_tcp_sec_pointer) {
       $peak_tcp_sec = $peak_tcp_sec_pointer;
       $peak_tcp_sec_time = $log_date - 1;
-    }' if ($opt_p);
+    }';
+    }
   $loop .= '
     $tcp_content{$log_content} = $tcp_content_size{$log_content} =
       $tcp_hit_content{$log_content} = 0 unless defined
@@ -878,7 +998,7 @@ print("MIME-Version: 1.0\n", "Content-Type: text/html; charset=us-ascii\n",
 printf("Subject: %sProxy-Report (%s - %s)\n\n", $hostname, $date_start,
        $date_stop) if ($opt_m);
 if ($opt_w) {
-  print("<html><head><title>Proxy-Report</title><META NAME=\"GENERATOR\" CONTENT=\"Calamaris/\$Id: calamaris,v 2.17 1999-01-22 21:05:59 cord Exp $\"></head><body>\n");
+  print("<html><head><title>Proxy-Report</title><META NAME=\"GENERATOR\" CONTENT=\"Calamaris/\$Id: calamaris,v 2.18 1999-02-04 22:29:36 cord Exp $\"></head><body>\n");
   printf("<h1><a name=\"0\">%sProxy-Report (%s - %s)</a></h1>\n", $hostname,
 	 $date_start, $date_stop);
   print("<hr><ul>\n");
@@ -921,7 +1041,31 @@ outline('unique hosts/users:', scalar keys %tcp_requester) if $opt_r;
 outline('parse time (sec):', $time_run);
 outstop();
 
-if ($opt_p) {
+if (not defined $opt_p) {
+} elsif ($opt_p eq 'old') {
+  writecache(B, $peak_udp_sec, $peak_udp_sec_time, $peak_udp_min,
+           $peak_udp_min_time, $peak_udp_hour, $peak_udp_hour_time,
+           $peak_tcp_sec, $peak_tcp_sec_time, $peak_tcp_min,
+           $peak_tcp_min_time, $peak_tcp_hour, $peak_tcp_hour_time,
+           $peak_all_sec, $peak_all_sec_time, $peak_all_min,
+           $peak_all_min_time, $peak_all_hour, $peak_all_hour_time);
+  outtitle('Incoming request peak per protocol', 2);
+  outstart();
+  outheader('prt', ' sec', 'peak begins at', ' min', 'peak begins at', ' hour',
+            'peak begins at');
+  outseperator();
+  outline('UDP', $peak_udp_sec, convertdate($peak_udp_sec_time),
+          $peak_udp_min, convertdate($peak_udp_min_time), $peak_udp_hour,
+          convertdate($peak_udp_hour_time));
+  outline('TCP', $peak_tcp_sec, convertdate($peak_tcp_sec_time),
+          $peak_tcp_min, convertdate($peak_tcp_min_time), $peak_tcp_hour,
+          convertdate($peak_tcp_hour_time));
+  outseperator();
+  outline('ALL', $peak_all_sec, convertdate($peak_all_sec_time),
+          $peak_all_min, convertdate($peak_all_min_time), $peak_all_hour,
+          convertdate($peak_all_hour_time));
+  outstop();
+} elsif ($opt_p eq 'new') {
   @format=(3,4,18,5,18,7,18);
   $peak_udp_hour_time = (sort {$peak_udp_hour{$b} <=> $peak_udp_hour{$a}}
 			 keys(%peak_udp_hour))[0] or
