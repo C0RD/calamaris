@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.99.1.1 2004-09-17 21:02:30 cord Exp $
+# $Id: calamaris,v 2.99.1.2 2004-09-22 20:34:29 cord Exp $
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
@@ -84,6 +84,7 @@
 #	Peter W. Osel <pwo@Infineon.COM>
 #	Pawel Worach <pawel.worach@nordea.com>
 #	Franck Bourdonnec <fbourdonnec@chez.com>
+#	Chris Clemson <Chris.Clemson@softwareag.co.uk>
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -118,7 +119,7 @@ use Sys::Hostname;
 use lib '/usr/local';
 
 Getopt::Long::Configure ("bundling");
-GetOptions( "all-useful-reports|a" => \$opt_a, "benchmark|b" => \$opt_b,
+GetOptions( "all-useful-reports|a" => \$opt_a, "benchmark|b=i" => \$opt_b,
 	   "cache-input-file|i=s" => \$opt_i,
 	   "cache-output-file|o=s" => \$opt_o,
 	   "config-file=s" => \$opt_config_file, "copyright|C" => \$opt_C,
@@ -131,7 +132,8 @@ GetOptions( "all-useful-reports|a" => \$opt_a, "benchmark|b" => \$opt_b,
 	   "ipfilter-exclude=s" => \$opt_ipfilter_exclude,
 	   "ipfilter-include=s" => \$opt_ipfilter_include,
 	   "logo|l=s" => \$opt_l, "meta|M=s" => \$opt_M,
-	   "no-input|z" => \$opt_z, "output-format|F=s" => \$opt_F,
+	   "no-input|z" => \$opt_z, "output-file=s" => \$opt_output_file,
+	   "output-format|F=s" => \$opt_F,
 	   "output-path=s" => \$opt_output_path,
 	   "peak-report|p=s" => \$opt_p, "performance-report|P=i" => \$opt_P,
 	   "performance-report_adjust|T=i" => \$opt_T,
@@ -1332,7 +1334,7 @@ if ( $outtype_html or $outtype_htmlembed ) {
 	\"http://www.w3.org/TR/REC-html40/loose.dtd\">
 <html>\n <head>
   <title>${host_name}Proxy Report ($date_start - $date_stop)</title>
-  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.99.1.1 $' . "\">
+  <meta name=\"generator\" content=\"Calamaris/" . '$Revision: 2.99.1.2 $' . "\">
 " . ( $opt_M ? '  ' . $opt_M . "\n" : '' ) . " </head>
  <body bgcolor=\"#FFFFFF\">" if ($outtype_html);
   $out_head .= "\n  <table border=\"0\">"
@@ -3389,7 +3391,7 @@ if ( $outtype_html or $outtype_htmlembed ) {
   print $fh '
   <hr>
   <address>
-   <a href="http://Calamaris.Cord.de/">Calamaris</a> $Revision: 2.99.1.1 $,
+   <a href="http://Calamaris.Cord.de/">Calamaris</a> $Revision: 2.99.1.2 $,
    Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
    <a href="http://Cord.de/">Cord Beermann</a>.
   </address>
@@ -3932,6 +3934,7 @@ sub readconfig {
   undef($meta);
   undef($no_input);
   undef($object_freshness_report);
+  undef($output_file);
   undef($output_format);
   undef($output_path);
   undef($peak_report);
@@ -3992,6 +3995,7 @@ sub readconfig {
   $opt_l = $logo unless $opt_l;
   $opt_M = $meta unless $opt_M;
   $opt_z = $no_input unless $opt_z;
+  $opt_output_file = $output_file unless $opt_output_file;
   $opt_F = $output_format unless $opt_F;
   $opt_output_path = $output_path unless $opt_output_path;
   $opt_p = $peak_report unless $opt_p;
@@ -4109,10 +4113,10 @@ sub readconfig {
       }
     }
   }
-  $filename = 'calamaris.txt';
   $path = $opt_output_path ? $opt_output_path : '.';
-  if ($outtype_html) {
-    $filename = 'index.html';
+  $filename = $opt_output_file ? $opt_output_file : 'calamaris.txt';
+  if ($outtype_graph) {
+    $filename = $opt_output_file ? $opt_output_file : 'index.html';
     unless (defined($opt_output_path)) {
       print STDERR "$0: please use --output-path /path, when using
 	-F 'graph'\n\n";
@@ -4172,7 +4176,7 @@ sub readconfig {
 	      'UDP Response code distribution',
 	      'TCP Response code distribution' );
 
-  $VERSION='Calamaris $Revision: 2.99.1.1 $';
+  $VERSION='Calamaris $Revision: 2.99.1.2 $';
 
   $COPYRIGHT =
 'Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004 Cord Beermann,
@@ -4301,6 +4305,8 @@ Output: (Default is plain formatted text)
 	graphics destination is /path and the filename is index.html, else it
 	is calamaris.txt. If --output-path is not given, all graphics are
 	written to the working directory.
+--output-file filename
+	alters the output-filename from the default (see --output-path)
 --show-reports|-S list
 	Shows only the defined reports (comma-seperated list) in the specified
 	order. The following numbers are defined:
