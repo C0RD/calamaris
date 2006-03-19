@@ -4,6 +4,9 @@ Version 3
 Are there known bugs or other problems?
 ---------------------------------------
 
+* The Content-Type-stats for some elff-logging-proxies are broken, i have to
+  check why.
+
 * RedHat 8.0 has set the LANG-Variable to en_US.UTF-8, which caused Calamaris
   to crash with 'Split loop at (eval 1) line 21, <> line 1', maybe due to a
   perl-bug. (Investigation needed). You can workaround this problem by
@@ -111,4 +114,4 @@ Are there known bugs or other problems?
 Version of the BUGS
 -------------------
 
-$Id: BUGS,v 3.0 2004-09-15 20:51:43 cord Exp $
+$Id: BUGS,v 3.1 2006-03-19 16:10:53 cord Exp $
