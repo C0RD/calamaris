@@ -1,4 +1,4 @@
-.TH "CALAMARIS" "1" "$Date: 2004-09-15 21:30:46 $" "Handmade" "Calamaris Manual"
+.TH "CALAMARIS" "1" "$Date: 2006-03-19 17:52:48 $" "Handmade" "Calamaris Manual"
 
 .SH "NAME"
 .B calamaris
@@ -15,8 +15,9 @@ cat log |
 is used to produce statistical output from \fBSquid\fR, \fBNetCache\fR,
 \fBInktomi Traffic Server\fR, \fBOops! proxy server\fR,
 \fBCompaq Tasksmart\fR, \fBCisco Content Engines\fR or related Proxy log
-files.  The resulting output can be ascii or html with or without graphic. It
-is possible to cache calculated data in a file to use them in later runs.
+files.  The resulting output can be ascii or html with or without graphic
+and with or without frames. It is possible to cache calculated data in a
+file to use them in later runs.
 
 This manual page describes the options of \fBCalamaris\fR and gives a few
 examples.
@@ -256,7 +257,7 @@ or to generate a report out of cache files.
 .TP
 .I --time-interval|-I t-t ($time_interval)
 defines which time-interval should be parsed.  t has to be the
-format yyyymmddhhmmss
+format yyyymmddhhmmss (localtime)
 
 .B Note:
 omitting the beginning or ending date is allowed.
@@ -285,6 +286,14 @@ The name for the title or subject of the output.  If set to
 looks up the host name of the system its been run on.
 
 .TP
+.I --image-type ($image_type)
+Sets the image type to gif, png, jpeg, gd or gd2. Only useful when
+.I
+--output-format graph
+is set. The available images types are dependend
+on your GD::Graph installation. Default is 'png'.
+
+.TP
 .I --logo|-l string ($logo)
 add a custom string to a HTML-Report. It'll be added to a table on the
 top of the output.
@@ -295,7 +304,7 @@ will add my logo with a link to the Report.
 .B Note:
 .I --logo
 works only in combination with
-.I --output-format html
+.I --output-format html or html-frame
 
 .TP
 .I --meta|-M string ($meta)
@@ -305,7 +314,7 @@ HTML-Report. Useful if you want to add Stylesheets or something to the Report.
 .B Note:
 .I --meta
 works only in combination with
-.I --output-format html
+.I --output-format html or html-frame
 
 .TP
 .I --output-format|-F type[,type[,type[,...]]] ($output_format)
@@ -319,12 +328,15 @@ all output is given in html with tables.  Can be combined with
 .I 'mail'
 to send html mails.
 
+.I 'html-frame'
+all output is given in html frames with tables.
+
 .I 'html-embed'
 all output is given in html with tables without HTML-Headers. Useful for
 Server-Side-Includes.
 
 .I 'graph'
-enables graphics for html or html-embed.
+enables graphics for html, html-embed or html-frame.
 
 .I 'unformatted'
 gives out the raw numbers seperated by spaces. Useful for re-using the output
@@ -341,6 +353,22 @@ destination is /path and the filename is index.html, else it is calamaris.txt.
 If
 .I --output-path
 is not given, all graphics are written to the working directory.
+
+.TP
+.I --output-file ($output_file)
+alter the filename of --output-path.
+
+.TP
+.I --output-file-prefix ($output_file_prefix)
+adds a prefix to 
+.I --output-file
+.
+.I %t
+is replaced by the timerange of the report, 
+.I %h
+by the hostname (see
+.I --hostname
+)
 
 .TP
 .I --show-reports|-S n[,n[,n[,...]]] ($show_reports)
@@ -445,6 +473,11 @@ defines the width of the graphics. height is calculated from this with a
 defines how many datasets should be drawn on the graph. 30 is a good value,
 but you can play with this. if $x_scale gets to big, you're on your own ;-)
 
+.TP
+.I --generate-index ($generate_index)
+generates an index for all reports that match 
+.I --output-file-prefix.
+
 .SS Caching
 
 .TP
@@ -460,7 +493,8 @@ ordered (oldest first).
 .B Note:
 if you reuse cache-files, which were not created with
 .I -d -1 -r -1 -t -1 -R -1
-the number of 'others' is likely wrong everywhere.
+the number of 'others' would be wrong everywhere. In this 
+case the number of 'others' are omitted.
 
 .TP
 .I --cache-output-file|-o file ($cache_output_file)
@@ -592,7 +626,7 @@ maintainer of the Debian package.  Maintenance is now taken over by
 Cord Beermann.
 
 .SH "VERSION"
-Version of this manpage: $Id: calamaris.1,v 3.0 2004-09-15 21:30:46 cord Exp $
+Version of this manpage: $Id: calamaris.1,v 3.1 2006-03-19 17:52:48 cord Exp $
 
 It describes the usage of Calamaris V3.0 and later.
 
