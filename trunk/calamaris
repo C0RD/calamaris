@@ -3,11 +3,11 @@
 # $Id: calamaris,v 2.100 2006-03-19 17:28:02 cord Exp $
 #
 # we now ignore the rcs-revision-Number
-$VERSION = '2.99.4.0';
+$VERSION = '2.99.4.1';
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
-# Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+# Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2013
 #	Cord Beermann
 #
 # URL: http://Calamaris.Cord.de/
@@ -215,7 +215,7 @@ unless ($opt_z) {
   while ( defined( $line = <> ) ) {
     if ( not defined $opt_f or $opt_f eq 'auto' ) {
       if ( $line =~
-	  m#^\d+\.\d+\s+\d+\s+[\w\-\.:]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+$#
+	  m#^\s*\d+\.\d+\s+\d+\s+[\w\-\.:]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+$#
 	  ) {
 	$opt_f = 'squid';
 	print STDERR "guessing... using '-f squid'\n" if ($opt_v);
@@ -299,6 +299,7 @@ and known bugs) then report it with the following line to
 for ( ; $line; $line = <> ) {';
   if ( $opt_f eq 'squid' ) {
     $loop .= '
+  $line =~ s#^\s+##;
   ( $log_date, $log_reqtime, $log_requester, $log_status, $log_size,
    $log_method, $log_url, $log_ident, $log_hier, $log_content, $foo ) =
     split ( /\s+/, $line );
@@ -1220,7 +1221,7 @@ Thank You.\n\n";
       $hier++;
       $hier_size += $log_size;
       $hier_time += $log_reqtime;
-      if ( $log_hier_method =~ m#DIRECT|SOURCE_FASTEST#o ) {
+      if ( $log_hier_method =~ m#DIRECT|PINNED|SOURCE_FASTEST#o ) {
 	$hier_direct++;
 	$hier_direct_size += $log_size;
 	$hier_direct_time += $log_reqtime;';
@@ -2354,7 +2355,7 @@ if ($opt_t) {
   $report_index = 11;
   @format = ref($formats[$report_index]) ?
     @{$formats[$report_index]} : ( 32, 9, '%', '%', 'off', 8, '%', '%', 'off' );
-  if ( defined(%tcp_content) ) {
+  if (%tcp_content) {
     outstart($report_index);
     if ( $tcp == 0 ) {
       outline( $report_index, '', 'no matching requests' );
@@ -4774,13 +4775,13 @@ sub readconfig {
   $LICENSE = 'Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
 welcome to redistribute it under certain conditions. See source for details.';
   $COPYRIGHT =
-'Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+'Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2013
 Cord Beermann. Authors: Cord Beermann and Michael Pophal.';
   $HOMEPAGE = 'http://Calamaris.Cord.de/';
   $HTMLCOPYRIGHT = '
   <address>
    <a href="' . $HOMEPAGE . '">Calamaris</a> ' . $VERSION . ',
-   Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+   Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2013
    <a href="http://Cord.de/">Cord Beermann</a>. Authors: Cord Beermann and Michael Pophal.
   </address>
   <p>
