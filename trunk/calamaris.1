@@ -8,7 +8,7 @@ Proxy-Cache-Servers
 .SH "SYNOPSIS"
 cat log |
 .B calamaris
-[ --config-file .../calamaris.conf ] [ switches ]
+[ \--config-file .../calamaris.conf ] [ switches ]
 
 .SH "DESCRIPTION"
 .B Calamaris
@@ -53,7 +53,7 @@ equals
 .TP
 .I --domain-report|-d n ($domain_report)
 switches the top level and the second level report on.  The data is derived
-from the URL.  The output is limited by n.  (-1 is unlimited)
+from the URL.  The output is limited by n. (\-1 is unlimited)
 
 .TP
 .I --domain-report-limit n ($domain_report_limit)
@@ -61,7 +61,7 @@ limit the domain-report to lines which have n or more requests.
 
 .TP
 .I --domain-report-n-level|-N n ($domain_report_n_level)
-All URL-Host reports will be switched from 2nd-level to n-level-reports. (-1
+All URL-Host reports will be switched from 2nd-level to n-level-reports. (\-1
 shows a full urlhost-report)
 
 .B Note:
@@ -101,7 +101,7 @@ Time: Adjust the Performancereport in minutes for non GMT-Timezoners.
 .TP
 .I --requester-report|-r n ($requester_report)
 Switches the UDP and TCP requester reports on.  The output is limited by n.
-(-1 is unlimited)
+(\-1 is unlimited)
 
 .TP
 .I --requester-report-no-dns-lookup|-n ($requester_report_no_dns_lookup)
@@ -118,7 +118,7 @@ This breaks the privacy of your users! (see PRIVACY-Section below)
 .TP
 .I --requester-report-with-targets|-R n ($requester_report_with_targets)
 adds to each line of the requester report the requested URLs. The output is
-limited by n.  (-1 is unlimited, and can result in very very long reports.)
+limited by n.  (\-1 is unlimited, and can result in very very long reports.)
 
 .B Warning:
 Using this option breaks the privacy of your users! (see PRIVACY-Section
@@ -147,7 +147,7 @@ and makes the status reports more verbose.
 .TP
 .I --type-report|-t n ($type_report)
 switches the content type and the file extension report on.  The output is
-limited by n.  (-1 is unlimited)
+limited by n.  (\-1 is unlimited)
 
 .TP
 .I --type-report-ignore-case|-c ($type_report_ignore_case)
@@ -229,7 +229,7 @@ Logfile Format (from
 .TP
 .I --ipfilter-exclude IP/range ($ipfilter_exclude)
 all IPs are analyzed, except IP/range.
-Format: 1.1.1.1/32:1.1.2.0/24
+Format: 1.1.1.1/32:1.1.2.0/24 or
 1.1.1.1/255.255.255.255:1.1.2.0/255.255.255.0
 
 IP list separated by ':'
@@ -240,7 +240,7 @@ This breaks the privacy of your users! (see PRIVACY-Section below)
 
 .TP
 .I --ipfilter-include IP/range ($ipfilter_include)
-no IPs are analyzed, except IP/range. Format: see --ipfilter-exclude
+no IPs are analyzed, except IP/range. Format: see \--ipfilter-exclude
 
 .B Warning:
 This breaks the privacy of your users! (see PRIVACY-Section below)
@@ -276,7 +276,7 @@ graph)
 .I ($formats[n])
 Through the config-file you are able to modify the width of the report and
 alter the culomns that are displayed in the reports. n is the number of the
-report, as displayed by --help in the --show-reports-option.
+report, as displayed by \--help in the \--show-reports-option.
 
 .TP
 .I --hostname|-H name ($hostname)
@@ -289,7 +289,7 @@ looks up the host name of the system its been run on.
 .I --image-type ($image_type)
 Sets the image type to gif, png, jpeg, gd or gd2. Only useful when
 .I
---output-format graph
+\--output-format graph
 is set. The available images types are dependend
 on your GD::Graph installation. Default is 'png'.
 
@@ -339,7 +339,7 @@ Server-Side-Includes.
 enables graphics for html, html-embed or html-frame.
 
 .I 'unformatted'
-gives out the raw numbers seperated by spaces. Useful for re-using the output
+gives out the raw numbers separated by spaces. Useful for re-using the output
 in other scripts. If you use this along with
 .I -U,
 the byte values are calculated in the given Unit, and displayed without
@@ -356,7 +356,7 @@ is not given, all graphics are written to the working directory.
 
 .TP
 .I --output-file ($output_file)
-alter the filename of --output-path.
+alter the filename of \--output-path.
 
 .TP
 .I --output-file-prefix ($output_file_prefix)
@@ -484,7 +484,7 @@ generates an index for all reports that match
 .I --cache-input-file|-i file ($cache_input_file)
 You can reuse a cache file generated with
 .I --cache-output-file file
-to add old data to a new report.  Several files can be seperated with a ':'.
+to add old data to a new report.  Several files can be separated with a ':'.
 
 .B Note:
 if you use more than one cache file, make sure they are chronologicaly
@@ -549,11 +549,11 @@ print more information about what is Calamaris is doing and believing.
 .SH "EXAMPLES"
 .TP
 This example mails the daily statistics to root:
-cat /var/log/squid/access.log | nice -39
+cat /var/log/squid/access.log | nice \-39
 .B calamaris
 .I --all-useful-reports
 .I --hostname
-'daily worf'
+"daily worf"
 .I --output-format
 mail | mail root
 
@@ -561,14 +561,15 @@ mail | mail root
 This one only caches a summary for later use:
 cat /var/log/squid/access.log |
 .B calamaris
---all-useful-reports --cache-output-file daily.`date +"%w"` > /dev/null
+\--all-useful-reports \--cache-output-file daily.`date +"%w"` > /dev/null
 
 .TP
 You can then use the caches to have weekly statistics:
-
+.TP
 if [ $DAYOFWEEK = "0" ]; then
 .B calamaris
---all-useful-reports --cache-input-file daily.1:daily.2:daily.3:daily.4:daily.5:daily.6:daily.0 --no-input --output-format mail --hostname "weekly worf" | mail root ;
+\--all-useful-reports \--cache-input-file daily.1:daily.2:daily.3:daily.4:daily.5:daily.6:daily.0 \--no-input \--output-format mail \--hostname "weekly worf" | mail root ;
+.TP
 fi
 
 .SH "BUGS"
@@ -633,15 +634,14 @@ It describes the usage of Calamaris V3.0 and later.
 Information about new releases, mailing lists, and other related issues
 can be found from the
 .B Calamaris
-home page at 
-.URL http://Calamaris.Cord.de/
+home page at URL http://Calamaris.Cord.de/
 
 .SH "WARRANTY"
 .B Calamaris
 comes with "absolutely no warranty".
 
 .SH "COPYRIGHT"
-Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004 Cord Beermann
+Copyright (C) 1997-2006, 2013, 2015 Cord Beermann
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

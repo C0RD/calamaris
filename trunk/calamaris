@@ -3,11 +3,11 @@
 # $Id: calamaris,v 2.100 2006-03-19 17:28:02 cord Exp $
 #
 # we now ignore the rcs-revision-Number
-$VERSION = '2.99.4.1';
+$VERSION = '2.99.4.2';
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
-# Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2013
+# Copyright (C) 1997-2006, 2013, 2015
 #	Cord Beermann
 #
 # URL: http://Calamaris.Cord.de/
@@ -91,6 +91,8 @@ $VERSION = '2.99.4.1';
 #	Chris Clemson <Chris.Clemson@softwareag.co.uk>
 #	Scott Tregear <scottt@bullockbaur.ca>
 #	Sythos ? <sythos@sythos.net>
+#	Dmitriy <ddsmes@gmail.com>
+#	Daniel Echeverry <epsilon77@gmail.com>
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -769,7 +771,7 @@ Thank You.\n\n";
   $time_end = $log_date if $log_date > $time_end;';
   if ( defined $opt_p ) {
     $loop .= '
-  if ( defined(@peak_all) ) {
+  if (@peak_all) {
     if ( $log_date < $peak_all[$#peak_all] ) {
       $peak_warn =
 	\'Peak values are most likely wrong due to unsorted input!\';
@@ -2355,7 +2357,7 @@ if ($opt_t) {
   $report_index = 11;
   @format = ref($formats[$report_index]) ?
     @{$formats[$report_index]} : ( 32, 9, '%', '%', 'off', 8, '%', '%', 'off' );
-  if (%tcp_content) {
+  if ( %tcp_content ) {
     outstart($report_index);
     if ( $tcp == 0 ) {
       outline( $report_index, '', 'no matching requests' );
@@ -4049,13 +4051,13 @@ sub outgraph {
 
   if ($max_x_data < 0) {
     # show last $max_x_data Values
-    $min_x = ($#{@$xaxis_ref} + $max_x_data < 0) ? 0
-      : $#{@$xaxis_ref} + $max_x_data + 1;
-    $max_x = $#{@$xaxis_ref};
+    $min_x = ($#{$xaxis_ref} + $max_x_data < 0) ? 0
+      : $#{$xaxis_ref} + $max_x_data + 1;
+    $max_x = $#{$xaxis_ref};
   } else {
     # show first $max_x_data Values
     $min_x = 0;
-    $max_x = ($#{@$xaxis_ref} > $max_x_data) ? $max_x_data : $#{@$xaxis_ref};
+    $max_x = ($#{$xaxis_ref} > $max_x_data) ? $max_x_data : $#{$xaxis_ref};
   }
 
   my $graph = calamaris::calBars3d->new($width, int($width/3*2));
@@ -4081,7 +4083,7 @@ Please use one of the supported image types: @img_format \n\n";
   ($factor0, $unit0) = getfactor(max(@$yaxis1_ref[$min_x..$max_x]),9);
   $yaxis1_ref = reformatarray($factor0, $yaxis1_ref) if ($factor0 > 1);
   my %graph_label = (x_label		=> '',
-		     y_label		=> "$unit0 ${@$legend_ref}[0]",
+		     y_label		=> "$unit0 ${$legend_ref}[0]",
 		     title		=> '',
 		     two_axes		=> '0',
 		     x_labels_vertical	=> '1',
@@ -4112,8 +4114,8 @@ Please use one of the supported image types: @img_format \n\n";
     push @data, [@$yaxis2_ref[$min_x..$max_x]];
     push @data, [@$yaxis3_ref[$min_x..$max_x]] if ref($yaxis3_ref);
     push @data, [@$yaxis4_ref[$min_x..$max_x]] if ref($yaxis4_ref);
-    %graph_label = ( y1_label		=> "$unit0 ${@$legend_ref}[0]",
-		    y2_label		=> "$unit1 ${@$legend_ref}[1]",
+    %graph_label = ( y1_label		=> "$unit0 ${$legend_ref}[0]",
+		    y2_label		=> "$unit1 ${$legend_ref}[1]",
 		    two_axes		=> '1',
 		    bar_spacing		=> '0',
 		    set_spacing		=> '6', );
@@ -4775,13 +4777,13 @@ sub readconfig {
   $LICENSE = 'Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
 welcome to redistribute it under certain conditions. See source for details.';
   $COPYRIGHT =
-'Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2013
+'Copyright (C) 1997-2006, 2013, 2015
 Cord Beermann. Authors: Cord Beermann and Michael Pophal.';
   $HOMEPAGE = 'http://Calamaris.Cord.de/';
   $HTMLCOPYRIGHT = '
   <address>
    <a href="' . $HOMEPAGE . '">Calamaris</a> ' . $VERSION . ',
-   Copyright &copy; 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2013
+   Copyright &copy; 1997-2006, 2013, 2015
    <a href="http://Cord.de/">Cord Beermann</a>. Authors: Cord Beermann and Michael Pophal.
   </address>
   <p>
