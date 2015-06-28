@@ -1221,7 +1221,7 @@ Thank You.\n\n";
       $hier++;
       $hier_size += $log_size;
       $hier_time += $log_reqtime;
-      if ( $log_hier_method =~ m#DIRECT|PINNED|SOURCE_FASTEST#o ) {
+      if ( $log_hier_method =~ m#DIRECT|ORIGINAL_DST|PINNED|SOURCE_FASTEST#o ) {
 	$hier_direct++;
 	$hier_direct_size += $log_size;
 	$hier_direct_time += $log_reqtime;';
