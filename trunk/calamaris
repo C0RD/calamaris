@@ -1130,7 +1130,7 @@ Thank You.\n\n";
     if ( $log_hitfail eq \'1\' or $log_hitfail =~ m#^(TCP_HIT|HIT_)#o ) {';
   } else {
     $loop .= '
-    if ( $log_hitfail =~ m#^TCP_\w*HIT#o ) {';
+    if ( $log_hitfail =~ m#^TCP_(\w*HIT|REDIRECT|REFRESH_UNMODIFIED)#o ) {';
   }
   $loop .= '
       $tcp_hit++;
@@ -1433,7 +1433,7 @@ if ($opt_response_time) {
   my $time_skipped = ($response_time_limit == $response_time_report_interval[$#response_time_report_interval])
     ? '' :  " (requests > $response_time_limit msec skipped)";
   my $skipped_percent = (($skipped+$reqtime_num) ? round(100*$reqtime_num/($skipped+$reqtime_num),2) : 100 ) . ' percent';
-  outline( $report_index, '', "UDP response time of $skipped%% requests$time_skipped:", 'msec',
+  outline( $report_index, '', "UDP response time of $skipped% requests$time_skipped:", 'msec',
 	kilomegagigatera( $avg_udp_reqtime, $format[2] ) ) if ($avg_udp_reqtime);
 
   $skipped = 0;
@@ -1447,7 +1447,7 @@ if ($opt_response_time) {
     $reqtime_num += $tcp_reqtime{$reqtime};
   }
   $avg_tcp_reqtime = ($reqtime_num) ? $reqtime_sum / $reqtime_num : '0';
-  $skipped_percent = (($skipped+$reqtime_num) ? round(100*$reqtime_num/($skipped+$reqtime_num),2) : 100 ) . '%%';
+  $skipped_percent = (($skipped+$reqtime_num) ? round(100*$reqtime_num/($skipped+$reqtime_num),2) : 100 ) . '%';
   outline( $report_index, '', "TCP response time of $skipped_percent requests$time_skipped:", 'msec',
 	kilomegagigatera( $avg_tcp_reqtime, $format[2] ) ) if ($avg_tcp_reqtime);
 }
@@ -4301,10 +4301,10 @@ sub outline {
       if ( $no == 0 ) {
 	if ( length($print) > $format[$no] ) {
 	  $out_body{$index} .=
-	    sprintf( $print . "\n" . ' ' x $format[$no] . ' ' );
+	    $print . sprintf( "\n" . ' ' x $format[$no] . ' ' );
 	} else {
 	  $out_body{$index} .=
-	    sprintf( $print . ' ' x ( $format[$no] - length($print) ) . ' ' );
+	    $print . sprintf( ' ' x ( $format[$no] - length($print) ) . ' ' );
 	}
       } elsif ( $format[$no] eq '%' ) {
 	if ( $print eq '' or $print eq '-' ) {
