@@ -93,6 +93,7 @@ $VERSION = '2.99.4.2';
 #	Sythos ? <sythos@sythos.net>
 #	Dmitriy <ddsmes@gmail.com>
 #	Daniel Echeverry <epsilon77@gmail.com>
+#	Laurent Licour <laurent@licour.com>
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -1367,7 +1368,7 @@ open( CACHE, ">$opt_o" ) or die ("$0: can't open $opt_o for writing: $!\n")
 
 # Summary
 $report_index = 0;
-@format = ( 57, 14, 6 );
+@format = ( 53, 14, 10 );
 writecache( $report_index, $time_begin, $time_end, $counter, $size, $time,
 	   $invalid, $time_run, $udp, $udp_size, $udp_time, $udp_hit,
 	   $udp_hit_size, $udp_hit_time, $udp_miss, $udp_miss_size,
@@ -1398,7 +1399,7 @@ outline( $report_index, '', 'unique hosts/users:', 'hosts',
 	scalar keys %tcp_requester ) if $opt_r;
 outline( $report_index, '', 'Total Bandwidth:', 'Byte',
 	kilomegagigatera( $tcp_size + $udp_size, $format[2] ) );
-@format = ( 57, 14, '%' );
+@format = ( 53, 14, '10%' );
 $peak_all_hour_size_time =
   ( sort { $peak_all_hour_size{$b} <=> $peak_all_hour_size{$a} }
    keys(%peak_all_hour_size) )[0]
@@ -1406,6 +1407,9 @@ $peak_all_hour_size_time =
 outline( $report_index, '', 'Max. Bandwidth usage:', 'MBit/sec',
 	$peak_all_hour_size{$peak_all_hour_size_time} * 8 /
 	  ( 1024**2 * 3600 ) ) if $opt_p;
+outline( $report_index, '', 'Bandwidth savings in Percent (Byte hit rate):',
+	'%', ( $tcp_size + $udp_size )
+	? 100 * ( $tcp_hit_size + $udp_hit_size ) / ( $tcp_size + $udp_size ) : 0 );
 outline( $report_index, '', 'Proxy efficiency (HIT [kB/sec] / DIRECT [kB/sec]):',
 	'factor', ($tcp_hit_time and ($tcp_miss_size + $tcp_miss_none_size))
 	? $tcp_hit_size/$tcp_hit_time *
@@ -1416,7 +1420,7 @@ outline( $report_index, '', 'Average speed increase:', '%',
 	? 100 * ( -1 + $tcp_size/$tcp_time *
 		 ($tcp_miss_none_time + $tcp_miss_time) /
 		 ($tcp_miss_size + $tcp_miss_none_size)) : 0 );
-@format = ( 57, 14, 6 );
+@format = ( 53, 14, 10 );
 if ($opt_response_time) {
   # average response time
   $reqtime_sum = $reqtime_num = $avg_udp_reqtime = $avg_tcp_reqtime = 0;
@@ -1457,18 +1461,18 @@ outheader( $report_index, 'Cache statistics', '', '');
 outseperator($report_index);
 outline( $report_index, '', 'Total amount cached:', 'requests',
 	$tcp_hit + $udp_hit );
-@format = ( 57, 14, '%' );
+@format = ( 53, 14, '10%' );
 outline( $report_index, '', 'Request hit rate:', '%',
 	($tcp + $udp) ? 100 * ($tcp_hit + $udp_hit) / ($tcp + $udp) : 0 );
-@format = ( 57, 14, 6 );
+@format = ( 53, 14, 10 );
 outline( $report_index, '', 'Bandwidth savings:', 'Byte',
 	kilomegagigatera( $tcp_hit_size + $udp_hit_size, $format[2] ) );
-@format = ( 57, 14, '%' );
+@format = ( 53, 14, '10%' );
 outline( $report_index, '', 'Bandwidth savings in Percent (Byte hit rate):', '%',
 	($tcp_size + $udp_size)
 	? 100 * ($tcp_hit_size + $udp_hit_size) / ($tcp_size + $udp_size)
 	: 0 );
-@format = ( 57, 14, 6 );
+@format = ( 53, 14, 10 );
 if ($opt_D) {
   # Object sizes
   $cached_obj_size = $cached_obj_num = $obj_size = $obj_num =
@@ -3049,8 +3053,8 @@ if ($opt_P) {
       push @yaxis2, $perf_size{$perf_date};
       push @yaxis3, $perf_counter{$perf_date}
 	? $perf_tcp_hit{$perf_date} / $perf_counter{$perf_date} : 0;
-      push @yaxis4, $tcp_size
-	? $perf_tcp_hit_size{$perf_date} / $tcp_size : 0;
+      push @yaxis4, $perf_size{$perf_date} 
+	? $perf_tcp_hit_size{$perf_date} / $perf_size{$perf_date} : 0;
       writecache( $report_index, $perf_date, $perf_counter{$perf_date},
 		 $perf_size{$perf_date}, $perf_time{$perf_date},
 		 $perf_tcp_hit_size{$perf_date},
@@ -3072,7 +3076,7 @@ if ($opt_P) {
 		? 100 * $perf_tcp_hit{$perf_date} / $perf_counter{$perf_date}
 		: 0,
 	      kilomegagigatera( $perf_size{$perf_date}, $format[3] ),
-	      $tcp_size ? 100 * $perf_tcp_hit_size{$perf_date} / $tcp_size : 0,
+	      $perf_size{$perf_date} ? 100 * $perf_tcp_hit_size{$perf_date} / $perf_size{$perf_date} : 0,
 	      $perf_requester{$perf_date},
 	      removezerotimes( $perf_size{$perf_date}, $perf_time{$perf_date}
 			      ),
@@ -4306,6 +4310,13 @@ sub outline {
 	  $out_body{$index} .=
 	    $print . sprintf( ' ' x ( $format[$no] - length($print) ) . ' ' );
 	}
+      } elsif ( $format[$no] eq '10%' ) {
+	if ( $print eq '' or $print eq '-' ) {
+	  $out_body{$index} .= ' ' x 11;
+	}
+	else {
+	  $out_body{$index} .= sprintf( '%10.2f ', $print );
+	}
       } elsif ( $format[$no] eq '%' ) {
 	if ( $print eq '' or $print eq '-' ) {
 	  $out_body{$index} .= ' ' x 7;
@@ -4374,6 +4385,8 @@ sub outseperator {
     } elsif ( $outtype_html or $outtype_htmlembed or $outtype_htmlframe ) {
       $out_body{$index} .= '
     <td></td>';
+    } elsif ( $print eq '10%' ) {
+      $out_body{$index} .= sprintf( '-' x 10 . ' ' );
     } elsif ( $print eq '%' ) {
       $out_body{$index} .= sprintf( '-' x 6 . ' ' );
     } elsif ( $print =~ m/[bps|spb|spkb|rps|rpms|spr]$/ ) {
