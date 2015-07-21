@@ -1,11 +1,8 @@
 #!/usr/bin/perl -w
 #
-# $Id: calamaris,v 2.100 2006-03-19 17:28:02 cord Exp $
-#
-# we now ignore the rcs-revision-Number
-$VERSION = '2.99.4.2';
-#
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
+#
+$VERSION = '2.99.4.4';
 #
 # Copyright (C) 1997-2006, 2013, 2015
 #	Cord Beermann
@@ -123,9 +120,11 @@ $VERSION = '2.99.4.2';
 # If you have to remove this, read the README!
 require 5.002;
 
+# if you can't use Graphics, you should point this to a directory where calamaris/*.pm is located.
+# use lib '/usr/local';
+
 use Getopt::Long;
 use Sys::Hostname;
-use lib '/usr/local';
 
 Getopt::Long::Configure("bundling");
 GetOptions( "all-useful-reports|a" => \$opt_a,
@@ -285,8 +284,6 @@ and known bugs) then report it with the following line to
 # IP Filter
   my %filter_ip;
   if ($opt_ipfilter_exclude or $opt_ipfilter_include) {
-    die( "$0: Couldn't load package NetAddr::IP,
-  maybe it is not installed: $!\n" ) unless (eval "require NetAddr::IP");
     my $to_split = ($opt_ipfilter_exclude) ?
       $opt_ipfilter_exclude : $opt_ipfilter_include;
     foreach ( split /:/, $to_split ) {
@@ -3592,7 +3589,7 @@ if ( $opt_I and $opt_i ) {
 if ($opt_ipfilter_exclude) {
   outstart('E');
   outline( 'E', '', '' );
-  outline( 'E', '', 'The following IP adresses have been ignored:' );
+  outline( 'E', '', 'The following IP addresses have been ignored:' );
   foreach ( split ( ':', $opt_ipfilter_exclude ) ) {
     outline( 'E', '', "    $_" );
   }
@@ -3602,7 +3599,7 @@ if ($opt_ipfilter_exclude) {
 if ($opt_ipfilter_include) {
   outstart('E');
   outline( 'E', '', '' );
-  outline( 'E', '', 'Only the following IP adresses have been recognized:' );
+  outline( 'E', '', 'Only the following IP addresses have been recognized:' );
   foreach ( split ( ':', $opt_ipfilter_include ) ) {
     outline( 'E', '', "    $_" );
   }
@@ -4046,9 +4043,6 @@ sub outgraph {
   my $yaxis3_ref = shift;
   my $yaxis4_ref = shift;
   my ($factor0, $factor1, $unit0, $unit1, $min_x, $max_x);
-  die( "$0: Couldn't load package calamaris::calBars3d,
-  maybe it is not installed: $!\n" )
-    unless (eval "require calamaris::calBars3d");
 
   if ($max_x_data < 0) {
     # show last $max_x_data Values
@@ -4072,7 +4066,7 @@ sub outgraph {
     if ( ! defined($format{$opt_image_type}) ) {
       # Image type not supported
       print STDERR "$0: $opt_image_type is not supported by GD::Graph!\n
-Please use one of the supported image types: @img_format \n\n";
+  Please use one of the supported image types: @img_format \n\n";
       exit(1);
     }
     $verified = 1; # don't do it on every 'sub outgraph' call
@@ -4631,6 +4625,14 @@ sub readconfig {
     $host_name = '';
   }
 
+  if ($opt_ipfilter_exclude or $opt_ipfilter_include) {
+    unless (eval "require NetAddr::IP") {
+      print STDERR "$0: You need package NetAddr::IP for ipfilter-*-Option,
+  I searched it in @INC: $!\n\n";
+      $usage_err = 1;
+    }
+  }
+
   if ( $opt_N and $opt_N != -1 and $opt_N < 2 ) {
     print STDERR "$0: wrong value at -N -option: \"$opt_N\"\n\n";
     $usage_err = 1;
@@ -4670,13 +4672,24 @@ sub readconfig {
     foreach $output ( split ( /\s*,\s*/, $opt_F ) ) {
       if ($output eq 'mail') {
         $outtype_mail = 1;
-      }elsif ($output eq 'html') {
+      } elsif ($output eq 'html') {
         $outtype_html = 1;
       } elsif ($output eq 'html-embed') {
         $outtype_htmlembed = 1;
       } elsif ($output eq 'html-frame') {
         $outtype_htmlframe = 1;
       } elsif ( $output eq 'graph' ) {
+        unless (eval "require GD::Graph") {
+      	  print STDERR "$0: You need package GD::Graph for -F 'graph'-Option,
+  I searched it in @INC: $!\n\n";
+	  $usage_err = 1;
+        }
+	use lib "${PWD}/../";
+        unless (eval "require calamaris::calBars3d") {
+      	  print STDERR "$0: You need package calamaris::calBars3d for -F 'graph'-Option,
+  I searched it in @INC: $!\n\n";
+	  $usage_err = 1;
+        }
         $outtype_graph = 1;
       } elsif ( $output eq 'unformatted' ) {
         $outtype_unformatted = 1;
@@ -4920,6 +4933,7 @@ Output: (Default is plain formatted text)
 	html-embed  = HTML format without HTML-headers.
 	graph	    = enable graphics, needs GD::Graph, only useful with html
 		      or html-embed, see --output-path. Disables mail output.
+		      This switch needs the perl Module GD::Graph.
 	unformatted = plain unformatted output
 --output-path /path
 --output-file-prefix string
