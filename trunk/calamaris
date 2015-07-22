@@ -4684,7 +4684,7 @@ sub readconfig {
   I searched it in @INC: $!\n\n";
 	  $usage_err = 1;
         }
-	use lib "${PWD}/../";
+	use lib "$ENV{PWD}/../";
         unless (eval "require calamaris::calBars3d") {
       	  print STDERR "$0: You need package calamaris::calBars3d for -F 'graph'-Option,
   I searched it in @INC: $!\n\n";
