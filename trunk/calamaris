@@ -4665,6 +4665,19 @@ sub readconfig {
   }
 
   $path = $opt_output_path ? $opt_output_path : '.';
+  if (-d "$path") {
+    unless (-w "$path") {
+      print STDERR "$0: directory $path not writable: $!\n\n";
+      $usage_err = 1; 
+    }
+  } else {
+    use File::Path qw(make_path);
+    make_path( "$path", {error => \my $err} );
+    if (@err) {
+      print STDERR "$0: can't create directory $path: @err\n\n";
+      $usage_err = 1;
+    }
+  }
   $filename = $opt_output_file ? $opt_output_file : 'calamaris.txt';
   $file_prefix = $opt_output_file_prefix ? $opt_output_file_prefix : '';
   if ($opt_F) {
