@@ -124,7 +124,7 @@ require 5.002;
 # use lib '/usr/local';
 
 use Getopt::Long;
-use Sys::Hostname;
+use Socket qw(:DEFAULT inet_pton getnameinfo);
 
 Getopt::Long::Configure("bundling");
 GetOptions( "all-useful-reports|a" => \$opt_a,
@@ -3846,14 +3846,21 @@ sub removezerotimes {
 
 sub getfqdn {
   my ($host) = @_;
-  if ( $host =~
-      m#^([^@]+@)?(::ffff:)?(([0-9][0-9]{0,2}\.){3}[0-9][0-9]{0,2}$)#o ) {
-    $hostcache{$3} = addtonam($3) unless defined $hostcache{$3};
-    return $1 . $hostcache{$3} if defined $1;
-    return $hostcache{$3};
-  } else {
-    return $host;
+  unless ($hostcache{$host}) {
+    my $sockaddr;
+    if ( $host =~ m#^(::ffff:)?(([0-9][0-9]{0,2}\.){3}[0-9][0-9]{0,2})$#io ) {
+      $sockaddr = sockaddr_in(0 , inet_pton(AF_INET, $2));
+    } elsif ( $host =~ m#^([0-9a-f:]+)$#io ) {
+      $sockaddr = sockaddr_in6(0, inet_pton(AF_INET6, $1));
+    }
+    if ( $sockaddr ) {
+      $hostcache{$host} = (getnameinfo($sockaddr, 0, 0))[1];
+      $hostcache{$host} = $host unless $hostcache{$host};
+    } else {
+      $hostcache{$host} = $host;
+    }
   }
+  return $hostcache{$host};
 }
 
 sub addtonam {
@@ -4422,14 +4429,18 @@ sub geterrcode {
   $err_code{'204'} = 'No Content';
   $err_code{'205'} = 'Reset Content';
   $err_code{'206'} = 'Partial Content';
-  $err_code{'207'} = 'Multi Status';
+  $err_code{'208'} = 'Already Reported';
+  $err_code{'226'} = 'IM Used';
   $err_code{'300'} = 'Multiple Choices';
   $err_code{'301'} = 'Moved Permanently';
   $err_code{'302'} = 'Moved Temporarily';
   $err_code{'303'} = 'See Other';
   $err_code{'304'} = 'Not Modified';
   $err_code{'305'} = 'Use Proxy';
+  $err_code{'306'} = 'Switch Proxy';
   $err_code{'307'} = 'Temporary Redirect';
+  $err_code{'307'} = 'Permanent Redirect';
+  $err_code{'308'} = 'Resume Incomplete';
   $err_code{'400'} = 'Bad Request';
   $err_code{'401'} = 'Unauthorized';
   $err_code{'402'} = 'Payment Required';
@@ -4443,21 +4454,34 @@ sub geterrcode {
   $err_code{'410'} = 'Gone';
   $err_code{'411'} = 'Length Required';
   $err_code{'412'} = 'Precondition Failed';
-  $err_code{'413'} = 'Request Entity Too Large';
+  $err_code{'413'} = 'Payload Too Large';
   $err_code{'414'} = 'Request URI Too Large';
-  $err_code{'415'} = 'Unsupported Media ';
+  $err_code{'415'} = 'Unsupported Media Type';
   $err_code{'416'} = 'Request Range Not Satisfiable';
   $err_code{'417'} = 'Expectation Failed';
-  $err_code{'424'} = 'Locked';
+  $err_code{'418'} = 'I\'m a teapot';
+  $err_code{'419'} = 'Authentication Timeout';
+  $err_code{'421'} = 'Misdirected Request';
+  $err_code{'422'} = 'Unprocessable Entity';
+  $err_code{'423'} = 'Locked';
   $err_code{'424'} = 'Failed Dependency';
+  $err_code{'428'} = 'Precondition Required';
+  $err_code{'429'} = 'Too Many Requests';
+  $err_code{'431'} = 'Request Header Fields Too Large';
   $err_code{'433'} = 'Unprocessable Entity';
+  $err_code{'451'} = 'Unavailable For Legal Reasons';
   $err_code{'500'} = 'Internal Server Error';
   $err_code{'501'} = 'Not Implemented';
   $err_code{'502'} = 'Bad Gateway';
   $err_code{'503'} = 'Service Unavailable';
   $err_code{'504'} = 'Gateway Timeout';
   $err_code{'505'} = 'HTTP Version Not Supported';
+  $err_code{'506'} = 'Variant Also Negotiates';
   $err_code{'507'} = 'Insufficient Storage';
+  $err_code{'508'} = 'Loop Detected';
+  $err_code{'510'} = 'Not Extended';
+  $err_code{'511'} = 'Network Authentication Required';
+  $err_code{'522'} = 'Connection timed out (unofficial)';
   $err_code{'600'} = 'Squid header parsing error';
   return %err_code;
 }
@@ -4617,6 +4641,7 @@ sub readconfig {
   }
   if ($opt_H) {
     if ( $opt_H eq '1' or $opt_H eq 'lookup' ) {
+      use Sys::Hostname;
       $host_name = hostname();
     } else {
       $host_name = $opt_H;
@@ -4659,7 +4684,7 @@ sub readconfig {
     }
     if ($interval_begin > $interval_end) {
       print STDERR "$0: wrong value at -I -option: \"$opt_I\".
- Interval begin newer than interval end!\n\n";
+  Interval begin newer than interval end!\n\n";
       $usage_err = 1;
     }
   }
@@ -4697,7 +4722,8 @@ sub readconfig {
   I searched it in @INC: $!\n\n";
 	  $usage_err = 1;
         }
-	use lib "$ENV{PWD}/../";
+        use FindBin;
+	use lib "$FindBin::Bin/..";
         unless (eval "require calamaris::calBars3d") {
       	  print STDERR "$0: You need package calamaris::calBars3d for -F 'graph'-Option,
   I searched it in @INC: $!\n\n";
