@@ -124,7 +124,6 @@ require 5.002;
 # use lib '/usr/local';
 
 use Getopt::Long;
-use Socket qw(:DEFAULT inet_pton getnameinfo);
 
 Getopt::Long::Configure("bundling");
 GetOptions( "all-useful-reports|a" => \$opt_a,
@@ -173,6 +172,10 @@ GetOptions( "all-useful-reports|a" => \$opt_a,
 
 readconfig();
 
+unless ($opt_n) {
+  use Socket qw(:DEFAULT inet_pton getnameinfo);
+}
+
 print "$USAGE\n\n" if $opt_h;
 print "Calamaris $VERSION\n\n" if $opt_V;
 print "$COPYRIGHT\n\n$LICENSE\n\n$HOMEPAGE\n" if $opt_C or $opt_h or $opt_V;
@@ -210,6 +213,7 @@ undef(%tcp_reqtime_size);
 undef(%tcp_hit_reqtime_size);
 undef(%tcp_hit_reqtime);
 undef(%perf_ip);
+$loop = '';
 
 readcache() if ($opt_i);
 
@@ -295,7 +299,7 @@ and known bugs) then report it with the following line to
   }
 
   print STDERR "print a hash-sign for each $opt_b lines:\n" if ($opt_b);
-  $loop = '
+  $loop .= '
 for ( ; $line; $line = <> ) {';
   if ( $opt_f eq 'squid' ) {
     $loop .= '
@@ -674,7 +678,8 @@ Thank You.\n\n";
   $log_reqtime = .1 if $log_reqtime == 0;
   ( $log_hitfail, $log_code ) = split \'/\', $log_status;
   $log_size = 0 if ( $log_size eq \'-\' );
-  $log_url = "$log_cs_uri_scheme://$log_cs_host/$log_cs_uri_path" unless ($log_url);
+  $log_url = "$log_cs_uri_scheme://$log_cs_host/$log_cs_uri_path"
+    unless ($log_url);
   $log_url =~ s/\?.*$/?/;
   @url = split m#[/\\\]#o, $log_url;
   ( $urlprot, $urlhost, $urlext ) = (@url)[ 0, 2, $#url ];
