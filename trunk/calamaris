@@ -14,83 +14,10 @@ $VERSION = '2.99.4.5';
 # AUTHORS: Cord Beermann <Cord@Wunder-Nett.org>
 #	Michael Pophal <michael.pophal@nefkom.net>
 #
-# Thanks to these contributors, bug reporters, and feature requesters:
-#	John Heaton <John@MCC.ac.uk>
-#	Andreas Lamprecht <Andreas.Lamprecht@siemens.at>
-#	Kenny Ng <kennyng@cyberway.com.sg>
-#	Claus Langhans <langhans@rz.uni-frankfurt.de>
-#	Andreas Jung <ajung@sz-sb.de>
-#	Ernst Heiri <heiri@switch.ch>
-#	Shamil R. Yahin <SSHY@cclib.nsu.ru>
-#	Thoralf Freitag <Thoralf.Freitag@isst.fhg.de>
-#	Marco Paganini <paganini@paganini.net>
-#	Michael Riedel <mriedel@darksun.net>
-#	Kris Boulez <krbou@pgsgent.be>
-#	Mark Visser <mark@snt.utwente.nl>
-#	Gary Palmer <gjp@erols.com>
-#	Stefan Watermann <stefan@metronet.de>
-#	Roar Smith <Roar.Smith@Ericsson.Dk>
-#	Bernd Lienau <lienau@tli.de>
-#	Gary Lindstrom <gplindstrom@exodus.nnc.edu>
-#	Jost Krieger <Jost.Krieger@ruhr-uni-bochum.de>
-#	Gerd Michael Hoffmann <Hoffmann@dvgw.de>
-#	Gerold Meerkoetter <gerold@noc.fh-lippe.de>
-#	Iain Lea <iain@bricbrac.de>
-#	Emmanuel Adeline <emmanuel.adeline@mail.dotcom.fr>
-#	John Line <webadm@info.cam.ac.uk>
-#	Christos Cheretakis <xalkina@otenet.gr>
-#	Ryan Donnelly <rmd@doit.wisc.edu>
-#	Richard Vaughan <richard_vaughan@timewarp.co.uk>
-#	Jonas Luster <jonas@nethammer.qad.org>
-#	Clare Lahiff <Clare.Lahiff@anu.edu.au>
-#	Toni Andjelkovic <toni@telecom.at>
-#	Chris Teakle <ccteakle@its.uq.edu.au>
-#	Dancer Vesperman <dancer@zeor.simegen.com>
-#	Vincent ? <vincent@aib.net>
-#	Elrond ? <Elrond@Wunder-Nett.org>
-#	Holger Marzen <holger@marzen.de>
-#	Panagiotis Christias <P.Christias@noc.ntua.gr>
-#	Patrik Rak <patrik@ash.ein.cz>
-#	Steve Snyder <swsnyder@insightbb.com>
-#	Michael Copeland <michael.copeland@bell.ca>
-#	Warren Brown <wbrown@inktomi.com>
-#	Andy Nik <nik@che.nsk.su>
-#	Frank Roechter <frank@fhd.de>
-#	Antonio Casado Rodríguez <acasado@ualm.es>
-#	Pavol Adamec <pavol_adamec@tempest.sk>
-#	Ram Cherukuri <ram@edgix.com>
-#	Marco Koch <MK@electricpaper.de>
-#	Stephen Welker <stephen.welker@nemostar.com.au>
-#	Christian Niederdorfer <christian.niederdorfer@infineon.com>
-#	Klaus Brinkmeyer <Klaus_Brinkmeyer@inasys.de>
-#	Filip ? <mechanix@digibel.org>
-#	Matt Hubbard <m.hubbard@ic.ac.uk>
-#	James Crocker <jcrocker@menasha.com>
-#	Enrico Ardizzoni <enrico@unife.it>
-#	Shawn Switenky <S.Switenky@telesat.ca>
-#	Jarkko Saloranta <jjs@kpo.fi>
-#	Jigar Rasalawala <jrasalawala@fourelle.com>
-#	Philipp Frauenfelder <philipp.frauenfelder@swissonline.ch>
-#	Alexey Markov <markov@crpi.ru>
-#	Mark Güthling <privat@mague-pcservice.de>
-#	Sergey Zarubin <serge-home@yandex.ru>
-#	Helge Oldach <calamaris@oldach.net>
-#	Michael R. Schwarzbach <spg@fs.tum.de>
-#	Radu - Eosif Mihailescu <rmihailescu@lumina.ro>
-#	Steffen Sledz <sledz@zone42.org>
-#	Kenytt Avery <kavery@willingminds.com>
-#	SO Kwok Tsun <ktso@cuhk.edu.hk>
-#	Chris Knight <chris@aims.com.au>
-#	ycdtosa ? <ycdtosa@eupla.unizar.es>
-#	Peter W. Osel <pwo@Infineon.COM>
-#	Pawel Worach <pawel.worach@nordea.com>
-#	Franck Bourdonnec <fbourdonnec@chez.com>
-#	Chris Clemson <Chris.Clemson@softwareag.co.uk>
-#	Scott Tregear <scottt@bullockbaur.ca>
-#	Sythos ? <sythos@sythos.net>
-#	Dmitriy <ddsmes@gmail.com>
-#	Daniel Echeverry <epsilon77@gmail.com>
-#	Laurent Licour <laurent@licour.com>
+
+# Als a big thanks to all contributors, bug reporters, and feature
+# requesters: 
+# Please see the CONTRIBUTORS file.
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
