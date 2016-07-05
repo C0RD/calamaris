@@ -3419,7 +3419,7 @@ $out_head .= "MIME-Version: 1.0\nContent-Type: text/html; charset=us-ascii
 Content-Transfer-Encoding: 7bit\n" if ( $outtype_mail and $outtype_html );
 $out_head .= 'Subject: ' . ( $host_name ? "$host_name " : '') . "Proxy Report ($loginterval)\n\n"
   if ($outtype_mail);
-if ( $outtype_html or $outtype_htmlembed or outtype_htmlframe ) {
+if ( $outtype_html or $outtype_htmlembed or $outtype_htmlframe ) {
   $out_head .= '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
