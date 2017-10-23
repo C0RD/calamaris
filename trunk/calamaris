@@ -1206,7 +1206,7 @@ Thank You.\n\n";
 	  $log_reqtime;' if ($opt_s);
   $loop .= '
       } elsif ( $log_hier_method =~
-	       m#(ANY|CLOSEST|DEFAULT|FIRST_UP|PASSTHROUGH|ROUNDROBIN|SINGLE)_PARENT|CARP|PARENT_MISS|PARENT|PROXY#o
+	       m#(ANY|CLOSEST|DEFAULT|FIRST_UP|PASSTHROUGH|ROUNDROBIN|SINGLE)_PARENT|CARP|PARENT_MISS|PARENT|PROXY|STANDBY_POOL#o
 	       ) {
 	$hier_parent++;
 	$hier_parent_size += $log_size;
