@@ -3948,10 +3948,10 @@ sub outheader {
     </th>";
     } elsif ( $format[$no] eq '%' ) {
       $out_body{$index} .=
-	sprintf( ' ' x ( 6 - length($p) ) ) . substr( $p, 0, 6 ) . ' ';
+	' ' x ( ( (6 - length($p)) > 0 ) ? (6 - length($p)) : 0 ) . substr( $p, 0, 6 ) . ' ';
     } elsif ( $format[$no] =~ m/[bps|spb|spkb|rps|rpms|spr]$/ ) {
       $out_body{$index} .=
-	sprintf( substr( $p, 0, 7 ) . ' ' x ( 7 - length($p) ) . ' ' );
+	substr( $p, 0, 7 ) . ' ' x ( ( (7 - length($p)) > 0) ? (7 - length($p)) : 0 ) . ' ';
     } else {
       $out_body{$index} .= sprintf( substr( $p, 0, $format[$no] )
 		  . ' ' x ( $format[$no] - length($p) ) . ' ' );
