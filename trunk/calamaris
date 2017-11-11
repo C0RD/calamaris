@@ -2,7 +2,7 @@
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
-$VERSION = '2.99.4.5';
+$VERSION = '2.99.4.6';
 #
 # Copyright (C) 1997-2006, 2013, 2015
 #	Cord Beermann
@@ -16,7 +16,7 @@ $VERSION = '2.99.4.5';
 #
 
 # Als a big thanks to all contributors, bug reporters, and feature
-# requesters: 
+# requesters:
 # Please see the CONTRIBUTORS file.
 
 # This program is free software; you can redistribute it and/or modify it
@@ -3953,8 +3953,8 @@ sub outheader {
       $out_body{$index} .=
 	substr( $p, 0, 7 ) . ' ' x ( ( (7 - length($p)) > 0) ? (7 - length($p)) : 0 ) . ' ';
     } else {
-      $out_body{$index} .= sprintf( substr( $p, 0, $format[$no] )
-		  . ' ' x ( $format[$no] - length($p) ) . ' ' );
+      $out_body{$index} .=
+        substr( $p, 0, $format[$no] ) . ' ' x ( ( ($format[$no] - length($p)) > 0) ? ($format[$no] - length($p)) : 0 ) . ' ';
     }
     $no++;
   }
@@ -4235,10 +4235,10 @@ sub outline {
       if ( $no == 0 ) {
 	if ( length($print) > $format[$no] ) {
 	  $out_body{$index} .=
-	    $print . sprintf( "\n" . ' ' x $format[$no] . ' ' );
+	    $print . "\n" . ' ' x ( ($format[$no] > 0) ? $format[$no] : 0) . ' ';
 	} else {
 	  $out_body{$index} .=
-	    $print . sprintf( ' ' x ( $format[$no] - length($print) ) . ' ' );
+	    $print . ' ' x ( ( ($format[$no] - length($print)) > 0) ? ($format[$no] - length($print)) : 0 ) . ' ';
 	}
       } elsif ( $format[$no] eq '10%' ) {
 	if ( $print eq '' or $print eq '-' ) {
@@ -4294,7 +4294,7 @@ sub outline {
       } else {
 	$print = sprintf( '%d', $print + .5 ) if $print =~ m#^[\d\.e\-\+]+$#o;
 	$out_body{$index} .=
-	  sprintf( ' ' x ( $format[$no] - length($print) ) )
+	  ' ' x ( ( ($format[$no] - length($print)) > 0) ? ($format[$no] - length($print)) : 0 )
 		    . substr( $print, 0, $format[$no] ) . ' ';
       }
     }
@@ -4316,13 +4316,13 @@ sub outseperator {
       $out_body{$index} .= '
     <td></td>';
     } elsif ( $print eq '10%' ) {
-      $out_body{$index} .= sprintf( '-' x 10 . ' ' );
+      $out_body{$index} .= '-' x 10 . ' ';
     } elsif ( $print eq '%' ) {
-      $out_body{$index} .= sprintf( '-' x 6 . ' ' );
+      $out_body{$index} .= '-' x 6 . ' ';
     } elsif ( $print =~ m/[bps|spb|spkb|rps|rpms|spr]$/ ) {
-      $out_body{$index} .= sprintf( '-' x 7 . ' ' );
+      $out_body{$index} .= '-' x 7 . ' ';
     } else {
-      $out_body{$index} .= sprintf( '-' x $print . ' ' );
+      $out_body{$index} .= '-' x ( ($print > 0) ? $print : 0) . ' ';
     }
   }
   $out_body{$index} .= "\n";
