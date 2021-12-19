@@ -4,7 +4,7 @@ Version 3
 How to use it?
 --------------
 
-* You'll need Perl Version 5 (see http://www.Perl.com/). Calamaris is reported
+* You'll need Perl Version 5 (see https://www.Perl.org/). Calamaris is reported
   to work with Perl 5.001 (maybe you have to remove the '-w' from the first
   line and comment out the 'use vars'-line), but it is highly recommended
   (especially for security of your computer) that you use a recent version
@@ -35,7 +35,7 @@ How to use it?
 
 * Installation:
 
-  + get GD::Graph and NetAddr::IP from http://www.cpan.org and install them.
+  + get GD::Graph and NetAddr::IP from https://www.cpan.org and install them.
     (if your system has packages for these available, you should use them.)
   + cd /usr/local
   + tar -xzvf /path/to/calamaris-3.0.xxx.tgz

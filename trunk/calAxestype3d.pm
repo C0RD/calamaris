@@ -5,7 +5,7 @@
 #
 # calAxestype3d.pm Copyright (c) 2004 Michael Pophal based on
 # GD::Graph Copyright (c) 1999 Martien Verbruggen.
-# (http://search.cpan.org/~mverb/GDGraph-1.43/Graph.pm)
+# (https://metacpan.org/release/MVERB/GDGraph-1.43/view/Graph.pm)
 #
 # All rights reserved. This package is free software; you can redistribute
 # it and/or modify it under the same terms as Perl itself.
@@ -20,7 +20,7 @@
 #
 # Based on:
 #          GD::Graph::axestype3d.pm,v 1.21 2000/04/15 08:59:36 mgjv
-#          http://search.cpan.org/~mverb/GDGraph-1.43/Graph.pm
+#          https://metacpan.org/release/MVERB/GDGraph-1.43/view/Graph.pm
 #          Copyright (c) 1995-1998 Martien Verbruggen
 #
 #--------------------------------------------------------------------------

@@ -2,12 +2,12 @@
 #
 # DESCRIPTION: calamaris - statistic package for diverse Proxy-Cache-Servers
 #
-$VERSION = '2.99.4.6';
+$VERSION = '2.99.4.7';
 #
-# Copyright (C) 1997-2006, 2013, 2015
+# Copyright (C) 1997-2006, 2013, 2015, 2017, 2021
 #	Cord Beermann
 #
-# URL: http://Calamaris.Cord.de/
+# URL: https://Calamaris.Cord.de/
 # Announcement-Mailing-list: send Mail with 'subscribe' in the Mail-Body to
 #			     Calamaris-announce-request@Cord.de
 #
@@ -148,7 +148,7 @@ unless ($opt_z) {
   while ( defined( $line = <> ) ) {
     if ( not defined $opt_f or $opt_f eq 'auto' ) {
       if ( $line =~
-	  m#^\s*\d+\.\d+\s+\d+\s+[\w\-\.:]+\s+\w+/\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+$#
+	  m#^\s*\d+\.\d+\s+\d+\s+[\w\-\.:]+\s+\w+/\d+\s+\d+\s+[\w-]+\s+\S+\s+\S+\s+\w+/\S+\s+\S+$#
 	  ) {
 	$opt_f = 'squid';
 	print STDERR "guessing... using '-f squid'\n" if ($opt_v);
@@ -180,7 +180,7 @@ unless ($opt_z) {
 	print STDERR "guessing... using '-f nse'\n" if ($opt_v);
 	last;
       } elsif ( $line =~
-   m#^\d+\.\d+\s+\d+\s+[\w\-\.:]+\s+\w+/\-?\d+\s+\d+\s+\w+\s+\S+\s+\S+\s+\w+/\S+\s+\S+\s+#
+   m#^\d+\.\d+\s+\d+\s+[\w\-\.:]+\s+\w+/\-?\d+\s+\d+\s+[\w-]+\s+\S+\s+\S+\s+\w+/\S+\s+\S+\s+#
 	       ) {
 	$opt_f = 'squid-extended';
 	print STDERR "guessing... using '-f squid-extended'\n" if ($opt_v);
@@ -4771,14 +4771,14 @@ sub readconfig {
   $LICENSE = 'Calamaris comes with ABSOLUTELY NO WARRANTY. It is free software, and you are
 welcome to redistribute it under certain conditions. See source for details.';
   $COPYRIGHT =
-'Copyright (C) 1997-2006, 2013, 2015
+'Copyright (C) 1997-2006, 2013, 2015, 2017, 2021
 Cord Beermann. Authors: Cord Beermann and Michael Pophal.';
-  $HOMEPAGE = 'http://Calamaris.Cord.de/';
+  $HOMEPAGE = 'https://Calamaris.Cord.de/';
   $HTMLCOPYRIGHT = '
   <address>
    <a href="' . $HOMEPAGE . '">Calamaris</a> ' . $VERSION . ',
-   Copyright &copy; 1997-2006, 2013, 2015
-   <a href="http://Cord.de/">Cord Beermann</a>. Authors: Cord Beermann and Michael Pophal.
+   Copyright &copy; 1997-2006, 2013, 2015, 2017, 2021
+   <a href="https://Cord.de/">Cord Beermann</a>. Authors: Cord Beermann and Michael Pophal.
   </address>
   <p>
    ' . $LICENSE . '

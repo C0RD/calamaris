@@ -36,7 +36,7 @@ Which software can produce Calamaris-parseable Log-files?
 Where to get Calamaris?
 -----------------------
 
-The Calamaris-Home-page is located at http://Calamaris.Cord.de/
+The Calamaris-Home-page is located at https://Calamaris.Cord.de/
 The Development-Repository is at https://github.com/C0RD/calamaris
 
 There is also an Announcement-Mailing-list. To subscribe send mail with
@@ -45,10 +45,10 @@ There is also an Announcement-Mailing-list. To subscribe send mail with
 release, including a list of the changes. --> low traffic.
 
 Philipp Frauenfelder <pfrauenf@debian.org> has build a Debian Package, which
-can be found via http://packages.debian.org/calamaris .
+can be found via https://packages.debian.org/calamaris .
 
 There is a port for FreeBSD, which can be found at
-http://www.freebsd.org/cgi/ports.cgi?query=calamaris .
+https://www.freebsd.org/cgi/ports.cgi?query=calamaris .
 
 A package for NetBSD is here:
 ftp://ftp.netbsd.org/pub/NetBSD/packages/pkgsrc/www/calamaris/README.html
