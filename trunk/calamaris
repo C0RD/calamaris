@@ -4829,7 +4829,7 @@ Reports:
 --requester-report-no-dns-lookup|-n
 	don\'t look IP-Numbers up
 --requester-report-use-user-info|-u
-	use ident information if available (*)
+	process ident information if available (*)
 --requester-report-with-targets|-R n
 	show n targets for every Requester, -1 = unlimited),
 	implies --requester-report (*)
