@@ -20,15 +20,16 @@ mangle^H^H^Hagement happy.
 Which software can produce Calamaris-parseable Log-files?
 ---------------------------------------------------------
 
-* Squid V1.1.alpha1-V2.x (http://www.squid-cache.org/)
-* NetCache V??? (http://www.netapp.com/products/netcache/)
+* Squid V1.1.alpha1- (http://www.squid-cache.org/)
+* NetCache V??? (https://en.wikipedia.org/wiki/NetCache )
 * Inktomi Traffic Server V???
   (http://www.inktomi.com/products/network/products/)
-* Oops! proxy server V??? (http://zipper.paco.net/~igor/oops.eng/)
+* Apache Traffic Server ?? (https://trafficserver.apache.org/)
+* Oops! proxy server V??? (https://sourceforge.net/projects/oops/)
 * Compaq Tasksmart (http://www.compaq.com/tasksmart/)
 * Novell Internet Caching System (http://www.novell.com/products/ics/)
 * Netscape/iPlanet/SunONE Web Proxy Server
-  (http://www.iplanet.com/downloads/download/detail_14_13.html)
+  (https://www.oracle.com/middleware/technologies/webtier.html#iplanet-server)
 * Squid with the SmartFilter-patch
 * Cisco Content Engines
   (http://www.cisco.com/en/US/products/hw/contnetw/index.html)
@@ -51,11 +52,12 @@ There is a port for FreeBSD, which can be found at
 https://www.freebsd.org/cgi/ports.cgi?query=calamaris .
 
 A package for NetBSD is here:
-ftp://ftp.netbsd.org/pub/NetBSD/packages/pkgsrc/www/calamaris/README.html
+https://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc/www/calamaris/index.html
 
 rpms are also available from various people. You can search for them
 via http://rpmfind.net/linux/rpm2html/search.php?query=calamaris .
 
+More Packages can be found at https://repology.org/project/calamaris/packages
 
 Is there anything else?
 -----------------------
@@ -69,7 +71,7 @@ times faster than the Perl-variant.  check
 http://www.cache.dfn.de/DFN-Cache/Development/seafood.html for this.
 
 more Squid-logfile-Analysers can be found via the Squid-Home-page at
-http://www.squid-cache.org/Scripts/
+https://www.squid-cache.org/Misc/log-analysis.dyn
 
 
 Thank You!
