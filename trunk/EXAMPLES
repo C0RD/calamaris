@@ -54,23 +54,23 @@ DAYOFWEEK=`date +"%w"`
 
 # read configuration file: /etc/calamaris.conf
 # is there a more elegant way to do this?
-DAYMAIL=`awk -F: '(!/¨#/) && ($1 == "daily") { print $2; }' $CONFFILE`
-DAYWEB=`awk -F: '(!/¨#/) && ($1 == "daily") { print $3; }' $CONFFILE`
-DAYDO=`awk -F: '(!/¨#/) && ($1 == "daily") { print $4; }' $CONFFILE`
-DAYTITLE=`awk -F: '(!/¨#/) && ($1 == "daily") { print $5; }' $CONFFILE`
+DAYMAIL=`awk -F: '(!/\#/) && ($1 == "daily") { print $2; }' $CONFFILE`
+DAYWEB=`awk -F: '(!/\#/) && ($1 == "daily") { print $3; }' $CONFFILE`
+DAYDO=`awk -F: '(!/\#/) && ($1 == "daily") { print $4; }' $CONFFILE`
+DAYTITLE=`awk -F: '(!/\#/) && ($1 == "daily") { print $5; }' $CONFFILE`
 
-WEEKMAIL=`awk -F: '(!/¨#/) && ($1 == "weekly") { print $2; }' $CONFFILE`
-WEEKWEB=`awk -F: '(!/¨#/) && ($1 == "weekly") { print $3; }' $CONFFILE`
-WEEKDO=`awk -F: '(!/¨#/) && ($1 == "weekly") { print $4; }' $CONFFILE`
-WEEKTITLE=`awk -F: '(!/¨#/) && ($1 == "weekly") { print $5; }' $CONFFILE`
+WEEKMAIL=`awk -F: '(!/\#/) && ($1 == "weekly") { print $2; }' $CONFFILE`
+WEEKWEB=`awk -F: '(!/\#/) && ($1 == "weekly") { print $3; }' $CONFFILE`
+WEEKDO=`awk -F: '(!/\#/) && ($1 == "weekly") { print $4; }' $CONFFILE`
+WEEKTITLE=`awk -F: '(!/\#/) && ($1 == "weekly") { print $5; }' $CONFFILE`
 
 # perhaps sometimes I will do this,
 # but as weekends and ends of months don't meet always...
 
-# MONTHMAIL=`awk -F: '(!/¨#/) && ($1 == "monthly") { print $2; }' $CONFFILE`
-# MONTHWEB=`awk -F: '(!/¨#/) && ($1 == "monthly") { print $3; }' $CONFFILE`
-# MONTHDO=`awk -F: '(!/¨#/) && ($1 == "monthly") { print $4; }' $CONFFILE`
-# MONTHTITLE=`awk -F: '(!/¨#/) && ($1 == "monthly") { print $5; }' $CONFFILE`
+# MONTHMAIL=`awk -F: '(!/\#/) && ($1 == "monthly") { print $2; }' $CONFFILE`
+# MONTHWEB=`awk -F: '(!/\#/) && ($1 == "monthly") { print $3; }' $CONFFILE`
+# MONTHDO=`awk -F: '(!/\#/) && ($1 == "monthly") { print $4; }' $CONFFILE`
+# MONTHTITLE=`awk -F: '(!/\#/) && ($1 == "monthly") { print $5; }' $CONFFILE`
 
 # if we need monthly or weekly reports save a summary
 if [ $WEEKDO != "nothing" ]; then
